@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+
+const items = [
+  { q: '無料ですか？', a: 'アプリのダウンロードとゲームは無料です。' },
+  { q: '1日どのくらい遊べばいいですか？', a: '目安は1日3分。1回の全消しでその日はクリアです。' },
+  { q: '対象年齢はありますか？', a: '大人向けに設計しています。お子さまの利用はおすすめしていません。' },
+  { q: 'サプリを買わないと使えませんか？', a: 'いいえ。アプリだけで遊べます。' },
+  { q: 'リーグ戦にはいつから参加できますか？', a: 'グループは毎週月曜0時に作られます。新しく始めた方は次の月曜0時から参加します。' },
+  { q: 'しばらく休んでいても大丈夫ですか？', a: '直近2週間以内にトレーニングした方がリーグ戦の対象です。再開すれば次の月曜から参加できます。' },
+];
+---
+<Base title="よくある質問" description="ミエトレに関するよくある質問と回答をまとめました。">
+  <section class="sec container">
+    <h1 class="sec-title">よくある質問</h1>
+    <div style="display:grid;gap:12px;margin-top:20px">
+      {items.map((it) => (
+        <details>
+          <summary>{it.q}</summary>
+          <p>{it.a}</p>
+        </details>
+      ))}
+      <details>
+        <summary>データはどう扱われますか？</summary>
+        <p>プライバシーポリシーをご覧ください（<a href="/privacy">プライバシーポリシー</a>）。</p>
+      </details>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,45 @@
+---
+import Base from '../../layouts/Base.astro';
+import FukutaSay from '../../components/FukutaSay.astro';
+
+const faces = [
+  { img: 'default', label: '通常' },
+  { img: 'hello', label: 'あいさつ' },
+  { img: 'phone', label: 'スマホを見る' },
+  { img: 'celebrate', label: 'お祝い' },
+  { img: 'bow', label: 'お辞儀' },
+];
+---
+<Base title="相棒・ふく多くん" description="ミエトレの相棒、ふく多くんの紹介。目守りの森に住むみみずくで、アイケア習慣を支える伴走者です。">
+  <section class="sec container">
+    <h1 class="sec-title">ふく<ruby>多<rt>た</rt></ruby>くん</h1>
+    <p>種族：みみずく</p>
+    <p>住んでいる場所：目守りの森（めま森）</p>
+    <p>役割：アイケア習慣を支える伴走者。先生でも医者でもなく、相棒です。</p>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">性格</h2>
+    <p>優しい・褒め上手・応援好き。ちょっとユーモアもあります。</p>
+    <h2 class="sec-title" style="margin-top:24px">口調の例</h2>
+    <p>「いい調子だね」「今日もありがとう」「ゆっくりでいいよ、一緒に続けよう」</p>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">表情ギャラリー</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px;text-align:center">
+      {faces.map((f) => (
+        <div>
+          <img src={`/images/fukuta-${f.img}.png`} alt={`${f.label}のふく多くん`} width="120" height="120" loading="lazy" />
+          <p style="font-size:.9rem">{f.label}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="sec container">
+    <FukutaSay img="hello">
+      <p>ぼくの趣味は、友達と過ごすこと。だから毎日、アプリの中で待ってるよ。</p>
+    </FukutaSay>
+  </section>
+</Base>

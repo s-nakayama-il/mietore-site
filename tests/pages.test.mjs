@@ -56,3 +56,15 @@ test('/play/streak に連続記録・ライフ・救済措置・クエスト', (
   const h = html('play/streak/index.html');
   for (const w of ['連続記録','ライフ','救済措置','クエスト']) assert.match(h, new RegExp(w));
 });
+test('/play/fukuta にふく多くんの紹介と表情', () => {
+  const h = html('play/fukuta/index.html');
+  assert.match(h, /みみずく/); assert.match(h, /images\/fukuta-celebrate\.png/);
+});
+test('/evidence にガボールパッチ・出典・共同研究枠', () => {
+  const h = html('evidence/index.html');
+  assert.match(h, /ガボールパッチ/); assert.match(h, /出典/); assert.match(h, /共同研究/);
+});
+test('/faq に5問以上', () => {
+  const h = html('faq/index.html');
+  assert.ok((h.match(/<summary>/g) || []).length >= 5);
+});
