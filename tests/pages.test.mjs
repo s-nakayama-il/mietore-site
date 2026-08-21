@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const DIST = new URL('../dist/', import.meta.url).pathname;
@@ -77,3 +77,30 @@ test('privacy/terms は noindex で仮公開', () => {
   for (const p of ['privacy/index.html','terms/index.html']) assert.match(html(p), /name="robots" content="noindex"/);
 });
 test('404 ページ', () => { assert.match(html('404.html'), /見つかりません/); });
+
+function walk(dir, acc = []) {
+  for (const n of readdirSync(dir)) { const p = join(dir, n); statSync(p).isDirectory() ? walk(p, acc) : p.endsWith('.html') && acc.push(p); }
+  return acc;
+}
+test('内部リンクが全てdist内に存在する（/app は Function なので除外）', () => {
+  const files = walk(DIST);
+  const missing = [];
+  for (const f of files) {
+    const h = readFileSync(f, 'utf8');
+    for (const m of h.matchAll(/href="(\/[^"#?]*)/g)) {
+      const p = m[1];
+      if (p === '/app' || p.startsWith('/images') || p.endsWith('.xml') || p.endsWith('.svg') || p.endsWith('.png')) continue;
+      const target = p.endsWith('/') || p === '/' ? join(DIST, p, 'index.html') : join(DIST, p, 'index.html');
+      if (!existsSync(target) && !existsSync(join(DIST, p + '.html'))) missing.push(`${f} -> ${p}`);
+    }
+  }
+  assert.deepEqual(missing, []);
+});
+test('全ページの<img>に alt がある', () => {
+  for (const f of walk(DIST)) {
+    const h = readFileSync(f, 'utf8');
+    const imgs = h.match(/<img [^>]*>/g) || [];
+    for (const tag of imgs) assert.match(tag, /alt="/, `${f}: ${tag}`);
+  }
+});
+test('sitemap が生成される', () => { assert.ok(existsSync(join(DIST, 'sitemap-index.xml'))); });
