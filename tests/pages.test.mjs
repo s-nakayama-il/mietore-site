@@ -36,3 +36,14 @@ test('download.html に両ストアのリンク', () => {
   assert.match(h, /apps\.apple\.com\/jp\/app\/id6738352362/);
   assert.match(h, /play\.google\.com\/store\/apps\/details\?id=com\.ilinksnet\.gabor/);
 });
+
+test('/play ハブに4つの入口', () => {
+  const h = html('play/index.html');
+  for (const p of ['/play/game','/play/xp-league','/play/streak','/play/fukuta']) assert.match(h, new RegExp(`href="${p}"`));
+});
+test('/play/game にルール3ステップとクラシックモード', () => {
+  const h = html('play/game/index.html');
+  assert.match(h, /全消し/);
+  assert.match(h, /クラシックモード/);
+  assert.match(h, /href="\/app\?src=play-game"/);
+});

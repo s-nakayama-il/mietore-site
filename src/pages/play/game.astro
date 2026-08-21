@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import DownloadButton from '../../components/DownloadButton.astro';
+import FukutaSay from '../../components/FukutaSay.astro';
+---
+<Base title="ゲームのルール" description="ミエトレのゲームのルール。ならんだ縞模様を見つけてタップで消す。全消しでその日はクリア。クラシックモードやゲーム設定も。">
+  <section class="sec container">
+    <h1 class="sec-title">ゲームのルール</h1>
+    <ol style="padding-left:1.4em">
+      <li>画面にならんだパネルの中から、<strong>同じ縞模様（しまもよう）</strong>を2つ見つける</li>
+      <li>タップしてつなぐ。ただし、つなぐ線は3本以内</li>
+      <li>「全消し」できたら、その日はクリア！ 1回は数分で終わります</li>
+    </ol>
+    <img src="/images/game.png" alt="ゲーム画面。縞模様のパネルが並び「全消ししよう！」と表示されている" width="320" style="margin:20px auto;border-radius:var(--radius);box-shadow:var(--shadow)" loading="lazy" />
+    <FukutaSay img="default">
+      <p>コツは、じっと見つめないこと。ぼんやりながめていると、縞模様がふっと浮かんで見えてくるよ。</p>
+    </FukutaSay>
+  </section>
+  <section class="sec container">
+    <h2 class="sec-title">クラシックモード</h2>
+    <p>ゲームモードは2つ。ステージを進める「クエストモード」と、時間（1分・3分）とむずかしさ（かんたん・ふつう・むずかしい）を自分で選べる「クラシックモード」。むずかしいほど、1マッチでもらえるXPも増えます。</p>
+    <img src="/images/play-game-1.png" alt="ゲーム時間とむずかしさを選ぶ画面" width="320" style="margin:20px auto;border-radius:var(--radius);box-shadow:var(--shadow)" loading="lazy" />
+  </section>
+  <section class="sec container">
+    <h2 class="sec-title">ゲーム設定</h2>
+    <p>振動・BGM・効果音はそれぞれON/OFFを切り替えられます。ゲームモード（クエストモード／クラシックモード）も、この設定画面からいつでも選び直せます。</p>
+    <img src="/images/play-game-2.png" alt="振動・BGM・効果音の切り替えとゲームモード選択の設定画面" width="320" style="margin:20px auto;border-radius:var(--radius);box-shadow:var(--shadow)" loading="lazy" />
+  </section>
+  <section class="sec container" style="text-align:center">
+    <DownloadButton src="play-game" />
+  </section>
+</Base>
