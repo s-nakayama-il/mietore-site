@@ -16,6 +16,7 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
 1. Cloudflare Registrar で mietore.site 取得
 2. Pages → Custom domains に追加
 3. astro.config.mjs の `site` を https://mietore.site に変更して main へ
+4. public/robots.txt の Sitemap 行も https://mietore.site/sitemap-index.xml に変更
 
 ## 未確定・中山確認（spec §11）
 - [ ] プライバシーポリシー・利用規約の文面（受領後 noindex を外す）

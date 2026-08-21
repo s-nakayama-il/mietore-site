@@ -104,3 +104,14 @@ test('全ページの<img>に alt がある', () => {
   }
 });
 test('sitemap が生成される', () => { assert.ok(existsSync(join(DIST, 'sitemap-index.xml'))); });
+test('img src="/images/..." が全てdist/images内に存在する', () => {
+  const missing = [];
+  for (const f of walk(DIST)) {
+    const h = readFileSync(f, 'utf8');
+    for (const m of h.matchAll(/src="(\/images\/[^"]+)"/g)) {
+      const p = m[1];
+      if (!existsSync(join(DIST, p))) missing.push(`${f} -> ${p}`);
+    }
+  }
+  assert.deepEqual(missing, []);
+});
