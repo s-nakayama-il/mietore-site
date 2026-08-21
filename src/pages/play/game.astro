@@ -3,17 +3,17 @@ import Base from '../../layouts/Base.astro';
 import DownloadButton from '../../components/DownloadButton.astro';
 import FukutaSay from '../../components/FukutaSay.astro';
 ---
-<Base title="ゲームのルール" description="ミエトレのゲームのルール。ならんだ縞模様を見つけてタップで消す。全消しでその日はクリア。クラシックモードやゲーム設定も。">
+<Base title="ゲームのルール" description="ミエトレのゲームのルール。同じ縞模様を2つ見つけてタップ。つながる線が3本以内なら消える。全部消してクリア。クラシックモードやゲーム設定も。">
   <section class="sec container">
     <h1 class="sec-title">ゲームのルール</h1>
     <ol style="padding-left:1.4em">
-      <li>画面にならんだパネルの中から、<strong>同じ縞模様（しまもよう）</strong>を2つ見つける</li>
-      <li>タップしてつなぐ。ただし、つなぐ線は3本以内</li>
+      <li>画面にならんだパネルの中から、<strong>同じ縞模様（しまもよう）</strong>を2つ見つけて、タップするだけ</li>
+      <li>2つをつなぐ線が<strong>3本（3直線）以内</strong>なら消えるよ</li>
       <li>「全消し」できたら、その日はクリア！ 1回は数分で終わります</li>
     </ol>
     <img src="/images/game.png" alt="ゲーム画面。縞模様のパネルが並び「全消ししよう！」と表示されている" width="320" style="margin:20px auto;border-radius:var(--radius);box-shadow:var(--shadow)" loading="lazy" />
     <FukutaSay img="default">
-      <p>コツは、じっと見つめないこと。ぼんやりながめていると、縞模様がふっと浮かんで見えてくるよ。</p>
+      <p>コツは、ぼんやりながめること。力を抜いて見ていると、同じ模様がふっと目に入ってくるよ。</p>
     </FukutaSay>
   </section>
   <section class="sec container">
