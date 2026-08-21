@@ -68,3 +68,12 @@ test('/faq に5問以上', () => {
   const h = html('faq/index.html');
   assert.ok((h.match(/<summary>/g) || []).length >= 5);
 });
+
+test('/news 一覧と記事', () => {
+  assert.match(html('news/index.html'), /href="\/news\/2026-08-21-site-open"/);
+  assert.match(html('news/2026-08-21-site-open/index.html'), /公式サイト/);
+});
+test('privacy/terms は noindex で仮公開', () => {
+  for (const p of ['privacy/index.html','terms/index.html']) assert.match(html(p), /name="robots" content="noindex"/);
+});
+test('404 ページ', () => { assert.match(html('404.html'), /見つかりません/); });

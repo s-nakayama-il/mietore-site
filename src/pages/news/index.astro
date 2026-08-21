@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+const posts = (await getCollection('news')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+<Base title="お知らせ" description="ミエトレからのお知らせ・メディア掲載情報。">
+  <section class="sec container">
+    <h1 class="sec-title">お知らせ</h1>
+    <ul style="list-style:none">
+      {posts.map(p => (
+        <li style="margin-block:12px"><time>{p.data.date.toISOString().slice(0,10)}</time> <a href={`/news/${p.id}`}>{p.data.title}</a></li>
+      ))}
+    </ul>
+  </section>
+</Base>
