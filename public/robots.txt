@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mietore-site.pages.dev/sitemap-index.xml

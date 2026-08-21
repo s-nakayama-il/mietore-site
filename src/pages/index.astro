@@ -1,6 +1,61 @@
 ---
 import Base from '../layouts/Base.astro';
+import DownloadButton from '../components/DownloadButton.astro';
+import FukutaSay from '../components/FukutaSay.astro';
+import Card from '../components/Card.astro';
 ---
-<Base title="1日3分、ながめて消すだけの目のゲーム" description="ガボールの縞模様を消すだけのかんたんゲーム「ミエトレ」。相棒のふく多くんと、スキマ時間に目で遊ぼう。">
-  <section class="sec container"><h1>ミエトレ</h1></section>
+<Base title="1日3分、ながめて消すだけの目のゲーム" description="ガボールの縞模様を消すだけのかんたんゲーム「ミエトレ」。相棒のふく多くんと、スキマ時間に目で遊ぼう。無料アプリ。">
+
+  <section class="sec container" style="text-align:center">
+    <p style="font-weight:700;color:var(--teal-dk)">目のケアを、ゲームに。</p>
+    <h1 style="font-size:2rem;font-weight:900;line-height:1.4">1日3分、<br>ながめて消すだけ。</h1>
+    <p style="margin-top:12px">縞模様（しまもよう）をタップして消す、それだけのかんたんなゲーム。<br>相棒の ふく<ruby>多<rt>た</rt></ruby>くん と、スキマ時間に目で遊ぼう。</p>
+    <img src="/images/fukuta-hello.png" alt="片手をあげて挨拶するふく多くん" width="200" height="200" style="margin:20px auto" />
+    <DownloadButton src="top" />
+    <p style="font-size:.9rem;color:var(--ink-soft);margin-top:8px">無料でダウンロードできるよ</p>
+  </section>
+
+  <section class="sec container">
+    <FukutaSay img="default">
+      <p>やあ、ぼくは<strong>ふく多</strong>。目守りの森の相棒だよ。</p>
+      <p>むずかしいことは、なんにもなし。ゲームで遊ぶだけ。ぼくと一緒に、目で遊んでみない？</p>
+    </FukutaSay>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">遊び方は、かんたん。</h2>
+    <img src="/images/game.png" alt="ミエトレのゲーム画面。縞模様のパネルが並んでいる" width="320" style="margin:0 auto 20px;border-radius:var(--radius);box-shadow:var(--shadow)" loading="lazy" />
+    <ol style="padding-left:1.4em">
+      <li>ならんだ<strong>縞模様（しまもよう）</strong>を見つける</li>
+      <li>タップして、<strong>ぜんぶ消す</strong></li>
+      <li>「全消し」できたら、その日はクリア！</li>
+    </ol>
+    <FukutaSay img="phone" side="right">
+      <p>これは“脳”の体操でもあるんだ。目のレンズじゃなく、目から入った情報を処理する“脳の見る力”に着目して研究されている縞模様なんだよ。</p>
+    </FukutaSay>
+    <p style="text-align:center;margin-top:16px"><a class="btn" href="/play">あそびかたをくわしく見る</a></p>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">続けたくなる、しかけ。</h2>
+    <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+      <Card href="/play/xp-league" title="XPとリーグ戦">遊ぶほどXPがたまる。毎週、同じくらいの人たちと順位を競える。</Card>
+      <Card href="/play/streak" title="連続記録とクエスト">毎日続けた日数が記録される。ライフや救済措置で、うっかりも大丈夫。</Card>
+      <Card href="/play/fukuta" title="相棒・ふく多くん">教えないし、いそがせない。続けるあなたをそばで応援する。</Card>
+    </div>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">ガボールパッチって？</h2>
+    <p>ミエトレのゲームに出てくる縞模様は「ガボールパッチ」と呼ばれ、目のレンズではなく“脳の視覚処理”に着目して研究されている図形です。</p>
+    <p style="text-align:center;margin-top:16px"><a class="btn" href="/evidence">研究とエビデンスを見る</a></p>
+  </section>
+
+  <section class="sec container" style="text-align:center">
+    <img src="/images/fukuta-bow.png" alt="お辞儀するふく多くん" width="160" height="160" style="margin:0 auto 12px" loading="lazy" />
+    <h2 class="sec-title">さあ、今日から3分。</h2>
+    <DownloadButton src="bottom" />
+    <p style="margin-top:8px">一緒に、続けてみようよ。</p>
+  </section>
+
 </Base>

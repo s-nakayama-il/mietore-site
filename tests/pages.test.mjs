@@ -22,6 +22,15 @@ test('共通ヘッダ・フッタ・DLボタンがトップにある', () => {
   assert.match(h, /診断・治療を目的としたものではありません/);
 });
 
+test('トップ: FV・遊び方・あそびかた導線・エビデンス導線・DLボタン', () => {
+  const h = html('index.html');
+  assert.match(h, /ながめて消すだけ/);
+  assert.match(h, /href="\/play"/);
+  assert.match(h, /href="\/evidence"/);
+  assert.match(h, /href="\/app\?src=top"/);
+  assert.match(h, /images\/fukuta-hello\.png/);
+});
+
 test('download.html に両ストアのリンク', () => {
   const h = html('download/index.html');
   assert.match(h, /apps\.apple\.com\/jp\/app\/id6738352362/);
