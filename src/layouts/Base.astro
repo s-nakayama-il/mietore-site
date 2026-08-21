@@ -19,12 +19,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <meta property="og:description" content={description} />
   <meta property="og:image" content={new URL('/og.png', Astro.site)} />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:site_name" content="ミエトレ" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
   <noscript><link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet" /></noscript>
-  <!-- Cloudflare Web Analytics: Task 9 でトークンを入れる -->
+  <!-- Cloudflare Web Analytics: Task 10 でトークンを入れる -->
 </head>
 <body>
   <Header />
