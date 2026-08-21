@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import { APP_STORE_URL, PLAY_URL } from '../lib/store';
+---
+<Base title="アプリをダウンロード" description="ミエトレは iPhone / Android で無料。お使いのストアからダウンロードできます。">
+  <section class="sec container" style="text-align:center">
+    <h1 class="sec-title">アプリをダウンロード</h1>
+    <p>スマートフォンで、お使いのストアを選んでください。無料です。</p>
+    <p style="margin-top:20px"><a class="btn" href={APP_STORE_URL}>App Store（iPhone）</a></p>
+    <p style="margin-top:12px"><a class="btn" href={PLAY_URL}>Google Play（Android）</a></p>
+  </section>
+</Base>

@@ -21,3 +21,9 @@ test('共通ヘッダ・フッタ・DLボタンがトップにある', () => {
   assert.match(h, /href="\/app\?src=header"/);
   assert.match(h, /診断・治療を目的としたものではありません/);
 });
+
+test('download.html に両ストアのリンク', () => {
+  const h = html('download/index.html');
+  assert.match(h, /apps\.apple\.com\/jp\/app\/id6738352362/);
+  assert.match(h, /play\.google\.com\/store\/apps\/details\?id=com\.ilinksnet\.gabor/);
+});
