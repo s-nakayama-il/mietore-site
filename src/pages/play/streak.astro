@@ -1,0 +1,37 @@
+---
+import Base from '../../layouts/Base.astro';
+import DownloadButton from '../../components/DownloadButton.astro';
+import FukutaSay from '../../components/FukutaSay.astro';
+---
+<Base title="続けるしくみ" description="ミエトレの連続記録・ライフ・救済措置・クエストのしくみ。無理なく毎日続けられるように工夫されています。">
+  <section class="sec container">
+    <h1 class="sec-title">続けるしくみ</h1>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">連続記録とは</h2>
+    <p>毎日トレーニングを続けると、その日数が「連続記録」として積み上がります。画面上部に、いまの連続日数が表示されます。続けるほどに、日々の積み重ねが実感できるしくみです。</p>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">ライフとは</h2>
+    <p>ライフは、トレーニングを行うときに使うアイテムで、最大5つまで持てます。1回のトレーニングごとに1つ使いますが、XPがたまるごとや、時間の経過でも回復するので、自分のペースで続けられます。</p>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">救済措置とは</h2>
+    <p>1日お休みしても、連続記録を守れる特別なアイテムです。忙しい日や、うっかりトレーニングを忘れてしまった日があっても、この救済措置があれば連続記録を維持できます。XPがたまるごとに1つ手に入ります。</p>
+    <FukutaSay img="celebrate">
+      <p>1日さぼっても、ぼくは怒らないよ。救済措置があるから、またここから続けよう。</p>
+    </FukutaSay>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">クエストとは</h2>
+    <p>ゲーム画面には、ふくろうのキャラクターと一緒に進んでいくステージのマップが表示されます。セクションごとにユニットが並び、クリアしたステージにはチェックマークがつきます。ひとつずつ進めていくことで、今日どこまで取り組んだかが一目でわかります。</p>
+  </section>
+
+  <section class="sec container" style="text-align:center">
+    <DownloadButton src="play-streak" />
+  </section>
+</Base>

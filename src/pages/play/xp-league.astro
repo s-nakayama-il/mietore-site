@@ -1,0 +1,65 @@
+---
+import Base from '../../layouts/Base.astro';
+import DownloadButton from '../../components/DownloadButton.astro';
+---
+<Base title="XPとリーグ戦" description="ミエトレのリーグ戦のしくみ。ブロンズ・シルバー・ゴールドの3リーグで、毎週みんなと楽しく競い合えます。">
+  <section class="sec container">
+    <h1 class="sec-title">XPとリーグ戦</h1>
+    <img src="/images/league-banner.png" alt="リーグ戦のバナー" width="320" style="margin:0 auto 20px;display:block;border-radius:var(--radius);box-shadow:var(--shadow)" loading="lazy" />
+    <p>「ミエトレ」では、毎日のトレーニングをがんばるほど、経験値（XP）がたまっていきます。「リーグ戦」は、そのためたXPを使って、ほかのみなさんと毎週楽しく競い合えるランキングのしくみです。</p>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">リーグのしくみ</h2>
+    <ul style="padding-left:1.4em">
+      <li>スタートは、みんな同じ「<strong>ブロンズリーグ</strong>」から。</li>
+      <li>リーグは全部で3つ。上位に入ると、ひとつ上のリーグへ昇格します。<strong>ブロンズリーグ → シルバーリーグ → ゴールドリーグ</strong></li>
+      <li>20人のグループに分かれて競い合うので、ちょうどよい人数で順位を競えます。</li>
+      <li>競争は1週間ごと。週が変わると、たまったXPはいったん0にもどり、また新しいランキングがはじまります。</li>
+      <li>1週間の終わりに上位5人に入ると、次のリーグへ昇格します。反対に、下位5人はひとつ下のリーグにもどることもありますが、また何度でも挑戦できますので、どうぞ気軽に楽しんでください。</li>
+      <li>いちばん上の「<strong>ゴールドリーグ</strong>」で1位になると、また「<strong>ブロンズリーグ</strong>」からの再スタート。何度でも、てっぺんを目指す楽しみが続きます。</li>
+    </ul>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">楽しみ方</h2>
+    <p>ランキングで自分の名前が上のほうにあると、なんだかうれしくなるものです。「今週はもう少し上を目指そう」——そんな毎日のはげみとして、リーグ戦をお使いください。目標は、いちばん上の「<strong>ゴールドリーグ</strong>」です。</p>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">XPのため方</h2>
+    <p>XPは、ミエトレのゲーム（トレーニング）で遊ぶとたまります。毎日少しずつ続けることが、上位への近道です。</p>
+  </section>
+
+  <section class="sec container">
+    <h2 class="sec-title">よくあるご質問</h2>
+    <details>
+      <summary>XPはどうすればたまりますか？</summary>
+      <p>ミエトレのゲームをプレイすると、その成果に応じてXPがたまります。</p>
+    </details>
+    <details>
+      <summary>ランキングはいつ切り替わりますか？</summary>
+      <p>毎週月曜0時に切り替わります。週が変わると、順位とXPはリセットされ、新しい1週間がはじまります。</p>
+    </details>
+    <details>
+      <summary>はじめてリーグに参加できるのはいつからですか？</summary>
+      <p>グループは毎週月曜0時に作られます。そのため、新しく始めた方は、次の月曜0時から最初のランキングに参加します。それまでは「準備中」の画面が表示されますので、ぜひトレーニングをしながらお待ちください。</p>
+    </details>
+    <details>
+      <summary>しばらくミエトレを使っていなくても参加できますか？</summary>
+      <p>リーグ戦は、直近2週間以内にトレーニングされた方が対象です。お休みされていた場合も、またトレーニングを再開すれば、次の月曜0時から参加できます。</p>
+    </details>
+    <details>
+      <summary>順位が下がると、どうなりますか？</summary>
+      <p>1週間の終わりに下位5人に入ると、ひとつ下のリーグにもどることもありますが、また上を目指して挑戦できます。あせらず、楽しみながら続けていただくのがおすすめです。</p>
+    </details>
+    <details>
+      <summary>グループの人数は決まっていますか？</summary>
+      <p>20人のグループに分かれて競い合います。</p>
+    </details>
+  </section>
+
+  <section class="sec container" style="text-align:center">
+    <DownloadButton src="play-league" />
+  </section>
+</Base>

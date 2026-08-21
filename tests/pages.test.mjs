@@ -47,3 +47,12 @@ test('/play/game にルール3ステップとクラシックモード', () => {
   assert.match(h, /クラシックモード/);
   assert.match(h, /href="\/app\?src=play-game"/);
 });
+test('/play/xp-league にリーグ3段階と週替わり', () => {
+  const h = html('play/xp-league/index.html');
+  assert.match(h, /ブロンズリーグ/); assert.match(h, /シルバーリーグ/); assert.match(h, /ゴールドリーグ/);
+  assert.match(h, /月曜/);
+});
+test('/play/streak に連続記録・ライフ・救済措置・クエスト', () => {
+  const h = html('play/streak/index.html');
+  for (const w of ['連続記録','ライフ','救済措置','クエスト']) assert.match(h, new RegExp(w));
+});
