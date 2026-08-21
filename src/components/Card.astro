@@ -1,0 +1,5 @@
+---
+interface Props { href: string; title: string }
+const { href, title } = Astro.props;
+---
+<a class="card" href={href}><h3>{title}</h3><p><slot /></p></a>

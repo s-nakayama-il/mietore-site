@@ -1,0 +1,29 @@
+:root{
+  --cream:#F8F9FA; --cream-deep:#EAEFF1; --orange:#FA9B1C; --orange-dk:#E0850A;
+  --white:#FFFFFF; --teal:#57B2BE; --teal-dk:#3C98A3; --blue-light:#A0E3EE;
+  --green:#7CDA53; --green-soft1:#B4E89A; --green-soft2:#D6F3C5;
+  --ink:#2C3E40; --ink-soft:#5C6F70;
+  --shadow:0 10px 28px rgba(40,80,85,.14); --radius:22px; --maxw:720px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic","Meiryo",sans-serif;color:var(--ink);background:var(--cream);line-height:1.85;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--teal-dk)}
+.container{max-width:var(--maxw);margin-inline:auto;padding-inline:24px}
+.sec{padding-block:40px}
+.sec-title{font-size:1.5rem;font-weight:900;text-align:center;margin-bottom:20px}
+.btn{display:inline-block;background:var(--orange);color:#fff;font-weight:700;padding:14px 28px;border-radius:999px;text-decoration:none;box-shadow:var(--shadow)}
+.btn:hover{background:var(--orange-dk)}
+.card{display:block;background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);text-decoration:none;color:inherit}
+.card h3{color:var(--teal-dk);margin-bottom:6px}
+.bubble{background:var(--white);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow)}
+.say{display:flex;gap:12px;align-items:flex-start;margin-block:16px}
+.say--right{flex-direction:row-reverse}
+.say__img{width:72px;flex:none}
+.site-header{background:linear-gradient(var(--green-soft1),var(--green-soft2))}
+.site-header .container{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+.site-header nav a{margin-inline:8px;color:var(--ink);text-decoration:none;font-weight:700}
+.site-footer{background:var(--cream-deep);color:var(--ink-soft);font-size:.85rem;padding-block:28px;margin-top:48px}
+.site-footer a{color:var(--ink-soft)}
+@media (max-width:600px){.site-header nav{display:none}}

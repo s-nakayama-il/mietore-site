@@ -1,0 +1,5 @@
+---
+interface Props { src: string; label?: string }
+const { src, label = 'アプリを無料ダウンロード' } = Astro.props;
+---
+<a class="btn" href={`/app?src=${src}`}>{label}</a>

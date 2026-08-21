@@ -1,0 +1,9 @@
+---
+interface Props { img: 'default'|'hello'|'phone'|'celebrate'|'bow'; side?: 'left'|'right' }
+const { img, side = 'left' } = Astro.props;
+const alt = { default:'正面を向いたふく多くん', hello:'片手をあげて挨拶するふく多くん', phone:'スマホを見るふく多くん', celebrate:'お祝いするふく多くん', bow:'お辞儀するふく多くん' }[img];
+---
+<div class={`say say--${side}`}>
+  <img class="say__img" src={`/images/fukuta-${img}.png`} alt={alt} width="72" height="72" loading="lazy" />
+  <div class="bubble"><slot /></div>
+</div>
