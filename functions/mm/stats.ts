@@ -11,9 +11,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     return new Response('Forbidden', { status: 403 });
   }
   const month = u.searchParams.get('month'); // YYYYMM
+  if (month && !/^\d{6}$/.test(month)) {
+    return new Response('Bad Request', { status: 400 });
+  }
   let sql = 'SELECT received_at, ts, sid, event, param, url, os, v, ua_family FROM events';
   const binds: string[] = [];
-  if (month && /^\d{6}$/.test(month)) {
+  if (month) {
     sql += ' WHERE received_at LIKE ?1';
     binds.push(`${month.slice(0, 4)}-${month.slice(4)}%`);
   }
@@ -29,6 +32,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       headers: { 'Content-Type': 'text/csv; charset=UTF-8', 'Content-Disposition': 'attachment; filename="mm_events.csv"' },
     });
   }
-  const html = renderStatsHtml(aggregate(rows), String(rows.length));
+  const totalLabel = `${rows.length}件${month ? `・month=${month} 絞り込み` : ''}`;
+  const html = renderStatsHtml(aggregate(rows), totalLabel);
   return new Response(html, { headers: { 'Content-Type': 'text/html; charset=UTF-8' } });
 };

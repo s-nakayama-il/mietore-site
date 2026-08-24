@@ -98,7 +98,7 @@ ${ALL_EVENTS_COLUMNS.map((ev) => `<td>${counts[ev] ?? 0}</td>`).join('')}
 </style>
 </head>
 <body>
-<h1>ミエトレ計測集計（対象イベント数: ${esc(totalLabel)}件）</h1>
+<h1>ミエトレ計測集計（対象イベント数: ${esc(totalLabel)}）</h1>
 
 <h2>① 日別 × イベント別件数</h2>
 <table>

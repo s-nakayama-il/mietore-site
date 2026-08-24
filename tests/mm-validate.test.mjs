@@ -21,3 +21,10 @@ test('param 64文字切り詰め・url 500・lp_clickは150', () => {
 });
 test('改行はスペースに置換', () => { assert.equal(validateAndClean({ ...base, param:"a\r\nb" }).param, 'a  b'); });
 test('payloadが配列/文字列なら null', () => { assert.equal(validateAndClean('x'), null); assert.equal(validateAndClean(null), null); });
+test('B版追加3イベント（exit_no_popup/scroll_up_signal/lp_click）は通過し、lp_clickは150文字上限', () => {
+  for (const event of ['exit_no_popup', 'scroll_up_signal', 'lp_click']) {
+    assert.equal(validateAndClean({ ...base, event })?.event, event);
+  }
+  const long = validateAndClean({ ...base, event: 'lp_click', param: 'a'.repeat(100) });
+  assert.equal(long.param.length, 100);
+});

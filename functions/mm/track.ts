@@ -11,6 +11,9 @@ function jstNow(): string {
 export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (request.method !== 'POST') return new Response(null, { status: 204 }); // GET等は204（track.php準拠）
 
+  const len = Number(request.headers.get('content-length') ?? '0');
+  if (!len || len > 4096) return new Response(null, { status: 204 }); // 巨大/不定長ボディは破棄
+
   let payload: unknown = null;
   try { payload = await request.json(); } catch { /* 不正JSONは捨てる */ }
   const row = payload ? validateAndClean(payload) : null;

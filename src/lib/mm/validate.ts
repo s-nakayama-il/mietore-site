@@ -4,6 +4,7 @@
 export const ALLOWED_EVENTS = [
   'page_view', 'popup_view', 'anime_end', 'play_start', 'stage_clear', 'all_clear',
   'cta_search', 'cta_ios', 'cta_android', 'replay', 'popup_close',
+  'exit_no_popup', 'scroll_up_signal', 'lp_click',
 ];
 
 const ALLOWED_ANIME_END = ['complete', 'skip_talk', 'skip_bridge'];
