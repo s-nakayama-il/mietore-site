@@ -17,6 +17,7 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
 メルマガ施策A/B用の単体ページ。ダミー記事なしで即キャッチ会話アニメ→ガボールパッチゲームへ進む。
 
 - URL: A版 = `/mm/` ／ B版 = `/mm/b/`。両方とも noindex。
+- `/pmm/` = ポイントキャンペーンのメルマガ用ページ（2026-08-24追加）。最新本番 v3d-2.5.0（ゲートストア直行CTA・ゲーム廃止）にメルマガパッチ（TRACK_URL=/mm/track・常時即表示・×リロード・画像ローカル化）を適用した派生物。計測識別は `v=v3d-2.5.0-pmm`・発火元 param=`pmm`。送信先は同じ `/mm/track`（D1同一テーブル・stats の URL別/発火元別/v別で分離集計）。noindex。
 - 計測: `POST /mm/track` → Cloudflare D1 `mietore-mm` に保存（旧PHP版 `track.php` の Functions 移植）。許可イベント14種は `src/lib/mm/validate.ts` の `ALLOWED_EVENTS` を参照。
 - 集計: `/mm/stats?key=<STATS_KEY>` にブラウザでアクセス（key は本READMEに書かない）。`&month=YYYYMM` で月絞り込み、`&export=csv` でCSVダウンロード。
 - STATS_KEYの管理: 本番は Cloudflare Pages の Secret（`wrangler pages secret put STATS_KEY` で設定済み）。ローカルは `.dev.vars`（`.dev.vars.example` を参照してコピー）。
