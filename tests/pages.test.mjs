@@ -78,8 +78,10 @@ test('privacy/terms は noindex で仮公開', () => {
 });
 test('404 ページ', () => { assert.match(html('404.html'), /見つかりません/); });
 
+// /mm 配下（メルマガ即スタート版A/B）はコピー元忠実優先のページのため、
+// 内部リンク・img alt・images参照の走査対象から除外する。
 function walk(dir, acc = []) {
-  for (const n of readdirSync(dir)) { const p = join(dir, n); statSync(p).isDirectory() ? walk(p, acc) : p.endsWith('.html') && acc.push(p); }
+  for (const n of readdirSync(dir)) { if (n === 'mm') continue; const p = join(dir, n); statSync(p).isDirectory() ? walk(p, acc) : p.endsWith('.html') && acc.push(p); }
   return acc;
 }
 test('内部リンクが全てdist内に存在する（/app は Function なので除外）', () => {
@@ -114,4 +116,18 @@ test('img src="/images/..." が全てdist/images内に存在する', () => {
     }
   }
   assert.deepEqual(missing, []);
+});
+
+test('/mm A版: noindex・TRACK_URL・外部画像依存なし', () => {
+  const h = html('mm/index.html');
+  assert.match(h, /name="robots" content="noindex"/);
+  assert.match(h, /TRACK_URL: '\/mm\/track'/);
+  assert.doesNotMatch(h, /TRACK_URL: 'track\.php'/);
+  assert.doesNotMatch(h, /fukufuku-honpo\.jp/);
+});
+test('/mm B版: noindex・JSにTRACK_URLパッチ', () => {
+  assert.match(html('mm/b/index.html'), /name="robots" content="noindex"/);
+  const js = readFileSync(join(DIST, 'mm/b/mietore-popup_mailmag.js'), 'utf8');
+  assert.match(js, /TRACK_URL: '\/mm\/track'/);
+  assert.doesNotMatch(js, /fukufuku-honpo\.jp/);
 });
