@@ -1,0 +1,8 @@
+name = "mietore-site"
+compatibility_date = "2026-08-01"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mietore-mm"
+database_id = "3de965dc-510b-4fa6-b859-dadc322a775c"
