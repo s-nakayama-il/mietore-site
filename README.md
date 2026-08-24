@@ -17,9 +17,12 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
 メルマガ施策A/B用の単体ページ。ダミー記事なしで即キャッチ会話アニメ→ガボールパッチゲームへ進む。
 
 - URL: A版 = `/mm/` ／ B版 = `/mm/b/`。両方とも noindex。
-- 計測: `POST /mm/track` → Cloudflare D1 `mietore-mm` に保存（旧PHP版 `track.php` の Functions 移植）。許可イベント11種は `src/lib/mm/validate.ts` の `ALLOWED_EVENTS` を参照。
+- 計測: `POST /mm/track` → Cloudflare D1 `mietore-mm` に保存（旧PHP版 `track.php` の Functions 移植）。許可イベント14種は `src/lib/mm/validate.ts` の `ALLOWED_EVENTS` を参照。
 - 集計: `/mm/stats?key=<STATS_KEY>` にブラウザでアクセス（key は本READMEに書かない）。`&month=YYYYMM` で月絞り込み、`&export=csv` でCSVダウンロード。
 - STATS_KEYの管理: 本番は Cloudflare Pages の Secret（`wrangler pages secret put STATS_KEY` で設定済み）。ローカルは `.dev.vars`（`.dev.vars.example` を参照してコピー）。
+- STATS_KEYは2026-08-24にローテーション済み（値は `.dev.vars` とPages Secretのみ・EC側旧PHPのキーとは別物になった）。
+- 追加3イベント（`exit_no_popup`/`scroll_up_signal`/`lp_click`）を計測対象に含めた（B版が送信するため。旧PHP版では捨てられていた）。
+- 推奨: Cloudflare WAF の Rate limiting rule を `/mm/track` に設定（画面操作・任意）。
 - 設定は `wrangler.toml` でファイル管理。D1バインディング（`DB` → `mietore-mm`）もここに記載済みのため、Cloudflareダッシュボードの Bindings 画面から追加しても無効化される（file-managed config優先）。変更する場合は `wrangler.toml` を編集すること。
 - ローカル確認:
   ```bash
