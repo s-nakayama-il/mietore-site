@@ -131,3 +131,8 @@ test('/mm B版: noindex・JSにTRACK_URLパッチ', () => {
   assert.match(js, /TRACK_URL: '\/mm\/track'/);
   assert.doesNotMatch(js, /fukufuku-honpo\.jp/);
 });
+test('/mm のふく多画像3点が dist に存在する', () => {
+  for (const n of ['fukuta_fire','fukuta_hund','fukuta_professor']) {
+    assert.ok(existsSync(join(DIST, `images/mm/${n}.png`)), `images/mm/${n}.png`);
+  }
+});
