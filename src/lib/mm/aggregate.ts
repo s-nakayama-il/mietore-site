@@ -64,12 +64,12 @@ function dayOf(r: EventRow): string {
 
 export function aggregate(rows: EventRow[]): Stats {
   // ① 日別×イベント別件数
-  const byDayEvent: Record<string, Record<string, number>> = {};
-  const eventTotals: Record<string, number> = {};
+  const byDayEvent: Record<string, Record<string, number>> = Object.create(null);
+  const eventTotals: Record<string, number> = Object.create(null);
   for (const r of rows) {
     const day = dayOf(r);
     const ev = r.event || '';
-    byDayEvent[day] ??= {};
+    byDayEvent[day] ??= Object.create(null);
     byDayEvent[day][ev] = (byDayEvent[day][ev] ?? 0) + 1;
     eventTotals[ev] = (eventTotals[ev] ?? 0) + 1;
   }
@@ -81,18 +81,18 @@ export function aggregate(rows: EventRow[]): Stats {
   const ctaCount = (eventTotals['cta_search'] ?? 0) + (eventTotals['cta_ios'] ?? 0) + (eventTotals['cta_android'] ?? 0);
 
   // ③ ページURL別 popup_view / cta 内訳
-  const byUrl: Record<string, Record<string, number>> = {};
+  const byUrl: Record<string, Record<string, number>> = Object.create(null);
   for (const r of rows) {
     const url = r.url || '';
     const ev = r.event || '';
     if (ev === 'popup_view' || ev === 'cta_search' || ev === 'cta_ios' || ev === 'cta_android') {
-      byUrl[url] ??= {};
+      byUrl[url] ??= Object.create(null);
       byUrl[url][ev] = (byUrl[url][ev] ?? 0) + 1;
     }
   }
 
   // ④ 発火元別 popup_view
-  const bySource: Record<string, number> = {};
+  const bySource: Record<string, number> = Object.create(null);
   for (const r of rows) {
     if (r.event !== 'popup_view') continue;
     const label = r.param === '' || r.param == null ? '(なし)' : r.param;
@@ -100,13 +100,13 @@ export function aggregate(rows: EventRow[]): Stats {
   }
 
   // ⑤ 発火元別ファネル
-  const sidToSource: Record<string, string> = {};
+  const sidToSource: Record<string, string> = Object.create(null);
   for (const r of rows) {
     if (r.event !== 'popup_view') continue;
     const label = r.param === '' || r.param == null ? '(なし)' : r.param;
     sidToSource[r.sid ?? ''] = label;
   }
-  const funnelBySource: Stats['funnelBySource'] = {};
+  const funnelBySource: Stats['funnelBySource'] = Object.create(null);
   for (const r of rows) {
     const ev = r.event || '';
     if (ev !== 'popup_view' && ev !== 'play_start' && ev !== 'all_clear'
@@ -122,7 +122,7 @@ export function aggregate(rows: EventRow[]): Stats {
   }
 
   // ⑥ popup_close の内訳
-  const byClose: Record<string, number> = {};
+  const byClose: Record<string, number> = Object.create(null);
   let closeTotal = 0;
   for (const r of rows) {
     if (r.event !== 'popup_close') continue;
@@ -133,19 +133,19 @@ export function aggregate(rows: EventRow[]): Stats {
   const leaveRate = mtrRate(byClose['leave'] ?? 0, closeTotal);
 
   // ⑦ OS別内訳
-  const byOs: Record<string, number> = {};
-  const byOsSource: Record<string, Record<string, number>> = {};
+  const byOs: Record<string, number> = Object.create(null);
+  const byOsSource: Record<string, Record<string, number>> = Object.create(null);
   for (const r of rows) {
     if (r.event !== 'popup_view') continue;
     const osLabel = r.os === '' || r.os == null ? '(なし)' : r.os;
     byOs[osLabel] = (byOs[osLabel] ?? 0) + 1;
     const source = r.param === '' || r.param == null ? '(なし)' : r.param;
-    byOsSource[osLabel] ??= {};
+    byOsSource[osLabel] ??= Object.create(null);
     byOsSource[osLabel][source] = (byOsSource[osLabel][source] ?? 0) + 1;
   }
 
   // ⑧ 離脱時の結末
-  const byExit: Record<string, number> = {};
+  const byExit: Record<string, number> = Object.create(null);
   let exitTotal = 0;
   for (const r of rows) {
     if (r.event !== 'exit_no_popup') continue;
@@ -157,26 +157,26 @@ export function aggregate(rows: EventRow[]): Stats {
   const noActRate = mtrRate(byExit['no_activation'] ?? 0, exitDen);
 
   // ⑨ UA別集計
-  const byUaPopup: Record<string, Record<string, number>> = {};
-  const byUaExit: Record<string, Record<string, number>> = {};
+  const byUaPopup: Record<string, Record<string, number>> = Object.create(null);
+  const byUaExit: Record<string, Record<string, number>> = Object.create(null);
   for (const r of rows) {
     const ev = r.event || '';
     if (ev !== 'popup_view' && ev !== 'exit_no_popup') continue;
     const uaLabel = r.ua_family === '' || r.ua_family == null ? '(不明)' : r.ua_family;
     const paramLabel = r.param === '' || r.param == null ? '(なし)' : r.param;
     const target = ev === 'popup_view' ? byUaPopup : byUaExit;
-    target[uaLabel] ??= {};
+    target[uaLabel] ??= Object.create(null);
     target[uaLabel][paramLabel] = (target[uaLabel][paramLabel] ?? 0) + 1;
   }
 
   // ⑩ LP指標
-  const byDayPageView: Record<string, number> = {};
+  const byDayPageView: Record<string, number> = Object.create(null);
   for (const r of rows) {
     if (r.event !== 'page_view') continue;
     const day = dayOf(r);
     byDayPageView[day] = (byDayPageView[day] ?? 0) + 1;
   }
-  const byDayPopupView: Record<string, number> = {};
+  const byDayPopupView: Record<string, number> = Object.create(null);
   for (const r of rows) {
     if (r.event !== 'popup_view') continue;
     const day = dayOf(r);
@@ -184,23 +184,23 @@ export function aggregate(rows: EventRow[]): Stats {
   }
   const lpDays = Array.from(new Set([...Object.keys(byDayPageView), ...Object.keys(byDayPopupView)])).sort();
 
-  const byOsUaScrollSignal: Record<string, Record<string, number>> = {};
+  const byOsUaScrollSignal: Record<string, Record<string, number>> = Object.create(null);
   for (const r of rows) {
     if (r.event !== 'scroll_up_signal') continue;
     const osLabel = r.os === '' || r.os == null ? '(なし)' : r.os;
     const uaLabel = r.ua_family === '' || r.ua_family == null ? '(不明)' : r.ua_family;
-    byOsUaScrollSignal[osLabel] ??= {};
+    byOsUaScrollSignal[osLabel] ??= Object.create(null);
     byOsUaScrollSignal[osLabel][uaLabel] = (byOsUaScrollSignal[osLabel][uaLabel] ?? 0) + 1;
   }
 
-  const byLpClickUrl: Record<string, number> = {};
+  const byLpClickUrl: Record<string, number> = Object.create(null);
   for (const r of rows) {
     if (r.event !== 'lp_click') continue;
     const label = r.param === '' || r.param == null ? '(なし)' : r.param;
     byLpClickUrl[label] = (byLpClickUrl[label] ?? 0) + 1;
   }
   // PHP の arsort（値降順）で上位20件
-  const byLpClickUrlTop: Record<string, number> = {};
+  const byLpClickUrlTop: Record<string, number> = Object.create(null);
   Object.entries(byLpClickUrl)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 20)
@@ -215,14 +215,14 @@ export function aggregate(rows: EventRow[]): Stats {
     animePopupSids.add(r.sid ?? '');
   }
   const animePopupCount = animePopupSids.size;
-  const animeEndCounts = { complete: 0, skip_talk: 0, skip_bridge: 0 };
+  const animeEndCounts = Object.assign(Object.create(null), { complete: 0, skip_talk: 0, skip_bridge: 0 });
   for (const r of rows) {
     if (r.event !== 'anime_end') continue;
     if (!(r.v ?? '').startsWith('v3d-2.')) continue;
     const sid = r.sid ?? '';
     const param = r.param ?? '';
     if (!animePopupSids.has(sid)) continue;
-    if (!(param in animeEndCounts)) continue;
+    if (!Object.prototype.hasOwnProperty.call(animeEndCounts, param)) continue;
     animeEndCounts[param as 'complete' | 'skip_talk' | 'skip_bridge']++;
   }
   const animeEndTotal = animeEndCounts.complete + animeEndCounts.skip_talk + animeEndCounts.skip_bridge;

@@ -69,3 +69,16 @@ test('anime: complete=1 skip_bridge=1、離脱0、ブリッジ到達=2', () => {
   // bridgeReached = complete(1) + skip_bridge(1) = 2
   assert.equal(a.animeBridgeReached, 2);
 });
+
+test('prototype pollution: __proto__ をキーに持つ行が Object.prototype を汚染しない', () => {
+  const rows = [
+    R({ event:'popup_view', sid:'__proto__', param:'__proto__', ts:'__proto__', os:'__proto__', ua_family:'' }),
+    R({ event:'anime_end', sid:'s9', param:'constructor' }),
+  ];
+  aggregate(rows);
+  assert.equal(({}).popup_view, undefined);
+  assert.equal(({}).cta, undefined);
+  const clean = aggregate([R({ event:'popup_view', sid:'c1', param:'', url:'/clean/' })]);
+  assert.equal(clean.byUrl['/clean/'].popup_view, 1);
+  assert.equal(Object.keys(clean.byUrl).length, 1);
+});
