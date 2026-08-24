@@ -12,6 +12,26 @@
 Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プレビューURL。
 設定手順は docs/superpowers/specs/2026-08-21-mietore-site-design.md §6 と本README末尾「Cloudflare初期設定」。
 
+## /mm メルマガ即スタート版
+
+メルマガ施策A/B用の単体ページ。ダミー記事なしで即キャッチ会話アニメ→ガボールパッチゲームへ進む。
+
+- URL: A版 = `/mm/` ／ B版 = `/mm/b/`。両方とも noindex。
+- 計測: `POST /mm/track` → Cloudflare D1 `mietore-mm` に保存（旧PHP版 `track.php` の Functions 移植）。許可イベント11種は `src/lib/mm/validate.ts` の `ALLOWED_EVENTS` を参照。
+- 集計: `/mm/stats?key=<STATS_KEY>` にブラウザでアクセス（key は本READMEに書かない）。`&month=YYYYMM` で月絞り込み、`&export=csv` でCSVダウンロード。
+- STATS_KEYの管理: 本番は Cloudflare Pages の Secret（`wrangler pages secret put STATS_KEY` で設定済み）。ローカルは `.dev.vars`（`.dev.vars.example` を参照してコピー）。
+- 設定は `wrangler.toml` でファイル管理。D1バインディング（`DB` → `mietore-mm`）もここに記載済みのため、Cloudflareダッシュボードの Bindings 画面から追加しても無効化される（file-managed config優先）。変更する場合は `wrangler.toml` を編集すること。
+- ローカル確認:
+  ```bash
+  npm run build && npx wrangler pages dev dist
+  curl -s -X POST http://localhost:8788/mm/track -H 'Content-Type: application/json' \
+    -d '{"ts":"2026-08-24T12:00:00+09:00","sid":"local-test","event":"page_view","param":"","url":"http://localhost:8788/mm/","os":"iOS","v":"mailmag-1.0.0","ua_family":"browser"}'
+  ```
+  ローカルD1の掃除: `npx wrangler d1 execute mietore-mm --local --command "DELETE FROM events"`
+- 配信回識別: 配信リンクに `?mm=◯◯` などのクエリを付与すると `url` 列にそのまま残り、配信回別の集計が可能。
+- `?mtr_debug=1` を付けると計測イベントを送信せずコンソールに出力する（既存挙動のまま）。
+- 元PHP原本: `ecommerce-project/20_実行/新規獲得/メルマガ即スタート版_20260818/`（`php/track.php`・`php/stats.php` など、無改変で保存）。
+
 ## ドメイン切替（後日）
 1. Cloudflare Registrar で mietore.site 取得
 2. Pages → Custom domains に追加
