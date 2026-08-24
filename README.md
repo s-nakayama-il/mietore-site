@@ -36,6 +36,12 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
 - `?mtr_debug=1` を付けると計測イベントを送信せずコンソールに出力する（既存挙動のまま）。
 - 元PHP原本: `ecommerce-project/20_実行/新規獲得/メルマガ即スタート版_20260818/`（`php/track.php`・`php/stats.php` など、無改変で保存）。
 
+## /cp/ キャンペーンLP置き場
+
+キャンペーンごとに `/cp/<スラッグ>/` を切る。第1号: `/cp/point202609/` = ふくふく本舗ポイントキャンペーン（2026-09-01〜09-30）のLP。単一HTML（画像はbase64埋め込み）・noindex。
+原本: `ecommerce-project/20_実行/ポイント/ポイントキャンペーン_LP_20260815.html`（正はecommerce-project側。更新時はコピーし直す）。
+メルマガからのリンク先。計測は行っていない（/mm/trackへの送信なし）。
+
 ## ドメイン切替（後日）
 1. Cloudflare Registrar で mietore.site 取得
 2. Pages → Custom domains に追加
