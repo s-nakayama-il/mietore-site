@@ -63,11 +63,11 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
 2. Cloudflare → Workers & Pages → Create → **Pages タブ** → Git に接続 → GitHub 認可（Only select repositories: mietore-site）→ `mietore-site` → セットアップ開始
    - フレームワークプリセット Astro／ビルドコマンド `npm run build`／ビルド出力ディレクトリ `dist`／環境変数 `NODE_VERSION=24` → 保存してデプロイ
    - ※ Workers タブから入ると「デプロイコマンド npx wrangler deploy」の画面になる。それは別物なので戻って Pages タブを選ぶ
-3. 本番URL: https://mietore-site.pages.dev （`main` push で自動デプロイ。他ブランチ push でプレビューURL）
+3. 本番URL: https://mietore.site （2026-08-25 カスタムドメイン設定済み。https://mietore-site.pages.dev も同内容で継続稼働。`main` push で自動デプロイ・他ブランチ push でプレビューURL）
 4. Web Analytics: Analytics & Logs → Web Analytics → サイトを追加（hostname = mietore-site.pages.dev）→ 発行 token を `src/layouts/Base.astro` の beacon タグに設定済み
 5. 動作確認コマンド:
    ```bash
-   U=https://mietore-site.pages.dev
+   U=https://mietore.site
    curl -sL -o /dev/null -w '%{http_code}\n' $U/
    curl -s -o /dev/null -D - -A "Mozilla/5.0 (iPhone)" $U/app | grep -i location   # App Store
    curl -s -o /dev/null -D - -A "Mozilla/5.0 (Linux; Android 14)" $U/app | grep -i location   # Google Play
