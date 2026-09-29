@@ -1,0 +1,383 @@
+<title>目の見分けチャレンジ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap">
+<style>
+:root{--bg:#eef5f3;--card:#ffffff;--ink:#17201e;--sub:#3b4745;--teal:#0f7a74;--teal-d:#0b5a55;--red:#d9302f;--green:#15913f;--green-d:#0e6e2f;--line:#c9d8d4;--soft:#f1f8f6;color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;font-size:18px;line-height:1.7;-webkit-text-size-adjust:100%}
+[lang="ja"] :is(h1,h2,p,li,button,a,span){word-break:auto-phrase}
+.nw{white-space:nowrap}
+.app{max-width:460px;margin:0 auto;padding-inline:16px;padding-block:8px 40px}
+.card{background:var(--card);border-radius:20px;box-shadow:0 6px 24px rgba(12,95,90,.12);overflow:hidden;position:relative}
+.top{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.brand{font-weight:800;color:var(--teal-d);font-size:17px;white-space:nowrap}
+.prog{flex:1;height:12px;background:#e1ecea;border-radius:999px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--teal);border-radius:999px;transition:width .4s}
+.screen{padding:20px 18px 24px;display:flex;flex-direction:column;gap:16px}
+.qno{font-size:16px;font-weight:800;color:var(--teal)}
+h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
+.sub{margin:0;color:var(--sub);font-size:17px}
+.timer{display:flex;align-items:center;gap:12px}
+.timer .tb{flex:1;height:16px;background:#f1dcdc;border-radius:999px;overflow:hidden}
+.timer .tb i{display:block;height:100%;width:100%;background:var(--red);border-radius:999px;transition:width 1s linear}
+.timer b{font-size:20px;color:var(--red);white-space:nowrap;min-width:5.5em;text-align:right;font-variant-numeric:tabular-nums}
+.fig{border-radius:14px;overflow:hidden;background:#fff;display:flex;justify-content:center}
+.fig img,.fig canvas{display:block;width:100%;height:auto}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opts.col{grid-template-columns:1fr}
+.opt{font:inherit;font-weight:800;font-size:24px;min-height:64px;padding:8px;border-radius:14px;border:2px solid #b9cbc7;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 #b9cbc7;white-space:nowrap}
+.opts.col .opt{font-size:21px}
+.opt:active{transform:translateY(2px);box-shadow:none}
+.opt:disabled{cursor:default;opacity:.55}
+.opt.ok{border-color:var(--green);background:#e3f5e8;opacity:1}
+.opt.ng{border-color:var(--red);background:#fbe5e5;opacity:1}
+.opt:focus-visible,.btn:focus-visible,.link:focus-visible,.tile:focus-visible,.banner:focus-visible{outline:3px solid #f0a500;outline-offset:2px}
+.fb{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border-radius:14px;padding:12px 14px}
+.fb img{width:48px;flex:none;margin-top:4px}
+.fb p{flex:1;margin:0;font-size:18px}
+.fb .big{display:block;font-size:22px;font-weight:800;line-height:1.4}
+.fb .big.ok{color:var(--green-d)}.fb .big.ng{color:var(--red)}
+.btn{font:inherit;font-weight:800;font-size:21px;border:0;border-radius:16px;min-height:64px;padding:12px 16px;cursor:pointer;color:#fff;background:var(--green);box-shadow:0 4px 0 var(--green-d);text-decoration:none;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;line-height:1.35}
+.btn small{font-size:15px;font-weight:700;opacity:.95}
+/* 入口：端末の画面いっぱいに出す離脱ポップアップ（9:16・幅86vw・高さ最大80vh） */
+.lp{background:repeating-linear-gradient(180deg,#f7f7f7 0 14px,#efefef 14px 28px);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.lp small{color:#555;font-size:14px;align-self:stretch}
+.adpop-bg {position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50}
+.adpop {position:relative;width:min(86vw,calc(80vh * 9 / 16));aspect-ratio:9 / 16;max-height:80vh;border-radius:16px;overflow:hidden;box-shadow:0 10px 32px rgba(0,0,0,.4);background:#fff}
+.banner{display:block;width:100%;height:100%;border:0;padding:0;background:none;cursor:pointer}
+.banner img{display:block;width:100%;height:100%;object-fit:contain}
+.adpop-x {position:absolute;top:6px;right:6px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:22px;font-weight:800;line-height:1;cursor:pointer}
+/* 結果・ルール説明：ストアボタンの下端を CSS 640px 以内に収めるため、この2画面だけ間隔と文字を詰める */
+.screen.tight{padding:12px 18px 20px;gap:8px}
+.res-type{text-align:center;font-size:20px;font-weight:800;margin:0;line-height:1.3;color:var(--teal-d);white-space:nowrap}
+.res-type.long{font-size:17px}   /* 14字以上のタイプ名を、折り返さずに横幅へ収める */
+.res-time{text-align:center;font-size:26px;font-weight:800;margin:0;line-height:1.25;color:#2f7bd0}
+.res-score{text-align:center;font-size:15px;font-weight:800;margin:0;line-height:1.3;color:var(--sub)}
+.meter{display:flex;flex-direction:column;gap:4px;background:var(--soft);border-radius:12px;padding:8px 10px}
+.meter .mt{font-size:13px;font-weight:800;color:var(--sub);text-align:center;line-height:1.3}
+.meter .bars{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.meter .bars span{height:20px;border-radius:6px;background:#dbe7e4;display:grid;place-items:center;font-size:12px;font-weight:800;color:#7c8c89}
+.meter .bars span.on{background:var(--teal);color:#fff}
+.meter .you{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;font-size:12px;font-weight:800;color:var(--teal-d);text-align:center;line-height:1.3}
+.lead{margin:0;font-weight:800;font-size:17px;text-align:center;line-height:1.45}
+.note{font-size:13px;color:var(--sub);text-align:center;margin:0;line-height:1.5}
+.app-card{border:2px solid var(--teal);border-radius:14px;padding:5px 10px;display:flex;align-items:center;gap:8px}
+.app-h{display:flex;gap:10px;align-items:center;flex:1}
+.app-h img{width:38px;border-radius:9px}
+.app-h span{display:block;font-size:12px;color:var(--sub);font-weight:700;line-height:1.25}
+.app-h b{display:block;font-size:19px;color:var(--teal-d);line-height:1.15}
+.dl{background:#f5a000;color:#3a2a00;font-weight:800;font-size:12px;border-radius:999px;padding:2px 9px;white-space:nowrap;line-height:1.4}
+.tight .btn{min-height:48px;font-size:19px;padding:5px 12px}
+.tight .btn small{font-size:13px}
+.stores{display:flex;flex-direction:column;gap:7px}
+/* コマ枠：1つの枠にコマを重ね、CSS だけで切り替える（1コマ4秒）。各コマに1行のキャプション */
+.frame{position:relative;height:200px}
+.cel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;opacity:0}
+.cel:first-child{opacity:1}
+.med{height:168px;display:flex;align-items:center;justify-content:center;width:100%}
+.med img{max-height:100%;max-width:100%;width:auto;height:auto;display:block;border-radius:10px}
+.med>div{height:100%}
+.med .fig{width:auto;height:100%;border-radius:10px}
+.med .fig canvas{width:auto;height:100%}
+/* 実機スクリーンショットは、外枠の overflow と img の位置だけで切る（画像ファイルは作らない） */
+.shot{height:100%;aspect-ratio:750 / var(--ch);overflow:hidden;position:relative;border-radius:10px;border:1px solid var(--line);background:#fff}
+.shot img{position:absolute;left:0;width:100%;max-width:none;max-height:none;border-radius:0;top:calc(var(--ct) / var(--ch) * -100%)}
+.cap{margin:0;font-size:15px;font-weight:800;color:var(--sub);text-align:center;line-height:1.3}
+.frame3 .cel{animation:cel3 12s linear infinite}
+.frame2 .cel{animation:cel2 8s linear infinite}
+@keyframes cel3{0%{opacity:0}2%{opacity:1}31.3%{opacity:1}33.33%{opacity:0}100%{opacity:0}}
+@keyframes cel2{0%{opacity:0}3%{opacity:1}47%{opacity:1}50%{opacity:0}100%{opacity:0}}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-10px;width:8px;height:12px;border-radius:2px;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(700px) rotate(540deg);opacity:.2}}
+.enter{animation:in .3s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/*@C*/
+.gtitle{background:linear-gradient(135deg,#0f7a74,#2f9e8f);color:#fff;border-radius:14px;padding:8px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+.gtitle span{font-weight:800;font-size:14px;background:#f5b700;color:#3a2a00;border-radius:999px;padding:1px 12px;line-height:1.4}
+.gtitle b{font-size:26px;line-height:1.25;letter-spacing:.06em}
+.gtitle em{font-style:normal;font-weight:700;font-size:14px;line-height:1.3}
+.gt2{display:flex;align-items:baseline;justify-content:center;gap:8px;flex-wrap:wrap}   /* 帯の2行目 */
+/* ルールの GIF（540×720）は、白い余白を枠の overflow で切って拡大する。
+   全42コマの中身は x=34〜534・y=18〜640（501×623）。GIF 内の盤面（4×4 のタイルの並び）は
+   コマ0 で x=61〜461 の 401px。表示倍率 290.9/540 = 0.5387 で、盤面の見かけの幅は
+   401 × 0.5387 = 216px になる。枠 = 501 × 0.5387 = 270px 幅・623 × 0.5387 = 336px 高 */
+.rgif{background:#f7f8fb;width:270px;height:336px;max-width:100%;margin:0 auto;position:relative;overflow:hidden}
+.rule-sub{margin:0;color:var(--ink);font-weight:700;font-size:16px;text-align:center;line-height:1.45}
+.rgif img{position:absolute;left:-18.3px;top:-9.7px;width:290.9px;max-width:none;height:auto}
+.trial{background:linear-gradient(#dff1ea,#eef8f3 60%,#e3f0d8);border-radius:16px;padding:12px 10px 14px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.trial h2{margin:0;color:#2f7bd0;font-size:22px;font-weight:800}
+.trial .left{font-weight:800;color:var(--red);font-size:20px;align-self:flex-end;font-variant-numeric:tabular-nums}
+.rule1{margin:0;font-weight:700;font-size:16px;text-align:center;color:var(--sub)}
+.board{position:relative;width:100%;max-width:360px;padding:14px}
+.tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tile{aspect-ratio:1/1;border:0;padding:0;border-radius:8px;overflow:hidden;background:#808080;box-shadow:0 2px 0 rgba(0,0,0,.18);cursor:pointer;transition:transform .15s,opacity .35s}
+.tile img{width:100%;height:100%;display:block}
+.tile.sel{outline:5px solid #f5b700;outline-offset:-2px;transform:scale(.93)}
+.tile.gone{opacity:0;pointer-events:none}
+.tile.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.msg{margin:0;font-weight:800;font-size:18px;min-height:3.4em;text-align:center;color:var(--ink)}
+/*@/C*/
+</style>
+
+<main class="app" lang="ja">
+  <div class="card" id="card">
+    <div class="top"><span class="brand">目のチェック</span><div class="prog" aria-hidden="true"><i id="bar"></i></div></div>
+    <div id="view"></div>
+  </div>
+</main>
+
+<script>
+const VARIANT='C';
+const A={"dots": "/banner/img/q1_dots.png", "icon": "/banner/img/icon.png", "f_good": "/banner/img/fukuta_good.png", "f_expect": "/banner/img/fukuta_expect.png", "f_komari": "/banner/img/fukuta_good.png", "f_iwai": "/banner/img/fukuta_good.png", "b2still": "/banner/img/b2_pair.webp", "kiroku": "/banner/img/shot_kiroku.webp", "stage": "/banner/img/shot_stage.webp", "play": "/banner/img/shot_play.webp", "rule_gif": "/banner/img/rule.gif", "patches": ["/banner/img/patch0.png", "/banner/img/patch1.png", "/banner/img/patch2.png", "/banner/img/patch3.png", "/banner/img/patch4.png", "/banner/img/patch5.png"]};
+const NUM='4682';                     // バナーと共通の4けたの数字
+const IOS='https://apps.apple.com/jp/app/id6738352362';
+const AND='https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja';
+const ua=navigator.userAgent;const os=/iPhone|iPad|iPod/.test(ua)?'ios':/Android/.test(ua)?'android':'other';
+const FONT='"M PLUS Rounded 1c","Noto Sans JP",sans-serif';
+const ORDER=['dots','contrast','same'];  // 隠れ数字5秒 → しま模様10秒 → 同じ模様8秒
+let step=0,timerId=null,timeOver=false,qStart=0,trialSec=null,resType='',resLv=0;
+const rec={};
+const $=s=>document.querySelector(s);const view=$('#view');
+// 計測: /mm/track へ送る。sendBeacon（text/plain）が積めなければ no-cors の fetch で送り直す。
+// 送信先は、このページ自身の origin から作る（本番 https://mietore.site、プレビューはプレビューの origin）。
+const QS=new URLSearchParams(location.search);
+const TRACK_URL=location.origin+'/mm/track';
+const DEBUG=QS.get('mtr_debug')==='1';
+const SID=(function(){let s=QS.get('sid')||'';
+  if(!s){try{s=sessionStorage.getItem('mtrb_sid')||''}catch(e){}}
+  if(!s){s=String(Math.floor(Math.random()*1e8)).padStart(8,'0')}
+  try{sessionStorage.setItem('mtrb_sid',s)}catch(e){}
+  return s.slice(0,64)})();
+const VER=(QS.get('v')||'banner-20260928-C').slice(0,64);
+function osName(){const ua=navigator.userAgent||'';
+  if(/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return 'iOS';
+  if(/Android/.test(ua))return 'Android';return 'PC'}
+function uaFamily(){const ua=navigator.userAgent||'';
+  if(/musical_ly|trill|Bytedance|TTWebView/.test(ua))return 'tiktok';
+  if(/ Line\//.test(ua))return 'line';
+  if(/Instagram/.test(ua))return 'instagram';
+  if(/FBAN|FBAV/.test(ua))return 'facebook';
+  if(/; wv\)/.test(ua))return 'wv';return 'browser'}
+function track(ev,p){
+  const payload={ts:new Date().toISOString(),sid:SID,event:ev,param:String(p==null?'':p).slice(0,64),
+    url:location.href,os:osName(),v:VER,ua_family:uaFamily()};
+  if(DEBUG){try{console.log('[check]',ev,JSON.stringify(payload))}catch(e){}return}
+  const body=JSON.stringify(payload);
+  try{if(navigator.sendBeacon&&navigator.sendBeacon(TRACK_URL,new Blob([body],{type:'text/plain'}))===true)return}catch(e){}
+  try{const q=fetch(TRACK_URL,{method:'POST',body:body,keepalive:true,mode:'no-cors'});if(q&&q.catch)q.catch(function(){})}catch(e){}}
+// タイプ名は param に日本語を入れず番号にする（64文字上限と CSV 対策のため）
+const TYPE_NO={'くっきり見分けタイプ':1,'うすい模様が見えにくいタイプ':2,'向きのちがいが見分けにくいタイプ':3,'うすさも向きも見分けにくいタイプ':4};
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+function gabor(ctx,cx,cy,size,deg,contrast){
+  const img=ctx.getImageData(cx-size/2,cy-size/2,size,size),d=img.data,t=deg*Math.PI/180,wl=size/4.6,sg=size/5.4;
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+    const X=x-size/2+.5,Y=y-size/2+.5,xr=X*Math.cos(t)+Y*Math.sin(t);
+    const env=Math.exp(-(X*X+Y*Y)/(2*sg*sg));const v=255-env*255*contrast*(0.5-0.5*Math.cos(2*Math.PI*xr/wl));
+    const i=(y*size+x)*4;d[i]=d[i+1]=d[i+2]=v;d[i+3]=255}
+  ctx.putImageData(img,cx-size/2,cy-size/2)}
+
+// 各問題：見出しは読みやすい位置で改行する（<br>）
+// 第1問は peek（絵を5秒だけ見せてから選択肢を出す。時間切れは無い）、第2問はタイマー無し、第3問だけ timer で時間切れがある
+const Q={
+ dots:{title:'この中の4けたの数字<br>わかりますか？',peek:5,ans:NUM,
+  // 絵はバナーと同じ bc_dots.png（毎回ランダムに描き直さない）
+  render(box){box.innerHTML='<div class="fig"><img alt="点の中に4けたの数字がかくれた画像" src="'+A.dots+'"></div>'},
+  opts(){const rd=n=>Math.floor(Math.random()*n);
+    // まちがいの選択肢は、うすい両はしを形の似た数字にする
+    const SIM={'0':'689','1':'74','2':'73','3':'892','4':'19','5':'63','6':'085','7':'14','8':'3906','9':'830'};
+    const alt=p=>{const a=[...NUM];p.forEach(i=>{const c=[...SIM[NUM[i]]].filter(d=>!(i===0&&d==='0'));a[i]=c[rd(c.length)]});return a.join('')};
+    const set=new Set([NUM]);let k=0;while(set.size<4&&k<60){k++;set.add(alt(k%3===0?[0]:k%3===1?[3]:[0,3]))}
+    return shuffle([...set])},
+  judge(a){const miss=[0,3].filter(i=>a[i]!==NUM[i]).length;return {s:miss,ok:miss===0,
+    head:miss===0?`正解！ ${NUM}です`:`正解は ${NUM}です`,
+    body:miss===0?'うすい数字まで、見えています。':'両はしの数字は、わざとうすくしてあります。'}}},
+ contrast:{title:'しま模様は<br>何番まで見えますか？',ans:'5番',
+  render(box){const c=document.createElement('canvas');c.width=520;c.height=400;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,400);
+    const pos=[[90,90],[260,90],[430,90],[175,285],[345,285]];
+    [1,.35,.12,.045,.02].forEach((k,i)=>{const [cx,cy]=pos[i];gabor(x,cx,cy,150,45,k);x.fillStyle='#0f7a74';x.beginPath();x.arc(cx-58,cy-58,20,0,7);x.fill();x.fillStyle='#fff';x.font='800 24px '+FONT;x.textAlign='center';x.textBaseline='middle';x.fillText(String(i+1),cx-58,cy-57)});
+    c.setAttribute('role','img');c.setAttribute('aria-label','だんだんうすくなる、5つのしま模様');const f=document.createElement('div');f.className='fig';f.appendChild(c);box.appendChild(f)},
+  opts:['1〜2番','3番','4番','5番'],
+  judge(a){const s={'1〜2番':2,'3番':1,'4番':1,'5番':0}[a];return {s,ok:s===0,
+    head:s===0?'5番まで見えました！':'4番と5番は、とてもうすい模様です',
+    body:s===0?'ほとんど見えないほど、うすい模様です。':'うすい模様は、年をとると見えにくくなるといわれています。'}}},
+ same:{title:'お手本と同じ模様は<br>何個ありますか？',timer:8,ans:'5個',
+  render(box){const c=document.createElement('canvas');c.width=520;c.height=640;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,640);
+    x.fillStyle='#eef3f2';x.fillRect(0,0,520,136);gabor(x,76,68,116,45,1);x.fillStyle='#17201e';x.font='800 30px '+FONT;x.textAlign='left';x.fillText('← お手本',150,60);x.font='700 24px '+FONT;x.fillText('これと同じ向きを数えてね',150,100);
+    const g=[45,35,60,90,55,45,30,45,35,0,60,45,30,55,135,45];x.strokeStyle='#17201e';x.lineWidth=3;x.strokeRect(2,150,516,488);
+    g.forEach((d,i)=>{const r=Math.floor(i/4),col=i%4;gabor(x,67+col*128,212+r*120,108,d,1)});c.setAttribute('role','img');c.setAttribute('aria-label','お手本のしま模様と、16個のしま模様');const f=document.createElement('div');f.className='fig';f.appendChild(c);box.appendChild(f)},
+  opts:['4個','5個','6個','7個'],
+  judge(a){const n=parseInt(a);return {s:n===5?0:Math.abs(n-5)===1?1:2,ok:n===5,
+    head:n===5?'正解！ 5個です':'正解は 5個です',
+    body:n===5?'よく似た向きも、見分けられました。':'少しだけ向きのちがう模様が、まざっています。'}}},
+};
+
+function bar(p){$('#bar').style.width=p+'%'}
+
+function closeAd(){const e=$('#adbg');if(e)e.remove()}
+function showBanner(){clearInterval(timerId);step=0;trialSec=null;ORDER.forEach(k=>delete rec[k]);bar(0);closeAd();
+  view.innerHTML=`<div class="screen enter"><div class="lp"><small>（試作：商品ページを見ている途中で、戻る操作をしたときに出る想定）</small>
+   <small>バナーをタップすると、チェックが始まります</small></div></div>`;
+  const ov=document.createElement('div');ov.className='adpop-bg';ov.id='adbg';
+  ov.innerHTML=`<div class="adpop"><button class="adpop-x" type="button" id="px" aria-label="閉じる">×</button>
+    <button class="banner" id="bn" aria-label="バナーをタップしてチェックを始める"><img src="${A.banner}" alt=""></button></div>`;
+  document.body.appendChild(ov);
+  $('#bn').onclick=()=>{closeAd();start()};$('#px').onclick=()=>{/* 試作では閉じない */}}
+
+function start(){track('check_start','');step=0;ask()}
+
+// のこり秒の表示と赤いバー。0 になったら onEnd を呼ぶ
+function countdown(total,onEnd){let t=total;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{const e=$('#tbar');if(e)e.style.width=((t-1)/total*100)+'%'}));
+  timerId=setInterval(()=>{t--;if(t<=0){clearInterval(timerId);onEnd();return}
+    $('#tsec').textContent='のこり '+t+'秒';$('#tbar').style.width=((t-1)/total*100)+'%'},1000)}
+
+function showOpts(k,q){const opts=typeof q.opts==='function'?q.opts():q.opts;
+  $('#opts').innerHTML=opts.map(o=>`<button class="opt" type="button">${o}</button>`).join('');
+  view.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answer(k,b))}
+
+function ask(){clearInterval(timerId);bar(step/(ORDER.length+1)*100);const k=ORDER[step],q=Q[k];
+  const sec=q.peek||q.timer;
+  view.innerHTML=`<div class="screen enter"><span class="qno">第${step+1}問（全${ORDER.length}問）</span><h1>${q.title}</h1>
+   ${sec?`<div class="timer" aria-live="polite"><div class="tb"><i id="tbar"></i></div><b id="tsec">のこり ${sec}秒</b></div>`:''}
+   <div id="box"></div><div class="opts" id="opts"></div><div id="fb"></div></div>`;
+  q.render($('#box'));
+  timeOver=false;qStart=performance.now();
+  if(q.peek){                           // 絵を peek 秒だけ見せ、消してから選択肢を出す（時間切れは無い）
+    countdown(q.peek,()=>{$('#box').innerHTML='';const tm=view.querySelector('.timer');if(tm)tm.remove();showOpts(k,q)})}
+  else{showOpts(k,q);
+    if(q.timer)countdown(q.timer,()=>{timeOver=true;$('#tsec').textContent='時間切れ';$('#tbar').style.width='0'})}}
+
+function answer(k,btn){clearInterval(timerId);const q=Q[k],r=q.judge(btn.textContent);
+  const sec=Math.round((performance.now()-qStart)/100)/10;
+  // 時間切れは不正解。減点は判定の値と1の大きい方
+  if(timeOver){r.s=Math.max(r.s,1);r.ok=false;r.head='時間切れ！';r.body='正解は '+q.ans+' でした。'}
+  rec[k]={a:btn.textContent,ok:r.ok,penalty:r.s,sec,timeOver};
+  view.querySelectorAll('.opt').forEach(b=>{b.disabled=true});btn.classList.add(r.ok?'ok':'ng');
+  track('check_answer','q='+(step+1)+';ok='+(r.ok?1:0)+';p='+r.s+';s='+sec+';t='+(timeOver?1:0));
+  const last=step===ORDER.length-1;
+  $('#fb').innerHTML=`<div class="fb enter"><img src="${r.ok?A.f_good:A.f_expect}" alt=""><p><span class="big ${r.ok?'ok':'ng'}">${r.head}</span>${r.body}</p></div>
+   <button class="btn enter" type="button" id="next" style="margin-top:14px">${last?'つぎへ':'つぎの問題へ'}</button>`;
+  $('#next').onclick=()=>{step++;if(step<ORDER.length){ask()}else{ruleIntro()}};
+  $('#next').scrollIntoView({behavior:'smooth',block:'nearest'})}
+
+// タイプ・Lv・ふく多のひとことを、本人の回答から決める
+function diagnose(){
+  const lostFaint=!rec.dots.ok||!rec.contrast.ok,lostSame=!rec.same.ok;
+  const type=(!lostFaint&&!lostSame)?'くっきり見分けタイプ'
+    :(lostFaint&&lostSame)?'うすさも向きも見分けにくいタイプ'
+    :lostSame?'向きのちがいが見分けにくいタイプ':'うすい模様が見えにくいタイプ';
+  const pen=ORDER.reduce((s,k)=>s+rec[k].penalty,0);
+  const lv=pen===0?5:pen===1?4:pen<=3?3:pen<=5?2:1;
+  const first=ORDER.find(k=>!rec[k].ok);
+  const say={dots:'1問目のうすい数字で、つまずいたみたい。',contrast:'2問目のうすいしま模様で、つまずいたみたい。',same:'3問目の向きのちがう模様で、つまずいたみたい。'};
+  return {type,lv,pen,word:first?say[first]:'ぜんぶ見分けられたね！',img:first?A.f_komari:A.f_iwai}}
+
+function meter(lv){const bars=[1,2,3,4,5].map(n=>`<span class="${n<=lv?'on':''}">Lv${n}</span>`).join('');
+  const you=[1,2,3,4,5].map(n=>`<span>${n===lv?'あなた':''}</span>`).join('');
+  return `<div class="meter"><p class="mt">見分ける力の目盛り</p><div class="bars">${bars}</div><div class="you">${you}</div></div>`}
+
+// コマ枠。1つの枠にコマを重ねて CSS だけで切り替える（1コマ4秒・各コマに1行のキャプション）
+function frame(cells){return `<div class="frame frame${cells.length}">`+cells.map((c,i)=>
+  `<div class="cel" style="animation-delay:${i*4}s"><div class="med">${c.m}</div><p class="cap">${c.c}</p></div>`).join('')+`</div>`}
+// 実機スクリーンショット（750×1334）のコマ。ct=切り出しの上端・ch=切り出しの高さ（px・元画像の座標）
+function shot(src,ct,ch,alt){return `<div class="shot" style="--ct:${ct};--ch:${ch}"><img src="${src}" alt="${alt}"></div>`}
+
+function stores(){return `<div class="stores">`+(os==='ios'?store(IOS,'ios','App Store'):os==='android'?store(AND,'android','Google Play')
+  :store(IOS,'ios','App Store（iPhone）')+store(AND,'android','Google Play（Android）'))+`</div>`}
+function store(href,o,name){return `<a class="btn" href="${href}" data-os="${o}">続きを無料で遊ぶ<small>${name}</small></a>`}
+function appCard(){return `<div class="app-card"><div class="app-h"><img src="${A.icon}" alt=""><div><span>いま遊んだゲームのアプリ・無料</span><b>ミエトレ</b></div></div>
+   <span class="dl">1万DL突破</span></div>`}
+const NOTE='<p class="note">このチェックは見え方の目安です。<br>医師による診断ではありません。</p>';
+
+/*@C*/
+// C 版の結果：タイム → 3問中◯問正解 → 一文 → コマ枠（C-1→C-2）→ カード → ストア →（ここまで 640px 以内）→ 注記
+function resultBody(d){
+  const s=Math.round(trialSec),hit=ORDER.filter(k=>rec[k].ok).length;
+  return `<p class="res-time">${trialSec<=30?`ラストチャレンジ ${s}秒 目標クリア！`:`ラストチャレンジ ${s}秒`}</p>
+   <p class="res-score">3問中${hit}問正解</p>
+   <p class="lead">この続きのステージは、アプリで。</p>
+   ${frame([{m:shot(A.stage,0,564,'アプリのステージ選択の画面'),c:'次のステージがある'},
+            {m:shot(A.play,0,995,'アプリの広い盤面の画面'),c:'盤面が広くなる'}])}
+   ${appCard()}
+   ${stores()}
+   ${NOTE}`}
+function resultAfter(){}
+/*@/C*/
+
+function result(){window.scrollTo(0,0);bar(100);const d=diagnose();resType=d.type;resLv=d.lv;
+  view.innerHTML=`<div class="screen tight enter">${resultBody(d)}</div>`;
+  resultAfter();
+  const per={};ORDER.forEach(k=>per[k]={ok:rec[k].ok,sec:rec[k].sec,timeOver:rec[k].timeOver});
+  track('check_result','ty='+(TYPE_NO[d.type]||0)+';lv='+d.lv+';pen='+d.pen
+    +';o='+ORDER.map(k=>rec[k].ok?1:0).join('')+(VARIANT==='C'?';ts='+trialSec:''));
+  view.querySelectorAll('a.btn').forEach(a=>a.addEventListener('click',()=>track('cta_store',
+    'os='+a.dataset.os+';ty='+(TYPE_NO[resType]||0)+';lv='+resLv+(VARIANT==='C'?';ts='+trialSec:''))));
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){const cf=document.createElement('div');cf.className='confetti';
+    for(let i=0;i<40;i++){const p=document.createElement('i');p.style.left=Math.random()*100+'%';p.style.background=['#f6c343','#12807a','#e8373a','#4a6fe3'][i%4];p.style.animationDelay=Math.random()*.6+'s';cf.appendChild(p)}
+    $('#card').appendChild(cf);setTimeout(()=>cf.remove(),2600)}}
+
+/*@C*/
+// ルール説明（試作 v3 と同じ組み立て。ゲームの前なのでアプリ名は出さない）
+function ruleIntro(){window.scrollTo(0,0);bar(ORDER.length/(ORDER.length+1)*100);track('rule_view','');
+  view.innerHTML=`<div class="screen tight enter"><span class="qno">3問クリア！ あと1つ</span>
+   <div class="gtitle"><span>ここからは ゲームタイム！</span>
+    <div class="gt2"><b>二角取り</b><em><span class="nw">しま模様のパズル</span></em></div></div>
+   <p class="rule-sub">同じしま模様を線でつないで、<br>ぜんぶ消せたらクリア！</p>
+   <div class="fig rgif"><img src="${A.rule_gif}" alt="二角取りのあそび方のアニメーション"></div>
+   <button class="btn" type="button" id="go">さっそく遊んでみる<small>1回 30秒ほど</small></button></div>`;
+  $('#go').onclick=trial}
+
+function trial(){track('trial_start','');
+  const R=3,C=4,kinds=[0,1,2,3,4,5].flatMap(k=>[k,k]);
+  let g;const build=list=>{g=Array.from({length:R+2},()=>Array(C+2).fill(-1));let n=0;for(let r=1;r<=R;r++)for(let c=1;c<=C;c++)g[r][c]=list[n++]};
+  // 二角取り：外周1マスを通路として、曲がりが2回以内でつながるか
+  const canLink=(a,b)=>{if(g[a[0]][a[1]]!==g[b[0]][b[1]])return null;const D=[[0,1],[1,0],[0,-1],[-1,0]],best={},q=[];
+    for(let d=0;d<4;d++)q.push([a[0],a[1],d,0,[[a[0],a[1]]]]);
+    while(q.length){const [r,c,d,t,path]=q.shift(),nr=r+D[d][0],nc=c+D[d][1];if(nr<0||nc<0||nr>R+1||nc>C+1)continue;
+      const np=[...path,[nr,nc]];if(nr===b[0]&&nc===b[1])return np;if(g[nr][nc]!==-1)continue;
+      for(let nd=0;nd<4;nd++){const nt=t+(nd===d?0:1);if(nt>2)continue;const key=nr+','+nc+','+nd;if(best[key]!==undefined&&best[key]<=nt)continue;best[key]=nt;q.push([nr,nc,nd,nt,np])}}
+    return null};
+  const cells=()=>{const a=[];for(let r=1;r<=R;r++)for(let c=1;c<=C;c++)if(g[r][c]>=0)a.push([r,c]);return a};
+  const anyMove=()=>{const a=cells();for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(canLink(a[i],a[j]))return true;return false};
+  do{build(shuffle([...kinds]))}while(!anyMove());
+  view.innerHTML=`<div class="screen enter"><span class="qno">ラストチャレンジ</span><h1>同じ模様を<br>2つタップしよう</h1>
+   <p class="rule1">同じ模様を2つタップ。線は2回まで曲がれます</p>
+   <div class="trial"><span class="left" id="left">のこり 30秒</span><h2>全消ししよう！</h2>
+    <div class="board"><div class="tgrid" id="tg"></div><svg id="ln" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible"></svg></div></div>
+   <p class="msg" id="msg" aria-live="polite">つながる2つを選ぶと、消えます</p></div>`;
+  const tg=$('#tg');let sel=null,done=false;
+  const t0=performance.now();
+  // のこり秒は 0 で止め、ゲームは打ち切らない
+  const tick=setInterval(()=>{if(done)return;const left=Math.max(0,30-Math.floor((performance.now()-t0)/1000));
+    $('#left').textContent='のこり '+left+'秒';if(left===0){clearInterval(tick)}},250);
+  const render=()=>{tg.innerHTML='';for(let r=1;r<=R;r++)for(let c=1;c<=C;c++){const b=document.createElement('button');b.type='button';b.className='tile'+(g[r][c]<0?' gone':'');
+      b.dataset.r=r;b.dataset.c=c;b.setAttribute('aria-label','しま模様');if(g[r][c]>=0){const im=document.createElement('img');im.src=A.patches[g[r][c]];im.alt='';b.appendChild(im)}
+      b.onclick=()=>tap(b);tg.appendChild(b)}};
+  // 線の座標：盤面の外周（通路）も含めて計算する
+  const center=(r,c)=>{const pad=14,w=tg.clientWidth,gap=6,cw=(w-gap*(C-1))/C,h=R*cw+(R-1)*gap;
+    const x=c===0?pad/2:c===C+1?pad+w+pad/2:pad+(c-1)*(cw+gap)+cw/2;
+    const y=r===0?pad/2:r===R+1?pad+h+pad/2:pad+(r-1)*(cw+gap)+cw/2;return x+','+y};
+  const draw=path=>{$('#ln').innerHTML=`<polyline points="${path.map(([r,c])=>center(r,c)).join(' ')}" fill="none" stroke="#f5a000" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>`;setTimeout(()=>{$('#ln').innerHTML=''},500)};
+  const say=t=>{$('#msg').textContent=t};
+  const finish=()=>{done=true;clearInterval(tick);const sec=(performance.now()-t0)/1000;
+    trialSec=Math.round(sec*10)/10;track('trial_clear','s='+trialSec+';in='+(trialSec<=30?1:0));
+    setTimeout(result,500)};
+  const tap=b=>{const r=+b.dataset.r,c=+b.dataset.c;if(done||g[r][c]<0)return;
+    if(sel&&sel[0]===r&&sel[1]===c){b.classList.remove('sel');sel=null;say('つながる2つを選ぶと、消えます');return}
+    if(!sel){sel=[r,c];b.classList.add('sel');say('もう1つ、同じ模様をタップ');return}
+    const prev=tg.querySelector('.sel'),path=canLink(sel,[r,c]);
+    if(path){draw(path);g[sel[0]][sel[1]]=-1;g[r][c]=-1;sel=null;say('つながった！');
+      setTimeout(()=>{render();if(!cells().length){finish();return}
+        if(!anyMove()){const rest=cells().map(([rr,cc])=>g[rr][cc]);let n=0;do{shuffle(rest);n++;let i=0;cells().forEach(([rr,cc])=>{g[rr][cc]=rest[i++]})}while(!anyMove()&&n<50);
+          render();say('つなげる2つがなくなったので、並べかえました')}},520)}
+    else{say(g[sel[0]][sel[1]]!==g[r][c]?'ちがう模様です。同じ模様を選んでね':'この2つは、線が3回以上曲がるか、間にタイルがあってつながりません');
+      [prev,b].forEach(e=>{if(!e)return;e.classList.add('shake');setTimeout(()=>e.classList.remove('shake'),300)});if(prev)prev.classList.remove('sel');sel=null}};
+  render()}
+/*@/C*/
+
+start();   // LP でバナーをタップして来るので、試作用の入口は出さない
+</script>

@@ -42,6 +42,50 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
 原本: `ecommerce-project/20_実行/ポイント/ポイントキャンペーン_LP_20260815.html`（正はecommerce-project側。更新時はコピーし直す）。
 メルマガからのリンク先。計測は行っていない（/mm/trackへの送信なし）。
 
+## /banner 離脱バナー配信
+
+代理店の LP に script タグ1行を入れるだけで、離脱ポップアップとして5本のバナーを出す。本体（出口 js・バナー画像・チェックページ・計測）はすべて mietore.site から配信する。広告と LP は代理店が持ち、fukufuku-honpo.jp には触らない（TASK-I16-20260929-003）。
+
+- 代理店に渡すタグ（この1行だけ）:
+  ```html
+  <script src="https://mietore.site/banner/mtr-exit.js" defer></script>
+  ```
+- 5本と計測の版（`v`）・行き先:
+
+  | 本 | `v` | 画像 | 行き先 |
+  |---|---|---|---|
+  | A1 特徴列挙 | `banner-20260928-A1` | `/banner/img/banner_A1.webp` | `/app`（UA でストアへ振り分け） |
+  | A2 症状×運転 | `banner-20260928-A2` | `/banner/img/banner_A2.webp` | `/app` |
+  | A3 症状×スマホ | `banner-20260928-A3` | `/banner/img/banner_A3.webp` | `/app` |
+  | B 隠れ数字 | `banner-20260928-B` | `/banner/img/banner_BC.webp` | `/banner/check/b.html` |
+  | C 隠れ数字 | `banner-20260928-C` | `/banner/img/banner_BC.webp` | `/banner/check/c.html` |
+
+  B と C は同じ画像で、行き先だけが違う。出し分けはクライアント側で、sid を起点に5本から均等に決め、sessionStorage（`mtrb_creative`）に保存する。表示は sid ごとに1回（`mtrb_shown`）。
+- イベント（`src/lib/mm/validate.ts` の `ALLOWED_EVENTS` に10種を追加済み）:
+
+  | イベント | 送る場面 | `param` の形 |
+  |---|---|---|
+  | `banner_view` | バナーを出した | `back_cw`（CloseWatcher）／`back`（履歴） |
+  | `banner_tap` | バナーをタップ | `app` ／ `check_b` ／ `check_c` |
+  | `banner_close` | ×で閉じた | `x` |
+  | `check_start` | チェック開始 | （空） |
+  | `check_answer` | 1問ごと | `q=1;ok=1;p=0;s=3.2;t=0` |
+  | `check_result` | 結果画面 | `ty=1;lv=5;pen=0;o=111;ts=7.6`（`ty` はタイプの番号1〜4） |
+  | `rule_view` | ルール説明（C） | （空） |
+  | `trial_start` | ゲーム開始（C） | （空） |
+  | `trial_clear` | 全消し（C） | `s=7.6;in=1` |
+  | `cta_store` | ストアボタン | `os=ios;ty=1;lv=5;ts=7.6` |
+
+  `param` は D1 の64文字上限（`validate.ts`）に収まる短い形にしてある（実測の最大は28字）。タイプ名の日本語は入れず番号にする。
+- 送信先は `POST /mm/track`（既存の D1 `mietore-mm` の `events` に同居）。送信先と行き先の URL は、js 自身の `src` の origin から組み立てる（本番 `https://mietore.site`、プレビューはプレビューの origin、手元は `wrangler pages dev` の origin）。`?mtr_debug=1` を付けると送信せずコンソールに出す。
+- チェックページ `/banner/check/b.html`・`c.html` は、EC 側の原本から組み立てた派生物（正は EC 側。`/cp/` と同じ運用）。
+  - 原本: `ecommerce-project/20_実行/新規獲得/バナー配信/チェックページ試作/template_20260928_BC_v2.html`・`build_20260928_BC_v2.py`（commit `26adcf2`）
+  - 組み立て: `python3 tools/banner/build_check.py`（EC 側を読むだけ）。画像の書き出しは `python3 tools/banner/build_images.py`
+  - 原本との違いは3点だけ。①画像を data URI ではなく `/banner/img/` の外部ファイルにした ②`track()` を `/mm/track` へ送る本物にした ③試作用の入口（バナーをもう一度タップさせる画面）を出さず第1問から始める。判定式（`Q[k].judge`・`ORDER`・`diagnose()`）と3問の出し方は原本のまま。
+- 画像は `/banner/img/`。隠れ数字（`q1_dots.png`）は非可逆圧縮をかけない（両はしの数字のうすさが変わると問題の難しさが変わるため）。
+- 出口 js は `public/mm/b/mietore-popup_mailmag.js` の離脱トリガーと送信関数を流用した派生物。保存キーとグローバルは既存（`mtr_*`）と混ざらないよう `mtrb_*` にしてある。7日間の抑制・`page_view`・`lp_click`・`exit_no_popup`・`scroll_up_signal` は持ち込んでいない。
+- 打ち切りの判定（1本 1,000表示・タップ55件以上）は人が Metabase で見る。自動では止めない。
+
 ## ドメイン切替（後日）
 1. Cloudflare Registrar で mietore.site 取得
 2. Pages → Custom domains に追加
