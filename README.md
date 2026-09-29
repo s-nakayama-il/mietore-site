@@ -57,8 +57,8 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
   | A1 特徴列挙 | `banner-20260928-A1` | `/banner/img/banner_A1.webp` | `/app`（UA でストアへ振り分け） |
   | A2 症状×運転 | `banner-20260928-A2` | `/banner/img/banner_A2.webp` | `/app` |
   | A3 症状×スマホ | `banner-20260928-A3` | `/banner/img/banner_A3.webp` | `/app` |
-  | B 隠れ数字 | `banner-20260928-B` | `/banner/img/banner_BC.webp` | `/banner/check/b.html` |
-  | C 隠れ数字 | `banner-20260928-C` | `/banner/img/banner_BC.webp` | `/banner/check/c.html` |
+  | B 隠れ数字 | `banner-20260928-B` | `/banner/img/banner_BC.webp` | `/banner/check/b`（`.html` なし） |
+  | C 隠れ数字 | `banner-20260928-C` | `/banner/img/banner_BC.webp` | `/banner/check/c`（`.html` なし） |
 
   B と C は同じ画像で、行き先だけが違う。出し分けはクライアント側で、sid を起点に5本から均等に決め、sessionStorage（`mtrb_creative`）に保存する。表示は sid ごとに1回（`mtrb_shown`）。
 - イベント（`src/lib/mm/validate.ts` の `ALLOWED_EVENTS` に10種を追加済み）:
@@ -78,9 +78,14 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
 
   `param` は D1 の64文字上限（`validate.ts`）に収まる短い形にしてある（実測の最大は28字）。タイプ名の日本語は入れず番号にする。
 - 送信先は `POST /mm/track`（既存の D1 `mietore-mm` の `events` に同居）。送信先と行き先の URL は、js 自身の `src` の origin から組み立てる（本番 `https://mietore.site`、プレビューはプレビューの origin、手元は `wrangler pages dev` の origin）。`?mtr_debug=1` を付けると送信せずコンソールに出す。
+- B/C の行き先は `.html` を付けない（`/banner/check/b`・`/banner/check/c`）。Pages は `.html` 付きの URL を `.html` なしへ 308 で転送するため、付けると往復が1回増える（2026-09-29・TASK-I16-20260929-004）。
 - チェックページ `/banner/check/b.html`・`c.html` は、EC 側の原本から組み立てた派生物（正は EC 側。`/cp/` と同じ運用）。
   - 原本: `ecommerce-project/20_実行/新規獲得/バナー配信/チェックページ試作/template_20260928_BC_v2.html`・`build_20260928_BC_v2.py`（commit `26adcf2`）
   - 組み立て: `python3 tools/banner/build_check.py`（EC 側を読むだけ）。画像の書き出しは `python3 tools/banner/build_images.py`
+  - 組み立ての元にした template の sha256: `12480b29081d0c356fa327c913235086c2d61a5b37ea963708a33c2706efee4e`（2026-09-29・TASK-I16-20260929-004）。
+    EC 側の `template_20260928_BC_v2.html` と同じであることが、同じ元から組み立てられている証拠になる。
+  - template の先頭には `<!doctype html>`・`<meta charset="utf-8">`・`<meta name="viewport" content="width=device-width,initial-scale=1">` が入っている。
+    これが無いと実機のスマホが互換モード（`document.compatMode` が `BackCompat`）になり、幅 980px で組まれて文字が約1/3に縮む。
   - 原本との違いは3点だけ。①画像を data URI ではなく `/banner/img/` の外部ファイルにした ②`track()` を `/mm/track` へ送る本物にした ③試作用の入口（バナーをもう一度タップさせる画面）を出さず第1問から始める。判定式（`Q[k].judge`・`ORDER`・`diagnose()`）と3問の出し方は原本のまま。
 - 画像は `/banner/img/`。隠れ数字（`q1_dots.png`）は非可逆圧縮をかけない（両はしの数字のうすさが変わると問題の難しさが変わるため）。
 - 出口 js は `public/mm/b/mietore-popup_mailmag.js` の離脱トリガーと送信関数を流用した派生物。保存キーとグローバルは既存（`mtr_*`）と混ざらないよう `mtrb_*` にしてある。7日間の抑制・`page_view`・`lp_click`・`exit_no_popup`・`scroll_up_signal` は持ち込んでいない。

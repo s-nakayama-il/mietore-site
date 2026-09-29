@@ -26,8 +26,8 @@
     TRACK_URL: ORIGIN + '/mm/track',
     IMG_BASE: ORIGIN + '/banner/img',
     APP_URL: ORIGIN + '/app',
-    CHECK_B: ORIGIN + '/banner/check/b.html',
-    CHECK_C: ORIGIN + '/banner/check/c.html'
+    CHECK_B: ORIGIN + '/banner/check/b',       /* .html なし（Pages の 308 転送を避ける） */
+    CHECK_C: ORIGIN + '/banner/check/c'        /* .html なし（Pages の 308 転送を避ける） */
   };
 
   /* 配信する5本。v が計測の版の識別子になる */
