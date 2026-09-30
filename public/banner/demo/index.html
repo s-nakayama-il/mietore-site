@@ -1,0 +1,105 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>離脱バナー デモ（動作確認用）</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#1a2024;--sub:#4a565e;--line:#d4dde2;--key:#0f6b7a;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-size:17px;line-height:1.8;-webkit-text-size-adjust:100%}
+.wrap{max-width:460px;margin:0 auto;padding:0 16px 64px}
+.bar{background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;position:sticky;top:0;z-index:10}
+.bar .t{font-size:13px;font-weight:700;color:var(--key);margin:0 0 6px}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.btns button{font:inherit;font-size:15px;font-weight:700;min-width:52px;min-height:40px;border:2px solid #b8c6cd;border-radius:10px;background:#fff;color:var(--ink)}
+.btns button[aria-pressed="true"]{border-color:var(--key);background:#e4f1f3;color:var(--key)}
+.now{font-size:13px;color:var(--sub);margin:6px 0 0}
+.hint{font-size:13px;color:var(--sub);margin:2px 0 0}
+.jump{font-size:15px;margin:10px 0 0}
+.jump a{color:var(--key)}
+.note{font-size:12px;color:var(--sub);margin:2px 0 0}
+.dummy{display:inline-block;font-size:11px;font-weight:700;color:#8a4b00;background:#fff3d9;border-radius:6px;padding:1px 6px;margin-right:6px}
+h1{font-size:23px;line-height:1.5;margin:20px 0 8px}
+h2{font-size:19px;line-height:1.5;margin:28px 0 6px;border-left:5px solid var(--key);padding-left:10px}
+p{margin:10px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:14px 0;font-size:15px;color:var(--sub)}
+footer{font-size:12px;color:var(--sub);margin-top:32px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+
+<div class="bar">
+  <p class="t">離脱バナー デモ（社内の動作確認用ページ）</p>
+  <div class="btns" id="sw">
+    <button type="button" data-c="A1">A1</button>
+    <button type="button" data-c="A2">A2</button>
+    <button type="button" data-c="A3">A3</button>
+    <button type="button" data-c="B">B</button>
+    <button type="button" data-c="C">C</button>
+  </div>
+  <p class="now" id="now">いま選ばれている1本: 読み込み中</p>
+  <p class="hint">画面を1回タップしてから戻ると出ます。</p>
+  <p class="jump"><a href="#sec3">ページの中のリンクで「読みかた」へ移動する</a></p>
+  <p class="note">TikTok・LINE・iPhone では、ここを押しても、リンク先から戻っても出ません（Android の通常の Chrome では、端末の戻るで出ます）。</p>
+</div>
+
+<div class="wrap">
+  <h1><span class="dummy">ダミー</span>このページは表示のしかたを確かめるための見本です</h1>
+  <p>ここに書かれている文章は、バナーの出かたを確かめるために用意した見本の文字です。商品や効果についての説明は一切ありません。読み進めたり、戻ったりする操作を試すためだけのページです。</p>
+
+  <div class="card">確かめかた: 上のボタンで1本を選ぶと、そのバナーだけが出るようになります。画面をどこか1回タップしてから、端末の戻る操作をしてください。</div>
+
+  <h2>見本の段落 1</h2>
+  <p>文字がどれくらいの大きさで並ぶかを見るための段落です。行の折り返しや、上下の余白のとりかたを確かめる目的で置いています。内容に意味はありません。</p>
+  <p>スマートフォンの画面では、1行あたりの文字数が少なくなります。そのため、同じ文章でも縦に長く伸びます。ここでは、その長さを再現するために段落を重ねています。</p>
+
+  <h2>見本の段落 2</h2>
+  <p>画面をスクロールしていくと、本文が続きます。実際の広告ページも、上から下へ読み進める作りになっています。このページはその流れだけを真似しています。</p>
+  <p>途中で読むのをやめて前の画面に戻ろうとしたとき、バナーが1回だけ出ます。もう一度戻る操作をすると、そのまま前の画面へ進めます。</p>
+
+  <h2 id="sec3">読みかた</h2>
+  <p>ここが、上のリンクの行き先です。リンクを押したときも、押してこの見出しまで来たあとに戻る操作をしたときも、バナーは出ません。どちらもページの中の移動だからです。</p>
+  <p>もう一度戻る操作をすると、こんどはページを離れようとしていると見なして、バナーが出ます。</p>
+
+  <h2>見本の段落 3</h2>
+  <p>文章の見た目を確かめるための段落です。長さをそろえるために、同じような文が続きます。数字や固有名詞は入れていません。</p>
+  <p>このページで送られる記録は、社内の確認用として集計から外してあります。お客様向けの数には入りません。</p>
+
+  <h2>見本の段落 4</h2>
+  <p>最後の段落です。ここまでスクロールできれば、縦の長さは足りています。上のボタンで別の1本に切り替えて、同じ手順をくり返してください。</p>
+  <p>確認が終わったら、このページを閉じてかまいません。</p>
+
+  <footer>社内の動作確認用のページです。公開の案内には使いません。検索結果には出ないようにしてあります（X-Robots-Tag: noindex）。</footer>
+</div>
+
+<script>
+/* 計測の sid を 9909 で始める（デモの記録を集計から外すための既存のきまり）。
+   mtr-exit.js より前に走らせる必要があるため、タグの前に置く。 */
+(function () {
+  try {
+    var s = sessionStorage.getItem('mtrb_sid') || '';
+    if (!/^9909\d{4}$/.test(s)) {
+      var r = String(Math.floor(Math.random() * 10000));
+      while (r.length < 4) r = '0' + r;
+      sessionStorage.setItem('mtrb_sid', '9909' + r);
+    }
+  } catch (e) {}
+  /* 切り替えバー: 1本を選び、表示済みの印を消して読み直す */
+  function label() {
+    var c = null;
+    try { c = sessionStorage.getItem('mtrb_creative'); } catch (e) {}
+    var n = document.getElementById('now');
+    if (n) n.textContent = 'いま選ばれている1本: ' + (c ? c : '未選択（自動で決まる）');
+    var bs = document.querySelectorAll('#sw button');
+    for (var i = 0; i < bs.length; i++) bs[i].setAttribute('aria-pressed', bs[i].getAttribute('data-c') === c ? 'true' : 'false');
+  }
+  document.addEventListener('DOMContentLoaded', label);
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('#sw button') : null;
+    if (!b) return;
+    try {
+      sessionStorage.setItem('mtrb_creative', b.getAttribute('data-c'));
+      sessionStorage.removeItem('mtrb_shown');
+    } catch (err) {}
+    location.reload();
+  });
+})();
+</script>
+<script src="https://mietore.site/banner/mtr-exit.js" defer></script>

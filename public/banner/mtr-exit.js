@@ -5,9 +5,13 @@
  * Derived from public/mm/b/mietore-popup_mailmag.js (v3d-2.4.0-mailmag):
  *   - exit trigger MtrExitTrigger (CloseWatcher first, history pushState as fallback)
  *   - sender (sendBeacon with text/plain, falling back to a no-cors fetch)
+ * Also carried over for in-app browsers (TASK-I16-20260930-003): the CloseWatcher +
+ *   history hybrid, the LINE navboost (one replaceState after the first tap), a guard so
+ *   in-page moves do not fire the banner (the origin entry is tagged with mtrb:0 and only a
+ *   popstate that lands on it counts as leaving), and the exit_no_popup outcome event.
  * Not carried over: the always-show preview patch, the game, the talk animation,
- *   the mailmag screens, the 7-day localStorage suppression, and the
- *   page_view / lp_click / exit_no_popup / scroll_up_signal events.
+ *   the mailmag screens, the 7-day localStorage suppression, the scroll_up auxiliary
+ *   signal, and the page_view / lp_click / scroll_up_signal events.
  * Storage keys and globals use the mtrb_* prefix so they never collide with the
  * existing popup (mtr_*).
  *
@@ -50,9 +54,46 @@
     return {
       debug: !!(p && p.get('mtr_debug') === '1'),
       cw: (p && p.get('mtr_cw')) || null,
+      hybrid: (p && p.get('mtr_hybrid')) || null,
+      navboost: (p && p.get('mtr_navboost')) || null,
       reset: !!(p && p.get('mtr_reset') === '1')
     };
   })();
+
+  /* ---------- on-screen log (?mtr_debug=1 only) ----------
+     TikTok and LINE release builds expose no console and cannot be inspected remotely, so
+     the state has to be readable on the page itself. Without mtr_debug=1 no element is
+     created at all. Shadow DOM keeps the host LP's CSS out; pointer-events:none keeps taps
+     and scrolling untouched. Nothing here identifies a visitor. */
+  var dbgBox = null;
+  function dbg(line) {
+    if (!QS.debug) return;
+    try {
+      if (!dbgBox) {
+        var h = document.createElement('div');
+        h.id = 'mtrb-dbg';
+        var sr = h.attachShadow ? h.attachShadow({ mode: 'open' }) : null;
+        var r = sr || h;
+        var st = document.createElement('style');
+        st.textContent = ':host{all:initial}' +
+          '.p{position:fixed;left:0;bottom:0;max-width:100vw;max-height:40vh;overflow:hidden;' +
+          'z-index:2147483001;pointer-events:none;background:rgba(0,0,0,.72);color:#4f4;' +
+          'font:11px/1.35 ui-monospace,monospace;padding:4px 6px;white-space:pre-wrap;' +
+          'word-break:break-all}';
+        r.appendChild(st);
+        var b = document.createElement('div');
+        b.className = 'p';
+        r.appendChild(b);
+        document.body.appendChild(h);
+        dbgBox = b;
+      }
+      var d = document.createElement('div');
+      d.textContent = line;
+      dbgBox.appendChild(d);
+      while (dbgBox.childNodes.length > 24) dbgBox.removeChild(dbgBox.firstChild);
+    } catch (e) {}
+    try { console.log('[mtrb]', line); } catch (e) {}
+  }
 
   /* ---------- sid and creative assignment ---------- */
   function sid() {
@@ -98,6 +139,9 @@
     if (/; wv\)/.test(ua)) return 'wv';
     return 'browser';
   }
+  /* UA-detectable in-app browser. Chrome Custom Tabs and SFSafariViewController report the
+     same UA as the real browser and cannot be told apart here (DEC-20260728-001). */
+  function isInAppBrowser() { return uaFamily() !== 'browser'; }
   function track(event, param) {
     var payload = {
       ts: new Date().toISOString(),
@@ -189,18 +233,84 @@
 
   /* ---------- exit detection (same approach as the original MtrExitTrigger) ---------- */
   var armed = false, popped = false, cwActive = false;
+  /* True once this document's session history holds an entry of ours. Unlike `armed` it is
+     never cleared by pageshow (bfcache), and it starts true after a plain reload that lands
+     on an entry we pushed, so a back press is never swallowed without either showing the
+     banner or letting the navigation through. */
+  var marked = false;
+  try { marked = typeof (history.state && history.state.mtrb) === 'number'; } catch (e) {}
+  /* True only when arm() managed to tag the origin entry in this page life. While it is true
+     the guard can recognise the origin entry by its marker; while it is false the guard falls
+     back to "we pushed something and did not land on a marker of ours", which can misfire on a
+     native in-page link but never swallows a back press. */
+  var b0 = false;
 
   function hasActivation() {
     var ua = navigator.userActivation;
     if (!ua) return true;
     return ua.hasBeenActive === true;
   }
+  /* Tag the entry we are standing on when we arm (the origin entry), keeping whatever the host
+     page already stored there. A browser's own in-page link fires popstate with a null state
+     when it moves FORWARD, exactly like a real back to the origin, so the state alone cannot
+     tell them apart; a marker on the origin can. Returns false when the existing state cannot
+     carry a key (a string, a number, an array, a Date), in which case nothing is written and
+     the guard falls back. replaceState is called without a URL so the address does not change. */
+  function markOrigin() {
+    var st;
+    try { st = history.state; } catch (e) { return false; }
+    var next;
+    if (st === null || st === undefined) {
+      next = { mtrb: 0 };
+    } else if (Object.prototype.toString.call(st) === '[object Object]') {
+      next = {};
+      try {
+        for (var k in st) if (Object.prototype.hasOwnProperty.call(st, k)) next[k] = st[k];
+      } catch (e) { return false; }
+      next.mtrb = 0;
+    } else {
+      return false;
+    }
+    try { history.replaceState(next, ''); } catch (e) { return false; }
+    return true;
+  }
+
   function arm() {
     if (armed) return true;
-    if (history.state && history.state.mtrb) { armed = true; return true; }
+    if (history.state && history.state.mtrb) {
+      /* A plain reload can land on an entry we pushed in an earlier page life. Do not push
+         again, and do not claim the origin marker: the guard falls back, which still lets a
+         back press through. */
+      armed = true; marked = true;
+      dbg('arm: reused (fallback guard)');
+      return true;
+    }
     armed = true;
+    b0 = markOrigin();
     history.pushState({ mtrb: 1 }, '');
+    marked = true;
+    dbg(b0 ? 'arm: pushState (origin tagged)' : 'arm: pushState (origin not taggable, fallback guard)');
     return true;
+  }
+
+  /* navboost: in-app browsers only, on by default, once, after the first tap.
+     LINE recalculates whether its back control is usable only on navigation-type events, so
+     one replaceState after user activation makes the entry we pushed actually reachable
+     (DEC-20260727-005 / DEC-20260727-006). Firing it before the tap is useless because the
+     entry stays skippable. Only the repush variant is carried over: fukufuku keeps repush2
+     and reload for testing. replaceState(history.state) preserves our mtrb marker. */
+  var navboosted = false;
+  function navboostMode() {
+    var m = QS.navboost || 'repush';
+    return (m && m !== 'off') ? m : null;
+  }
+  function maybeNavboost() {
+    if (navboosted) return;
+    if (navboostMode() !== 'repush' || !isInAppBrowser()) return;
+    if (!hasActivation()) return;
+    navboosted = true;
+    try { history.replaceState(history.state, ''); } catch (e) {}
+    dbg('navboost: repush');
   }
   function cwSupported() {
     if (QS.cw === 'off') return false;
@@ -209,13 +319,29 @@
   function setupCloseWatcher() {
     try {
       var w = new CloseWatcher();
-      w.onclose = function () { cwActive = false; show('back_cw'); };
+      w.onclose = function () {
+        cwActive = false;
+        dbg('cw: fired');
+        if (show('back_cw')) dbg('show: back_cw');
+      };
       cwActive = true;
+      dbg('cw: armed');
       return true;
-    } catch (e) { return false; }
+    } catch (e) { dbg('cw: error'); return false; }
   }
   var lastSource = null;
+  /* Leaving the LP, as opposed to an in-page move. With the origin tagged, only a popstate that
+     lands on that marker counts. Without it (the state could not carry a key, or a reload landed
+     on one of our entries), fall back to "we pushed something and did not land on a marker of
+     ours": that can misfire on a native in-page link but never swallows a back press. */
+  function isExit() {
+    var st = history.state;
+    if (b0) return !!(st && st.mtrb === 0);
+    return marked && !(st && st.mtrb);
+  }
   function onPopState() {
+    var m = history.state && history.state.mtrb;
+    dbg('popstate: mtrb=' + (typeof m === 'number' ? m : '-'));
     /* If back arrives while the popup is open, do not swallow it: close the popup and let the
        real navigation continue (same shape as onPopState in mietore-popup_mailmag.js).
        Otherwise the pushed history entry makes the back button appear dead once. */
@@ -224,10 +350,40 @@
       if (lastSource === 'back') history.back();
       return;
     }
-    if (popped) { history.back(); return; }
+    /* Anything that is not a landing on the origin entry is an in-page move (a native anchor
+       moving forward, a tab, or undoing either of those): do nothing, neither show nor
+       history.back(), and let the visitor keep reading. Where CloseWatcher runs alone we never
+       arm, so every popstate is an in-page move; on such a browser the device back arrives as a
+       close request instead and the CloseWatcher path handles it, exactly as fukufuku does. */
+    if (!isExit()) { dbg('guard: in-page back'); return; }
+    if (popped) { dbg('pass: history.back'); history.back(); return; }
     popped = true;
-    if (!show('back')) { history.back(); return; }   /* cannot show: let the real navigation continue */
+    if (!show('back')) { dbg('pass: history.back'); history.back(); return; }   /* cannot show: let the real navigation continue */
+    dbg('show: back');
     history.pushState({ mtrb: 2 }, '');
+    marked = true;
+  }
+
+  /* Record, once, how a session ended that never saw the banner. Judged top down:
+     seen          = an earlier page of this same sid already showed it
+     cw_alive      = CloseWatcher was still armed and no history entry of ours exists
+     armed_no_back = our entry exists and there was a tap, but no back operation came
+     no_activation = none of the above: no tap, and back never reached the page
+     Sent on whichever of visibilitychange(hidden) and pagehide comes first. pagehide is not
+     guaranteed to fire, which is why both are used. Nothing here identifies a visitor. */
+  var exitReported = false;
+  function exitParam() {
+    if (seen()) return 'seen';
+    if (cwActive && !marked) return 'cw_alive';
+    if (marked && hasActivation()) return 'armed_no_back';
+    return 'no_activation';
+  }
+  function reportExitOutcome() {
+    if (exitReported || shown) return;
+    exitReported = true;
+    var p = exitParam();
+    dbg('exit_no_popup: ' + p);
+    track('exit_no_popup', p);
   }
   function registerHistoryTriggers() {
     /* Without user activation Chromium skips the history entry we pushed. */
@@ -240,17 +396,45 @@
     setTimeout(arm, 0);
   }
 
+  /* Registered before the seen() return below, so a session that cannot show the banner any
+     more still reports how it ended. */
   window.addEventListener('popstate', onPopState);
-  window.addEventListener('pagehide', function () { if (host) close('leave'); });
+  window.addEventListener('pagehide', function () {
+    reportExitOutcome();
+    if (host) close('leave');
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) reportExitOutcome();
+  });
   window.addEventListener('pageshow', function (e) {
-    if (e.persisted) { armed = false; popped = false; }
+    /* marked and b0 are deliberately NOT reset: the origin marker survives in the session
+       history, so a visitor coming back through bfcache must still be able to leave. */
+    if (e.persisted) { dbg('pageshow: bfcache'); armed = false; popped = false; }
   });
 
-  if (seen()) return;   /* never show twice within the same sid */
+  if (seen()) { dbg('seen: skip'); return; }   /* never show twice within the same sid */
+
+  if (navboostMode()) {
+    ['touchend', 'pointerup', 'click'].forEach(function (t) {
+      window.addEventListener(t, maybeNavboost, { passive: true });
+    });
+  }
 
   if (cwSupported()) {
-    setTimeout(function () { if (!setupCloseWatcher()) registerHistoryTriggers(); }, 0);
+    /* In a UA-detectable in-app browser (LINE / TikTok / a generic `; wv)` WebView) the host
+       app keeps the back gesture for itself and never delivers the close request to the page,
+       so push a history entry as well: the app's back then becomes a history traversal and
+       popstate arrives (DEC-20260727-005, DEC-20260728-001). In a plain browser CloseWatcher
+       runs alone and the history stays clean. ?mtr_hybrid=off turns the pairing off. Both
+       paths firing cannot show twice: show() returns early once `shown` is set. */
+    setTimeout(function () {
+      var ok = setupCloseWatcher();
+      var hybrid = ok && isInAppBrowser() && QS.hybrid !== 'off';
+      if (hybrid) dbg('hybrid: cw+history');
+      if (!ok || hybrid) registerHistoryTriggers();
+    }, 0);
   } else {
+    dbg('cw: unsupported');
     registerHistoryTriggers();
   }
 })();
