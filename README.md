@@ -61,13 +61,13 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
   | C 隠れ数字 | `banner-20260928-C` | `/banner/img/banner_BC.webp` | `/banner/check/c`（`.html` なし） |
 
   B と C は同じ画像で、行き先だけが違う。出し分けはクライアント側で、sid を起点に5本から均等に決め、sessionStorage（`mtrb_creative`）に保存する。表示は sid ごとに1回（`mtrb_shown`）。
-- イベント（`src/lib/mm/validate.ts` の `ALLOWED_EVENTS` に10種を追加済み）:
+- イベント（`/banner` 用の10種を `src/lib/mm/validate.ts` の `ALLOWED_EVENTS` に追加済み。`exit_no_popup` は `/mm` 時代から入っている既存のイベントを流用するので、`validate.ts`・`schema/mm.sql`・`functions/mm/track.ts` の変更は無い）:
 
   | イベント | 送る場面 | `param` の形 |
   |---|---|---|
   | `banner_view` | バナーを出した | `back_cw`（CloseWatcher）／`back`（履歴） |
   | `banner_tap` | バナーをタップ | `app` ／ `check_b` ／ `check_c` |
-  | `banner_close` | ×で閉じた | `x` |
+  | `banner_close` | バナーを閉じた | `x`（×ボタン）／ `back`（表示中の戻る）／ `leave`（バナーごとページ離脱） |
   | `check_start` | チェック開始 | （空） |
   | `check_answer` | 1問ごと | `q=1;ok=1;p=0;s=3.2;t=0` |
   | `check_result` | 結果画面 | `ty=1;lv=5;pen=0;o=111;ts=7.6`（`ty` はタイプの番号1〜4） |
@@ -75,6 +75,7 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
   | `trial_start` | ゲーム開始（C） | （空） |
   | `trial_clear` | 全消し（C） | `s=7.6;in=1` |
   | `cta_store` | ストアボタン | `os=ios;ty=1;lv=5;ts=7.6` |
+  | `exit_no_popup` | バナーを出せないまま離脱した（1セッション1回） | `seen` ／ `cw_alive` ／ `armed_no_back` ／ `no_activation` |
 
   `param` は D1 の64文字上限（`validate.ts`）に収まる短い形にしてある（実測の最大は28字）。タイプ名の日本語は入れず番号にする。
 - 送信先は `POST /mm/track`（既存の D1 `mietore-mm` の `events` に同居）。送信先と行き先の URL は、js 自身の `src` の origin から組み立てる（本番 `https://mietore.site`、プレビューはプレビューの origin、手元は `wrangler pages dev` の origin）。`?mtr_debug=1` を付けると送信せずコンソールに出す。
@@ -89,7 +90,15 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
   - 原本との違いは3点だけ。①画像を data URI ではなく `/banner/img/` の外部ファイルにした ②`track()` を `/mm/track` へ送る本物にした ③試作用の入口（バナーをもう一度タップさせる画面）を出さず第1問から始める。判定式（`Q[k].judge`・`ORDER`・`diagnose()`）と3問の出し方は原本のまま。
 - 画像は `/banner/img/`。隠れ数字（`q1_dots.png`）は非可逆圧縮をかけない（両はしの数字のうすさが変わると問題の難しさが変わるため）。
 - `mtr-exit.js` は ASCII だけで書く（日本語は `\uXXXX`。LP の文字コードに関係なく同じ文字が出るように。2026-09-29・TASK-I16-20260929-005）。
-- 出口 js は `public/mm/b/mietore-popup_mailmag.js` の離脱トリガーと送信関数を流用した派生物。保存キーとグローバルは既存（`mtr_*`）と混ざらないよう `mtrb_*` にしてある。7日間の抑制・`page_view`・`lp_click`・`exit_no_popup`・`scroll_up_signal` は持ち込んでいない。
+- 出口 js は `public/mm/b/mietore-popup_mailmag.js` の離脱トリガーと送信関数を流用した派生物。保存キーとグローバルは既存（`mtr_*`）と混ざらないよう `mtrb_*` にしてある。7日間の抑制・`page_view`・`lp_click`・`scroll_up_signal`（上方向スクロールの補助シグナル）は持ち込んでいない。抑制は sessionStorage の `mtrb_shown` だけ（sid ごとに1回）。
+- 離脱の捕まえ方（2026-09-30・TASK-I16-20260930-003）。fukufuku 側（`ecommerce-project/20_実行/新規獲得/tool/src/exit-trigger.js` v3d-2.5.0）と同じ考え方に揃えてある。
+  - **アプリ内ブラウザでは CloseWatcher と履歴方式を併用する**（hybrid）。TikTok・LINE・ゲームアプリの WebView は端末の戻るをアプリ側で処理し、close request をページに渡さないことがある。履歴エントリを積んでおけば、アプリの戻るが「履歴を戻る」になって `popstate` が届く。UA で判定できないブラウザ（通常の Chrome・Chrome Custom Tabs・PC）は CloseWatcher 単独のままで履歴を汚さない。`?mtr_hybrid=off` で併用を切れる。
+  - **LINE 向けに navboost（repush）を既定 ON にしている**。初回タップのあと `history.replaceState(history.state, '')` を1回だけ実行する。LINE は画面下の ‹ が使えるかをナビゲーション系イベントのときしか計算し直さないため、これが無いと ‹ がグレーのままになる。`?mtr_navboost=off` で切れる。アプリ内ブラウザ以外では動かない。
+  - **ページの中の移動ではバナーを出さない**。`arm()` で履歴を積むとき、出発点のエントリに `mtrb: 0` の目印を付ける（既存の state のキーは残す。URL は変えない）。`popstate` は、戻った先がその目印のときだけ「LP を離れようとした」とみなす。ブラウザ標準のページ内リンク（`<a href="#…">`）は**前へ進むときにも** `popstate`（state は `null`）を出すため、目印が無いと読んでいる最中に出てしまう。出発点の state が文字列など目印を持てない型のときは、その読み込みに限り「自分で積んだことがあり、かつ戻った先が自分の目印でない」という判定に落ちる（バナーが出ない側には倒さない）。
+  - **出せなかったときの結末を1回だけ記録する**（`exit_no_popup`）。`visibilitychange`（hidden）と `pagehide` の早い方で送る。バナーを出したページでは送らない。
+- 手元で見る用の URL パラメータ: `?mtr_reset=1`（`mtrb_shown` を無視して繰り返し試す）／`?mtr_debug=1`（送信せず、画面の左下に経路のログを出す。`cw: armed`・`hybrid: cw+history`・`arm: pushState (origin tagged)`・`navboost: repush`・`popstate: mtrb=…`・`guard: in-page back`・`show: back`・`pass: history.back`・`exit_no_popup: …`。付けないときは要素を1つも作らない）／`?mtr_cw=off`（CloseWatcher を切って履歴方式だけにする）／`?mtr_hybrid=off`／`?mtr_navboost=off`。
+- 社内で確かめるデモページ `/banner/demo/`。記事風のダミー LP に、5本の切り替えバーと、標準のページ内リンク1本を置いてある。`mtrb_sid` を `9909` 始まりにするので、集計から外せる。スマホ（360×640）で開いて、画面を1回タップしてから戻る操作をすると出る。
+- `/banner/check/*` と `/banner/demo/*` は `public/_headers` の `X-Robots-Tag: noindex` で検索結果に出さない（チェックページの HTML・`build_check.py` は変えていない）。`.html` 付きの URL は 308 で `.html` なしへ転送されるが、転送先にも noindex が付く。
 - 打ち切りの判定（1本 1,000表示・タップ55件以上）は人が Metabase で見る。自動では止めない。
 
 ## ドメイン切替（後日）

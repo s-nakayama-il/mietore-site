@@ -1,0 +1,5 @@
+/banner/check/*
+  X-Robots-Tag: noindex
+
+/banner/demo/*
+  X-Robots-Tag: noindex
