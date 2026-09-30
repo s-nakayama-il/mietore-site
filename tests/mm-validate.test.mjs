@@ -28,3 +28,37 @@ test('B版追加3イベント（exit_no_popup/scroll_up_signal/lp_click）は通
   const long = validateAndClean({ ...base, event: 'lp_click', param: 'a'.repeat(100) });
   assert.equal(long.param.length, 100);
 });
+
+const BANNER_EVENTS = [
+  'banner_view', 'banner_tap', 'banner_close',
+  'check_start', 'check_answer', 'check_result',
+  'rule_view', 'trial_start', 'trial_clear', 'cta_store',
+];
+
+test('/banner 追加10イベントは通過し、param は64文字上限', () => {
+  for (const event of BANNER_EVENTS) {
+    const r = validateAndClean({ ...base, event, param: 'q=1;ok=1;p=0;s=3.2', v: 'banner-20260928-B' });
+    assert.equal(r?.event, event);
+    assert.equal(r.v, 'banner-20260928-B');
+    assert.equal(r.param, 'q=1;ok=1;p=0;s=3.2');
+  }
+  const long = validateAndClean({ ...base, event: 'check_result', param: 'a'.repeat(100) });
+  assert.equal(long.param.length, 64);
+});
+
+test('/banner 追加後も既存14イベントの扱いは変わらない', () => {
+  const existing = [
+    'page_view', 'popup_view', 'anime_end', 'play_start', 'stage_clear', 'all_clear',
+    'cta_search', 'cta_ios', 'cta_android', 'replay', 'popup_close',
+    'exit_no_popup', 'scroll_up_signal', 'lp_click',
+  ];
+  for (const event of existing) {
+    const param = event === 'anime_end' ? 'complete' : '';
+    assert.equal(validateAndClean({ ...base, event, param })?.event, event);
+  }
+  // anime_end の param 検査と lp_click の150文字上限は据え置き
+  assert.equal(validateAndClean({ ...base, event: 'anime_end', param: 'oops' }), null);
+  assert.equal(validateAndClean({ ...base, event: 'lp_click', param: 'a'.repeat(100) }).param.length, 100);
+  // 未知イベントは引き続き null
+  assert.equal(validateAndClean({ ...base, event: 'banner_hack' }), null);
+});

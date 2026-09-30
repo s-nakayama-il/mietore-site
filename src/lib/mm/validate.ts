@@ -5,6 +5,10 @@ export const ALLOWED_EVENTS = [
   'page_view', 'popup_view', 'anime_end', 'play_start', 'stage_clear', 'all_clear',
   'cta_search', 'cta_ios', 'cta_android', 'replay', 'popup_close',
   'exit_no_popup', 'scroll_up_signal', 'lp_click',
+  // /banner 離脱バナー配信（TASK-I16-20260929-003）。param は64文字上限のまま使う
+  'banner_view', 'banner_tap', 'banner_close',
+  'check_start', 'check_answer', 'check_result',
+  'rule_view', 'trial_start', 'trial_clear', 'cta_store',
 ];
 
 const ALLOWED_ANIME_END = ['complete', 'skip_talk', 'skip_bridge'];
