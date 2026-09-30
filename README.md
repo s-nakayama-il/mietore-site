@@ -88,6 +88,7 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
     これが無いと実機のスマホが互換モード（`document.compatMode` が `BackCompat`）になり、幅 980px で組まれて文字が約1/3に縮む。
   - 原本との違いは3点だけ。①画像を data URI ではなく `/banner/img/` の外部ファイルにした ②`track()` を `/mm/track` へ送る本物にした ③試作用の入口（バナーをもう一度タップさせる画面）を出さず第1問から始める。判定式（`Q[k].judge`・`ORDER`・`diagnose()`）と3問の出し方は原本のまま。
 - 画像は `/banner/img/`。隠れ数字（`q1_dots.png`）は非可逆圧縮をかけない（両はしの数字のうすさが変わると問題の難しさが変わるため）。
+- `mtr-exit.js` は ASCII だけで書く（日本語は `\uXXXX`。LP の文字コードに関係なく同じ文字が出るように。2026-09-29・TASK-I16-20260929-005）。
 - 出口 js は `public/mm/b/mietore-popup_mailmag.js` の離脱トリガーと送信関数を流用した派生物。保存キーとグローバルは既存（`mtr_*`）と混ざらないよう `mtrb_*` にしてある。7日間の抑制・`page_view`・`lp_click`・`exit_no_popup`・`scroll_up_signal` は持ち込んでいない。
 - 打ち切りの判定（1本 1,000表示・タップ55件以上）は人が Metabase で見る。自動では止めない。
 

@@ -1,22 +1,28 @@
-/* mtr-exit.js — 離脱バナー配信（A1/A2/A3/B/C の5本）
- * 代理店の LP には次の1行だけを入れてもらう:
+/* mtr-exit.js - exit banner delivery (5 creatives: A1/A2/A3/B/C)
+ * The agency only pastes this single tag into their LP:
  *   <script src="https://mietore.site/banner/mtr-exit.js" defer></script>
  *
- * 流用元: public/mm/b/mietore-popup_mailmag.js（v3d-2.4.0-mailmag）の
- *   - 離脱トリガー MtrExitTrigger（CloseWatcher 優先・履歴方式フォールバック）
- *   - 送信関数（sendBeacon を text/plain で送り、積めなければ no-cors の fetch）
- * 持ち込まないもの: 常時即表示のパッチ（preview）・ゲーム・会話アニメ・メルマガ用の画面、
- *   7日間の localStorage 抑制、page_view / lp_click / exit_no_popup / scroll_up_signal の送信。
- * 保存キーとグローバルは既存のポップアップ（mtr_*）と混ざらないよう mtrb_* にしている。
+ * Derived from public/mm/b/mietore-popup_mailmag.js (v3d-2.4.0-mailmag):
+ *   - exit trigger MtrExitTrigger (CloseWatcher first, history pushState as fallback)
+ *   - sender (sendBeacon with text/plain, falling back to a no-cors fetch)
+ * Not carried over: the always-show preview patch, the game, the talk animation,
+ *   the mailmag screens, the 7-day localStorage suppression, and the
+ *   page_view / lp_click / exit_no_popup / scroll_up_signal events.
+ * Storage keys and globals use the mtrb_* prefix so they never collide with the
+ * existing popup (mtr_*).
+ *
+ * This file must stay ASCII-only. Japanese text is written as \uXXXX escapes so the
+ * same characters render no matter which charset the host LP declares
+ * (the script is served as application/javascript with no charset).
  */
 (function () {
   'use strict';
   if (window.__mtrbInit) return;
   window.__mtrbInit = true;
 
-  /* 自分自身の src から origin を作る。本番は https://mietore.site、
-     プレビューはプレビューの origin、手元は wrangler pages dev の origin になる。
-     currentScript は読み込み時にしか取れないので、ここで確定させる。 */
+  /* Build the origin from this script's own src: https://mietore.site in production,
+     the preview origin on a preview deploy, and the wrangler pages dev origin locally.
+     document.currentScript is only readable while the script is loading, so capture it here. */
   var SELF = document.currentScript;
   var ORIGIN = (function () {
     try { return new URL(SELF.src, location.href).origin; } catch (e) { return 'https://mietore.site'; }
@@ -26,17 +32,17 @@
     TRACK_URL: ORIGIN + '/mm/track',
     IMG_BASE: ORIGIN + '/banner/img',
     APP_URL: ORIGIN + '/app',
-    CHECK_B: ORIGIN + '/banner/check/b',       /* .html なし（Pages の 308 転送を避ける） */
-    CHECK_C: ORIGIN + '/banner/check/c'        /* .html なし（Pages の 308 転送を避ける） */
+    CHECK_B: ORIGIN + '/banner/check/b',       /* no .html: avoids the 308 redirect Pages adds */
+    CHECK_C: ORIGIN + '/banner/check/c'        /* no .html: avoids the 308 redirect Pages adds */
   };
 
-  /* 配信する5本。v が計測の版の識別子になる */
+  /* The 5 creatives. v is the version identifier recorded with every event. */
   var CREATIVES = [
-    { id: 'A1', v: 'banner-20260928-A1', img: 'banner_A1.webp', dest: 'app',     alt: '1日3分の目のトレーニング' },
-    { id: 'A2', v: 'banner-20260928-A2', img: 'banner_A2.webp', dest: 'app',     alt: '運転中に標識がぼやける方へ' },
-    { id: 'A3', v: 'banner-20260928-A3', img: 'banner_A3.webp', dest: 'app',     alt: 'スマホの字を離して読む方へ' },
-    { id: 'B',  v: 'banner-20260928-B',  img: 'banner_BC.webp', dest: 'check_b', alt: '点の中の4けたの数字、わかりますか' },
-    { id: 'C',  v: 'banner-20260928-C',  img: 'banner_BC.webp', dest: 'check_c', alt: '点の中の4けたの数字、わかりますか' }
+    { id: 'A1', v: 'banner-20260928-A1', img: 'banner_A1.webp', dest: 'app',     alt: '1\u65e53\u5206\u306e\u76ee\u306e\u30c8\u30ec\u30fc\u30cb\u30f3\u30b0' },
+    { id: 'A2', v: 'banner-20260928-A2', img: 'banner_A2.webp', dest: 'app',     alt: '\u904b\u8ee2\u4e2d\u306b\u6a19\u8b58\u304c\u307c\u3084\u3051\u308b\u65b9\u3078' },
+    { id: 'A3', v: 'banner-20260928-A3', img: 'banner_A3.webp', dest: 'app',     alt: '\u30b9\u30de\u30db\u306e\u5b57\u3092\u96e2\u3057\u3066\u8aad\u3080\u65b9\u3078' },
+    { id: 'B',  v: 'banner-20260928-B',  img: 'banner_BC.webp', dest: 'check_b', alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u308f\u304b\u308a\u307e\u3059\u304b' },
+    { id: 'C',  v: 'banner-20260928-C',  img: 'banner_BC.webp', dest: 'check_c', alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u308f\u304b\u308a\u307e\u3059\u304b' }
   ];
 
   var QS = (function () {
@@ -48,7 +54,7 @@
     };
   })();
 
-  /* ---------- sid と割り当て ---------- */
+  /* ---------- sid and creative assignment ---------- */
   function sid() {
     var s = '';
     try { s = sessionStorage.getItem('mtrb_sid') || ''; } catch (e) {}
@@ -60,7 +66,7 @@
     return s;
   }
 
-  /* 5本から均等に1本。sid から決めるので、D1 の行から後で割り当てを確かめられる */
+  /* Pick 1 of 5 evenly. Derived from the sid so the assignment can be rechecked from the D1 rows. */
   function creative() {
     var saved = null;
     try { saved = sessionStorage.getItem('mtrb_creative'); } catch (e) {}
@@ -76,7 +82,7 @@
 
   var CRE = creative();
 
-  /* ---------- 計測 ---------- */
+  /* ---------- tracking ---------- */
   function osName() {
     var ua = navigator.userAgent || '';
     if (/iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'iOS';
@@ -105,8 +111,8 @@
     };
     if (QS.debug) { try { console.log('[mtrb]', payload); } catch (e) {} return; }
     var body = JSON.stringify(payload);
-    /* sendBeacon はキューに積めなかったとき false を返す。その場合は no-cors の fetch で送り直す
-       （流用元 mietore-popup_mailmag.js 121〜157行と同じ作り） */
+    /* sendBeacon returns false when it cannot queue the payload; resend with a no-cors fetch
+       (same shape as mietore-popup_mailmag.js lines 121-157). */
     try {
       if (navigator.sendBeacon &&
           navigator.sendBeacon(CFG.TRACK_URL, new Blob([body], { type: 'text/plain' })) === true) return;
@@ -117,7 +123,7 @@
     } catch (e) {}
   }
 
-  /* ---------- 表示（Shadow DOM。LP の CSS と混ざらない） ---------- */
+  /* ---------- rendering (Shadow DOM, so the host LP's CSS cannot leak in or out) ---------- */
   var shown = false;
   function seen() {
     if (QS.reset) return false;
@@ -127,7 +133,8 @@
 
   function destUrl() {
     if (CRE.dest === 'check_b' || CRE.dest === 'check_c') {
-      /* LP とチェックページは origin が違い sessionStorage を共有できないため、クエリで渡す */
+      /* The LP and the check page are on different origins and cannot share sessionStorage,
+         so sid and v are passed in the query string. */
       var base = CRE.dest === 'check_b' ? CFG.CHECK_B : CFG.CHECK_C;
       return base + '?sid=' + encodeURIComponent(sid()) + '&v=' + encodeURIComponent(CRE.v);
     }
@@ -165,7 +172,7 @@
     var st = document.createElement('style'); st.textContent = CSS; root.appendChild(st);
     var bg = document.createElement('div'); bg.className = 'bg';
     bg.innerHTML = '<div class="pop">' +
-      '<button class="x" type="button" aria-label="閉じる">×</button>' +
+      '<button class="x" type="button" aria-label="\u9589\u3058\u308b">\u00d7</button>' +
       '<button class="tap" type="button" aria-label="' + CRE.alt + '">' +
       '<img src="' + CFG.IMG_BASE + '/' + CRE.img + '" alt="' + CRE.alt + '"></button></div>';
     root.appendChild(bg);
@@ -180,7 +187,7 @@
     return true;
   }
 
-  /* ---------- 離脱検知（流用元 MtrExitTrigger と同じ考え方） ---------- */
+  /* ---------- exit detection (same approach as the original MtrExitTrigger) ---------- */
   var armed = false, popped = false, cwActive = false;
 
   function hasActivation() {
@@ -209,9 +216,9 @@
   }
   var lastSource = null;
   function onPopState() {
-    /* 表示中に戻るが来たら、握り潰さずポップアップを閉じて本来の離脱を続ける
-       （流用元 mietore-popup_mailmag.js の onPopState と同じ形）。
-       そうしないと、積んだ履歴の分だけ戻るボタンが1回効かない状態になる */
+    /* If back arrives while the popup is open, do not swallow it: close the popup and let the
+       real navigation continue (same shape as onPopState in mietore-popup_mailmag.js).
+       Otherwise the pushed history entry makes the back button appear dead once. */
     if (host) {
       close('back');
       if (lastSource === 'back') history.back();
@@ -219,11 +226,11 @@
     }
     if (popped) { history.back(); return; }
     popped = true;
-    if (!show('back')) { history.back(); return; }   /* 出せないときは本来の離脱を続行させる */
+    if (!show('back')) { history.back(); return; }   /* cannot show: let the real navigation continue */
     history.pushState({ mtrb: 2 }, '');
   }
   function registerHistoryTriggers() {
-    /* user activation が付いてからでないと、Chromium が積んだ履歴を読み飛ばす */
+    /* Without user activation Chromium skips the history entry we pushed. */
     ['touchend', 'pointerup', 'click'].forEach(function (t) {
       window.addEventListener(t, function h() {
         if (arm()) window.removeEventListener(t, h);
@@ -239,7 +246,7 @@
     if (e.persisted) { armed = false; popped = false; }
   });
 
-  if (seen()) return;   /* 同じ sid では2回目を出さない */
+  if (seen()) return;   /* never show twice within the same sid */
 
   if (cwSupported()) {
     setTimeout(function () { if (!setupCloseWatcher()) registerHistoryTriggers(); }, 0);
