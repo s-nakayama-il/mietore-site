@@ -113,7 +113,7 @@ const IOS='https://apps.apple.com/jp/app/id6738352362';
 const AND='https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja';
 const ua=navigator.userAgent;const os=/iPhone|iPad|iPod/.test(ua)?'ios':/Android/.test(ua)?'android':'other';
 const FONT='"M PLUS Rounded 1c","Noto Sans JP",sans-serif';
-const ORDER=['dots','contrast','same'];  // 隠れ数字5秒 → しま模様10秒 → 同じ模様8秒
+const ORDER=['dots','contrast','same'];  // 隠れ数字7秒（絵）→ しま模様（タイマー無し）→ 同じ模様15秒
 let step=0,timerId=null,timeOver=false,qStart=0,trialSec=null,resType='',resLv=0;
 const rec={};
 const $=s=>document.querySelector(s);const view=$('#view');
@@ -157,9 +157,11 @@ function gabor(ctx,cx,cy,size,deg,contrast){
   ctx.putImageData(img,cx-size/2,cy-size/2)}
 
 // 各問題：見出しは読みやすい位置で改行する（<br>）
-// 第1問は peek（絵を5秒だけ見せてから選択肢を出す。時間切れは無い）、第2問はタイマー無し、第3問だけ timer で時間切れがある
+// 第1問は peek（絵を7秒だけ見せてから選択肢を出す。時間切れは無い）、第2問はタイマー無し、第3問だけ timer で時間切れがある
 const Q={
- dots:{title:'この中の4けたの数字<br>わかりますか？',peek:5,ans:NUM,
+ dots:{title:'この中の4けたの数字<br>見えますか？',peek:7,ans:NUM,
+  peekSub:'見えたら覚えておいてね。あとで答えます',   // 絵を見せている間だけ、見出しの下に出す一言
+  after:'さっき見えた数字はどれ？',                   // 絵が消えて選択肢が出たあとの見出し
   // 絵はバナーと同じ bc_dots.png（毎回ランダムに描き直さない）
   render(box){box.innerHTML='<div class="fig"><img alt="点の中に4けたの数字がかくれた画像" src="'+A.dots+'"></div>'},
   opts(){const rd=n=>Math.floor(Math.random()*n);
@@ -180,7 +182,7 @@ const Q={
   judge(a){const s={'1〜2番':2,'3番':1,'4番':1,'5番':0}[a];return {s,ok:s===0,
     head:s===0?'5番まで見えました！':'4番と5番は、とてもうすい模様です',
     body:s===0?'ほとんど見えないほど、うすい模様です。':'うすい模様は、年をとると見えにくくなるといわれています。'}}},
- same:{title:'お手本と同じ模様は<br>何個ありますか？',timer:8,ans:'5個',
+ same:{title:'お手本と同じ模様は<br>何個ありますか？',timer:15,ans:'5個',
   render(box){const c=document.createElement('canvas');c.width=520;c.height=640;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,640);
     x.fillStyle='#eef3f2';x.fillRect(0,0,520,136);gabor(x,76,68,116,45,1);x.fillStyle='#17201e';x.font='800 30px '+FONT;x.textAlign='left';x.fillText('← お手本',150,60);x.font='700 24px '+FONT;x.fillText('これと同じ向きを数えてね',150,100);
     const g=[45,35,60,90,55,45,30,45,35,0,60,45,30,55,135,45];x.strokeStyle='#17201e';x.lineWidth=3;x.strokeRect(2,150,516,488);
@@ -203,27 +205,33 @@ function showBanner(){clearInterval(timerId);step=0;trialSec=null;ORDER.forEach(
   document.body.appendChild(ov);
   $('#bn').onclick=()=>{closeAd();start()};$('#px').onclick=()=>{/* 試作では閉じない */}}
 
-function start(){track('check_start','');step=0;ask()}
+function start(){track('check_start','cv=20261001');step=0;ask()}
 
 // のこり秒の表示と赤いバー。0 になったら onEnd を呼ぶ
+// バーの幅は「のこり N秒」の表示と同じ割合（t/total）にする。transition 1s で次の1秒をかけて減り、
+// 0 になる瞬間（第1問は絵が消える・第3問は「時間切れ」）に transition を切って、表示と同時に空にする。
 function countdown(total,onEnd){let t=total;
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{const e=$('#tbar');if(e)e.style.width=((t-1)/total*100)+'%'}));
-  timerId=setInterval(()=>{t--;if(t<=0){clearInterval(timerId);onEnd();return}
-    $('#tsec').textContent='のこり '+t+'秒';$('#tbar').style.width=((t-1)/total*100)+'%'},1000)}
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{const e=$('#tbar');if(e)e.style.width=(t/total*100)+'%'}));
+  timerId=setInterval(()=>{t--;
+    if(t<=0){clearInterval(timerId);const e=$('#tbar');if(e){e.style.transition='none';e.style.width='0'}onEnd();return}
+    $('#tsec').textContent='のこり '+t+'秒';$('#tbar').style.width=(t/total*100)+'%'},1000)}
 
 function showOpts(k,q){const opts=typeof q.opts==='function'?q.opts():q.opts;
   $('#opts').innerHTML=opts.map(o=>`<button class="opt" type="button">${o}</button>`).join('');
   view.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answer(k,b))}
 
-function ask(){clearInterval(timerId);bar(step/(ORDER.length+1)*100);const k=ORDER[step],q=Q[k];
+function ask(){window.scrollTo(0,0);clearInterval(timerId);bar(step/(ORDER.length+1)*100);const k=ORDER[step],q=Q[k];
   const sec=q.peek||q.timer;
-  view.innerHTML=`<div class="screen enter"><span class="qno">第${step+1}問（全${ORDER.length}問）</span><h1>${q.title}</h1>
+  view.innerHTML=`<div class="screen enter"><span class="qno">第${step+1}問（全${ORDER.length}問）</span><h1 id="qt">${q.title}</h1>
+   ${q.peekSub?`<p class="sub" id="qsub">${q.peekSub}</p>`:''}
    ${sec?`<div class="timer" aria-live="polite"><div class="tb"><i id="tbar"></i></div><b id="tsec">のこり ${sec}秒</b></div>`:''}
    <div id="box"></div><div class="opts" id="opts"></div><div id="fb"></div></div>`;
   q.render($('#box'));
   timeOver=false;qStart=performance.now();
   if(q.peek){                           // 絵を peek 秒だけ見せ、消してから選択肢を出す（時間切れは無い）
-    countdown(q.peek,()=>{$('#box').innerHTML='';const tm=view.querySelector('.timer');if(tm)tm.remove();showOpts(k,q)})}
+    countdown(q.peek,()=>{$('#box').innerHTML='';const tm=view.querySelector('.timer');if(tm)tm.remove();
+      const sb=$('#qsub');if(sb)sb.remove();if(q.after)$('#qt').innerHTML=q.after;   // 何を答えるのかを見出しで伝える
+      showOpts(k,q)})}
   else{showOpts(k,q);
     if(q.timer)countdown(q.timer,()=>{timeOver=true;$('#tsec').textContent='時間切れ';$('#tbar').style.width='0'})}}
 
