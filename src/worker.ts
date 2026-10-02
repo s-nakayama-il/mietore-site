@@ -1,10 +1,13 @@
 import { onRequest as appOnRequest } from '../functions/app.ts';
 import { onRequest as trackOnRequest } from '../functions/mm/track.ts';
 import { onRequestGet as statsOnRequestGet } from '../functions/mm/stats.ts';
+import { handleBannerStats } from './routes/banner-stats.ts';
 
 interface Env {
   DB: D1Database;
   STATS_KEY?: string;
+  BANNER_STATS_USER?: string;
+  BANNER_STATS_PASS?: string;
   ASSETS: Fetcher;
 }
 
@@ -43,6 +46,10 @@ export default {
       // stats.ts の Env は STATS_KEY を必須にしている。未設定なら関数側が 403 を返す（Pages と同じ）。
       const statsEnv = env as Env & { STATS_KEY: string };
       return statsOnRequestGet(pagesContextFor(request, statsEnv, ctx, '/mm/stats'));
+    }
+    if (pathname === '/mm/banner-stats') {
+      // GET・HEAD 以外（405）と認証は、道の中で見る
+      return handleBannerStats(request, env);
     }
     // /mm/stats の GET 以外（Pages でも関数を通らず静的の 404 になる）と、それ以外すべて
     return env.ASSETS.fetch(request);
