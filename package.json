@@ -6,12 +6,12 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "astro build && wrangler dev",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
     "test": "node --test",
-    "pages:dev": "wrangler pages dev dist",
+    "worker:dev": "wrangler dev",
     "verify": "npm run check && npm run build && npm test"
   },
   "dependencies": {

@@ -1,16 +1,17 @@
 # mietore-site
 
-「ミエトレ」公式サイト。Astro + Cloudflare Pages。
+「ミエトレ」公式サイト。Astro + Cloudflare Workers（static assets）。
 
 ## ローカル
 - `npm install`
-- `npm run dev` … http://localhost:4321
+- `npm run dev` … `astro build` のあと `wrangler dev`（http://localhost:8787 。Functions（/app・/mm/track・/mm/stats）込み）
 - `npm run verify` … check + build + test
-- `npm run build && npm run pages:dev` … Functions（/app）込みの確認
+- `npm run build && npm run worker:dev` … build を分けて確かめる場合（`worker:dev` は `wrangler dev`）
 
 ## デプロイ
-Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プレビューURL。
-設定手順は docs/superpowers/specs/2026-08-21-mietore-site-design.md §6 と本README末尾「Cloudflare初期設定」。
+Cloudflare Workers（static assets・GitHub連携の Workers Builds）。`main` → 本番。
+`wrangler.toml` の `main`（`src/worker.ts`）が入口で、`[assets]`（`./dist`）が静的ファイル、`/app`・`/mm/track`・`/mm/stats` は `functions/` の3ファイルをそのまま呼ぶ（Pages へ戻せるよう、関数側は無改変）。
+設定手順は docs/superpowers/specs/2026-08-21-mietore-site-design.md §6 と本README末尾「Cloudflare初期設定」。Pages へ戻す場合は「Pages へ戻す手順」。
 
 ## /mm メルマガ即スタート版
 
@@ -20,14 +21,14 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
 - `/pmm/` = ポイントキャンペーンのメルマガ用ページ（2026-08-24追加）。最新本番 v3d-2.5.0（ゲートストア直行CTA・ゲーム廃止）にメルマガパッチ（TRACK_URL=/mm/track・常時即表示・×リロード・画像ローカル化）を適用した派生物。計測識別は `v=v3d-2.5.0-pmm`・発火元 param=`pmm`。送信先は同じ `/mm/track`（D1同一テーブル・stats の URL別/発火元別/v別で分離集計）。noindex。
 - 計測: `POST /mm/track` → Cloudflare D1 `mietore-mm` に保存（旧PHP版 `track.php` の Functions 移植）。許可イベント14種は `src/lib/mm/validate.ts` の `ALLOWED_EVENTS` を参照。
 - 集計: `/mm/stats?key=<STATS_KEY>` にブラウザでアクセス（key は本READMEに書かない）。`&month=YYYYMM` で月絞り込み、`&export=csv` でCSVダウンロード。
-- STATS_KEYの管理: 本番は Cloudflare Pages の Secret（`wrangler pages secret put STATS_KEY` で設定済み）。ローカルは `.dev.vars`（`.dev.vars.example` を参照してコピー）。
-- STATS_KEYは2026-08-24にローテーション済み（値は `.dev.vars` とPages Secretのみ・EC側旧PHPのキーとは別物になった）。
+- STATS_KEYの管理: 本番は Worker の Secret（`npx wrangler secret put STATS_KEY`）。ローカルは `.dev.vars`（`.dev.vars.example` を参照してコピー）。
+- STATS_KEYは2026-08-24にローテーション済み（値は `.dev.vars` と Worker の Secret のみ・EC側旧PHPのキーとは別物になった）。
 - 追加3イベント（`exit_no_popup`/`scroll_up_signal`/`lp_click`）を計測対象に含めた（B版が送信するため。旧PHP版では捨てられていた）。
 - 推奨: Cloudflare WAF の Rate limiting rule を `/mm/track` に設定（画面操作・任意）。
 - 設定は `wrangler.toml` でファイル管理。D1バインディング（`DB` → `mietore-mm`）もここに記載済みのため、Cloudflareダッシュボードの Bindings 画面から追加しても無効化される（file-managed config優先）。変更する場合は `wrangler.toml` を編集すること。
 - ローカル確認:
   ```bash
-  npm run build && npx wrangler pages dev dist
+  npm run build && npx wrangler dev --port 8788
   curl -s -X POST http://localhost:8788/mm/track -H 'Content-Type: application/json' \
     -d '{"ts":"2026-08-24T12:00:00+09:00","sid":"local-test","event":"page_view","param":"","url":"http://localhost:8788/mm/","os":"iOS","v":"mailmag-1.0.0","ua_family":"browser"}'
   ```
@@ -78,8 +79,8 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
   | `exit_no_popup` | バナーを出せないまま離脱した（1セッション1回） | `seen` ／ `cw_alive` ／ `armed_no_back` ／ `no_activation` |
 
   `param` は D1 の64文字上限（`validate.ts`）に収まる短い形にしてある（実測の最大は28字）。タイプ名の日本語は入れず番号にする。
-- 送信先は `POST /mm/track`（既存の D1 `mietore-mm` の `events` に同居）。送信先と行き先の URL は、js 自身の `src` の origin から組み立てる（本番 `https://mietore.site`、プレビューはプレビューの origin、手元は `wrangler pages dev` の origin）。`?mtr_debug=1` を付けると送信せずコンソールに出す。
-- B/C の行き先は `.html` を付けない（`/banner/check/b`・`/banner/check/c`）。Pages は `.html` 付きの URL を `.html` なしへ 308 で転送するため、付けると往復が1回増える（2026-09-29・TASK-I16-20260929-004）。
+- 送信先は `POST /mm/track`（既存の D1 `mietore-mm` の `events` に同居）。送信先と行き先の URL は、js 自身の `src` の origin から組み立てる（本番 `https://mietore.site`、プレビューはプレビューの origin、手元は `wrangler dev` の origin）。`?mtr_debug=1` を付けると送信せずコンソールに出す。
+- B/C の行き先は `.html` を付けない（`/banner/check/b`・`/banner/check/c`）。Workers は `.html` 付きの URL を `.html` なしへ 307 で転送するため（Pages では 308。行き先は同じ）、付けると往復が1回増える（2026-09-29・TASK-I16-20260929-004）。
 - チェックページ `/banner/check/b.html`・`c.html` は、EC 側の原本から組み立てた派生物（正は EC 側。`/cp/` と同じ運用）。
   - 原本: `ecommerce-project/20_実行/新規獲得/バナー配信/チェックページ試作/template_20260928_BC_v2.html`・`build_20260928_BC_v2.py`（commit `26adcf2`）
   - 組み立て: `python3 tools/banner/build_check.py`（EC 側を読むだけ）。画像の書き出しは `python3 tools/banner/build_images.py`
@@ -98,7 +99,7 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
   - **出せなかったときの結末を1回だけ記録する**（`exit_no_popup`）。`visibilitychange`（hidden）と `pagehide` の早い方で送る。バナーを出したページでは送らない。
 - 手元で見る用の URL パラメータ: `?mtr_reset=1`（`mtrb_shown` を無視して繰り返し試す）／`?mtr_debug=1`（送信せず、画面の左下に経路のログを出す。`cw: armed`・`hybrid: cw+history`・`arm: pushState (origin tagged)`・`navboost: repush`・`popstate: mtrb=…`・`guard: in-page back`・`show: back`・`pass: history.back`・`exit_no_popup: …`。付けないときは要素を1つも作らない）／`?mtr_cw=off`（CloseWatcher を切って履歴方式だけにする）／`?mtr_hybrid=off`／`?mtr_navboost=off`。
 - 社内で確かめるデモページ `/banner/demo/`。記事風のダミー LP に、5本の切り替えバーと、標準のページ内リンク1本を置いてある。`mtrb_sid` を `9909` 始まりにするので、集計から外せる。スマホ（360×640）で開いて、画面を1回タップしてから戻る操作をすると出る。
-- `/banner/check/*` と `/banner/demo/*` は `public/_headers` の `X-Robots-Tag: noindex` で検索結果に出さない（チェックページの HTML・`build_check.py` は変えていない）。`.html` 付きの URL は 308 で `.html` なしへ転送されるが、転送先にも noindex が付く。
+- `/banner/check/*` と `/banner/demo/*` は `public/_headers` の `X-Robots-Tag: noindex` で検索結果に出さない（チェックページの HTML・`build_check.py` は変えていない）。`.html` 付きの URL は 307 で `.html` なしへ転送されるが、転送先にも noindex が付く。
 - 打ち切りの判定（1本 1,000表示・タップ55件以上）は人が Metabase で見る。自動では止めない。
 
 ## ドメイン切替（後日）
@@ -117,14 +118,15 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
 - [ ] /play/streak クエスト説明（スクショのみから記述）の正確性
 - [ ] Lighthouse 実測値: perf 84-93（変動あり） / a11y 92（2026-08-21）
 
-## Cloudflare初期設定（2026-08-21 実施済み・再現用メモ）
+## Cloudflare初期設定（Workers・2026-10-02 移行）
 1. GitHub: private リポジトリ `s-nakayama-il/mietore-site`。WSL の SSH 鍵（`~/.ssh/id_ed25519.pub`）を GitHub → Settings → SSH and GPG keys に登録し `git@github.com:s-nakayama-il/mietore-site.git` へ push
-2. Cloudflare → Workers & Pages → Create → **Pages タブ** → Git に接続 → GitHub 認可（Only select repositories: mietore-site）→ `mietore-site` → セットアップ開始
-   - フレームワークプリセット Astro／ビルドコマンド `npm run build`／ビルド出力ディレクトリ `dist`／環境変数 `NODE_VERSION=24` → 保存してデプロイ
-   - ※ Workers タブから入ると「デプロイコマンド npx wrangler deploy」の画面になる。それは別物なので戻って Pages タブを選ぶ
-3. 本番URL: https://mietore.site （2026-08-25 カスタムドメイン設定済み。https://mietore-site.pages.dev も同内容で継続稼働。`main` push で自動デプロイ・他ブランチ push でプレビューURL）
-4. Web Analytics: Analytics & Logs → Web Analytics → サイトを追加（hostname = mietore-site.pages.dev）→ 発行 token を `src/layouts/Base.astro` の beacon タグに設定済み
-5. 動作確認コマンド:
+2. Worker の作成とデプロイ: 設定は `wrangler.toml`（`main` = `src/worker.ts`、`[assets]` = `./dist`、`[[d1_databases]]` = `mietore-mm`）。`npm run build && npx wrangler deploy` で `https://mietore-site.<subdomain>.workers.dev` に出る（https://developers.cloudflare.com/workers/static-assets/ ）
+   - secret: `npx wrangler secret put STATS_KEY`（https://developers.cloudflare.com/workers/configuration/secrets/ ）
+   - `compatibility_flags = ["assets_navigation_has_no_effect"]` は外さない。外すと、ブラウザの移動（`Sec-Fetch-Mode: navigate`）で `/app` が Worker を通らず 404 ページになる（https://developers.cloudflare.com/workers/configuration/compatibility-flags/ ）
+3. Workers Builds（GitHub連携）: Worker 名は `wrangler.toml` の `name`（`mietore-site`）と同じにする。Build command `npm run build`／Deploy command `npx wrangler deploy`／ビルドの変数 `NODE_VERSION=24`（Pages と違い、実行時の変数とビルド時の変数は別）。`main` push で本番デプロイ（https://developers.cloudflare.com/workers/ci-cd/builds/ ）
+4. 本番URL: https://mietore.site （Worker の Custom Domain。https://developers.cloudflare.com/workers/configuration/routing/custom-domains/ ）
+5. Web Analytics: Analytics & Logs → Web Analytics → 発行 token を `src/layouts/Base.astro` の beacon タグに設定済み（サイトの hostname は Pages 時代の `mietore-site.pages.dev` で登録してある）
+6. 動作確認コマンド:
    ```bash
    U=https://mietore.site
    curl -sL -o /dev/null -w '%{http_code}\n' $U/
@@ -132,3 +134,12 @@ Cloudflare Pages（GitHub連携）。`main` → 本番、他ブランチ → プ
    curl -s -o /dev/null -D - -A "Mozilla/5.0 (Linux; Android 14)" $U/app | grep -i location   # Google Play
    curl -s -o /dev/null -D - $U/app | grep -i location   # /download
    ```
+
+## Pages へ戻す手順
+Pages プロジェクト `mietore-site` は戻し先として残してある（消さない）。本番が Worker で問題が出たときは、次の順に戻す。
+1. Worker `mietore-site` の Custom Domain から `mietore.site` を外す（https://developers.cloudflare.com/workers/configuration/routing/custom-domains/ ）
+2. Pages プロジェクト `mietore-site` の Custom domains に `mietore.site` を足し直す（Cloudflare が CNAME を作る。https://developers.cloudflare.com/pages/configuration/custom-domains/ ）
+3. 応答が Pages の時と同じに戻ったことを確かめる。Pages の本番 deployment が移行前のもの（`898c8417-0fb1-4f3f-9eea-28c695c14554`）のままであることは `npx wrangler pages deployment list --project-name mietore-site` で見る
+4. 戻した時刻と、エラーだった時間を記録する
+
+`functions/` の3ファイルは Workers 移行でも無改変のため、Pages のビルドはそのまま通る（`wrangler.toml` を Pages 用に戻す場合は `pages_build_output_dir = "dist"` を書き、`main`・`[assets]`・`compatibility_flags` を外す）。
