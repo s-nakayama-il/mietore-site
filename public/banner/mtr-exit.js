@@ -5,6 +5,9 @@
  * Derived from public/mm/b/mietore-popup_mailmag.js (v3d-2.4.0-mailmag):
  *   - exit trigger MtrExitTrigger (CloseWatcher first, history pushState as fallback)
  *   - sender (sendBeacon with text/plain, falling back to a no-cors fetch)
+ * Nothing is registered until GET /banner/config has been read (TASK-I16-20261002-002):
+ *   the D1 row decides whether the banner runs at all and which creatives are eligible, so a
+ *   human can stop every banner with one command. An unreadable config shows nothing.
  * Also carried over for in-app browsers (TASK-I16-20260930-003): the CloseWatcher +
  *   history hybrid, the LINE navboost (one replaceState after the first tap), a guard so
  *   in-page moves do not fire the banner (the origin entry is tagged with mtrb:0 and only a
@@ -34,6 +37,7 @@
 
   var CFG = {
     TRACK_URL: ORIGIN + '/mm/track',
+    CONFIG: ORIGIN + '/banner/config',
     IMG_BASE: ORIGIN + '/banner/img',
     APP_URL: ORIGIN + '/app',
     CHECK_B: ORIGIN + '/banner/check/b',       /* no .html: avoids the 308 redirect Pages adds */
@@ -107,21 +111,43 @@
     return s;
   }
 
-  /* Pick 1 of 5 evenly. Derived from the sid so the assignment can be rechecked from the D1 rows. */
-  function creative() {
+  function byId(id) {
+    for (var i = 0; i < CREATIVES.length; i++) if (CREATIVES[i].id === id) return CREATIVES[i];
+    return null;
+  }
+
+  /* Pick 1 of the creatives the config says are active, evenly. Derived from the sid so the
+     assignment can be rechecked from the D1 rows. A saved pick that is no longer active is
+     replaced. Returns null when none of the active v are known here, in which case nothing
+     is registered. The demo page (sid 9909xxxx) keeps its own switch bar and is not limited
+     to the active list; it still obeys a stopped or unreadable config, because this function
+     is only reached once the config says the banner runs. */
+  function creative(active) {
     var saved = null;
     try { saved = sessionStorage.getItem('mtrb_creative'); } catch (e) {}
+    if (saved && /^9909\d{4}$/.test(sid())) {
+      var demo = byId(saved);
+      if (demo) return demo;
+    }
+    var pool = [];
+    for (var i = 0; i < active.length; i++) {
+      for (var j = 0; j < CREATIVES.length; j++) {
+        if (CREATIVES[j].v === active[i] && pool.indexOf(CREATIVES[j]) < 0) pool.push(CREATIVES[j]);
+      }
+    }
+    if (!pool.length) return null;
     if (saved) {
-      for (var i = 0; i < CREATIVES.length; i++) if (CREATIVES[i].id === saved) return CREATIVES[i];
+      for (var k = 0; k < pool.length; k++) if (pool[k].id === saved) return pool[k];
     }
     var s = sid(), h = 0;
-    for (var j = 0; j < s.length; j++) h = (h * 31 + s.charCodeAt(j)) % 100000;
-    var c = CREATIVES[h % CREATIVES.length];
+    for (var m = 0; m < s.length; m++) h = (h * 31 + s.charCodeAt(m)) % 100000;
+    var c = pool[h % pool.length];
     try { sessionStorage.setItem('mtrb_creative', c.id); } catch (e) {}
     return c;
   }
 
-  var CRE = creative();
+  /* Set by start() once the config has been read. Nothing sends an event before that. */
+  var CRE = null;
 
   /* ---------- tracking ---------- */
   function osName() {
@@ -396,45 +422,109 @@
     setTimeout(arm, 0);
   }
 
-  /* Registered before the seen() return below, so a session that cannot show the banner any
-     more still reports how it ended. */
-  window.addEventListener('popstate', onPopState);
-  window.addEventListener('pagehide', function () {
-    reportExitOutcome();
-    if (host) close('leave');
-  });
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden) reportExitOutcome();
-  });
-  window.addEventListener('pageshow', function (e) {
-    /* marked and b0 are deliberately NOT reset: the origin marker survives in the session
-       history, so a visitor coming back through bfcache must still be able to leave. */
-    if (e.persisted) { dbg('pageshow: bfcache'); armed = false; popped = false; }
-  });
-
-  if (seen()) { dbg('seen: skip'); return; }   /* never show twice within the same sid */
-
-  if (navboostMode()) {
-    ['touchend', 'pointerup', 'click'].forEach(function (t) {
-      window.addEventListener(t, maybeNavboost, { passive: true });
-    });
+  /* ---------- config (GET /banner/config) ----------
+     Read once per page load with no store, so the D1 row takes effect on the next LP open.
+     Unreadable means any of: no answer within CONFIG_TIMEOUT, a status other than 200, a body
+     that is not JSON, or a shape that is not { stopped: boolean, active: string[] }. A browser
+     without fetch is unreadable too. done() is called exactly once; a late answer is dropped. */
+  var CONFIG_TIMEOUT = 2000;
+  function isStringArray(a) {
+    if (!a || Object.prototype.toString.call(a) !== '[object Array]') return false;
+    for (var i = 0; i < a.length; i++) if (typeof a[i] !== 'string') return false;
+    return true;
   }
-
-  if (cwSupported()) {
-    /* In a UA-detectable in-app browser (LINE / TikTok / a generic `; wv)` WebView) the host
-       app keeps the back gesture for itself and never delivers the close request to the page,
-       so push a history entry as well: the app's back then becomes a history traversal and
-       popstate arrives (DEC-20260727-005, DEC-20260728-001). In a plain browser CloseWatcher
-       runs alone and the history stays clean. ?mtr_hybrid=off turns the pairing off. Both
-       paths firing cannot show twice: show() returns early once `shown` is set. */
+  function loadConfig(done) {
+    var settled = false;
+    function finish(cfg) {
+      if (settled) return;
+      settled = true;
+      done(cfg);
+    }
+    var ctl = null;
+    try { if (typeof AbortController === 'function') ctl = new AbortController(); } catch (e) {}
+    /* The timer runs even when abort is available: it also covers a body that arrives late. */
     setTimeout(function () {
-      var ok = setupCloseWatcher();
-      var hybrid = ok && isInAppBrowser() && QS.hybrid !== 'off';
-      if (hybrid) dbg('hybrid: cw+history');
-      if (!ok || hybrid) registerHistoryTriggers();
-    }, 0);
-  } else {
-    dbg('cw: unsupported');
-    registerHistoryTriggers();
+      if (settled) return;
+      dbg('config: timeout');
+      try { if (ctl) ctl.abort(); } catch (e) {}
+      finish(null);
+    }, CONFIG_TIMEOUT);
+    if (typeof fetch !== 'function') { dbg('config: no fetch'); finish(null); return; }
+    var p;
+    try {
+      var opt = { cache: 'no-store', credentials: 'omit', mode: 'cors' };
+      if (ctl) opt.signal = ctl.signal;
+      p = fetch(CFG.CONFIG, opt);
+    } catch (e) { dbg('config: fetch threw'); finish(null); return; }
+    if (!p || !p.then) { dbg('config: no promise'); finish(null); return; }
+    p.then(function (res) {
+      if (!res || res.status !== 200) { dbg('config: status ' + (res && res.status)); finish(null); return null; }
+      return res.json().then(function (j) {
+        if (!j || typeof j.stopped !== 'boolean' || !isStringArray(j.active)) {
+          dbg('config: shape');
+          finish(null);
+          return;
+        }
+        dbg('config: stopped=' + j.stopped + ' active=' + j.active.join(','));
+        finish({ stopped: j.stopped, active: j.active });
+      });
+    })['catch'](function () { dbg('config: error'); finish(null); });
   }
+
+  /* Everything below ran at load time before TASK-I16-20261002-002; it now runs only after the
+     config says the banner runs, in the same order and with the same contents. When the config
+     is unreadable, stopped, or leaves no eligible creative, nothing at all is registered: no
+     popstate / pagehide / visibilitychange / pageshow / tap listener, no setTimeout(arm), no
+     CloseWatcher, no navboost, no pushState / replaceState, and no event is sent. */
+  function start(cfg) {
+    if (!cfg) { dbg('config: unreadable, nothing registered'); return; }
+    if (cfg.stopped) { dbg('config: stopped, nothing registered'); return; }
+    CRE = creative(cfg.active);
+    if (!CRE) { dbg('config: no eligible creative, nothing registered'); return; }
+    dbg('creative: ' + CRE.id);
+
+    /* Registered before the seen() return below, so a session that cannot show the banner any
+       more still reports how it ended. */
+    window.addEventListener('popstate', onPopState);
+    window.addEventListener('pagehide', function () {
+      reportExitOutcome();
+      if (host) close('leave');
+    });
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) reportExitOutcome();
+    });
+    window.addEventListener('pageshow', function (e) {
+      /* marked and b0 are deliberately NOT reset: the origin marker survives in the session
+         history, so a visitor coming back through bfcache must still be able to leave. */
+      if (e.persisted) { dbg('pageshow: bfcache'); armed = false; popped = false; }
+    });
+
+    if (seen()) { dbg('seen: skip'); return; }   /* never show twice within the same sid */
+
+    if (navboostMode()) {
+      ['touchend', 'pointerup', 'click'].forEach(function (t) {
+        window.addEventListener(t, maybeNavboost, { passive: true });
+      });
+    }
+
+    if (cwSupported()) {
+      /* In a UA-detectable in-app browser (LINE / TikTok / a generic `; wv)` WebView) the host
+         app keeps the back gesture for itself and never delivers the close request to the page,
+         so push a history entry as well: the app's back then becomes a history traversal and
+         popstate arrives (DEC-20260727-005, DEC-20260728-001). In a plain browser CloseWatcher
+         runs alone and the history stays clean. ?mtr_hybrid=off turns the pairing off. Both
+         paths firing cannot show twice: show() returns early once `shown` is set. */
+      setTimeout(function () {
+        var ok = setupCloseWatcher();
+        var hybrid = ok && isInAppBrowser() && QS.hybrid !== 'off';
+        if (hybrid) dbg('hybrid: cw+history');
+        if (!ok || hybrid) registerHistoryTriggers();
+      }, 0);
+    } else {
+      dbg('cw: unsupported');
+      registerHistoryTriggers();
+    }
+  }
+
+  loadConfig(start);
 })();
