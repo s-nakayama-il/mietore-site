@@ -2,6 +2,7 @@ import { onRequest as appOnRequest } from '../functions/app.ts';
 import { onRequest as trackOnRequest } from '../functions/mm/track.ts';
 import { onRequestGet as statsOnRequestGet } from '../functions/mm/stats.ts';
 import { handleBannerStats } from './routes/banner-stats.ts';
+import { handleBannerConfig } from './routes/banner-config.ts';
 
 interface Env {
   DB: D1Database;
@@ -50,6 +51,10 @@ export default {
     if (pathname === '/mm/banner-stats') {
       // GET・HEAD 以外（405）と認証は、道の中で見る
       return handleBannerStats(request, env);
+    }
+    if (pathname === '/banner/config') {
+      // GET・HEAD 以外（405）は道の中で見る。/banner/config/ など完全一致しないパスは ASSETS に回る
+      return handleBannerConfig(request, env);
     }
     // /mm/stats の GET 以外（Pages でも関数を通らず静的の 404 になる）と、それ以外すべて
     return env.ASSETS.fetch(request);
