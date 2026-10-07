@@ -3,6 +3,7 @@ import { onRequest as trackOnRequest } from '../functions/mm/track.ts';
 import { onRequestGet as statsOnRequestGet } from '../functions/mm/stats.ts';
 import { handleBannerStats } from './routes/banner-stats.ts';
 import { handleBannerConfig } from './routes/banner-config.ts';
+import { runBannerCron } from './scheduled/banner-cron.ts';
 
 interface Env {
   DB: D1Database;
@@ -58,6 +59,10 @@ export default {
     }
     // /mm/stats の GET 以外（Pages でも関数を通らず静的の 404 になる）と、それ以外すべて
     return env.ASSETS.fetch(request);
+  },
+  // 定期実行（wrangler.toml の [triggers]）。中身は src/scheduled/banner-cron.ts
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(runBannerCron(controller.cron, env, controller.scheduledTime));
   },
 } satisfies ExportedHandler<Env>;
 

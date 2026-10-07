@@ -69,12 +69,17 @@ const EXCLUDE_SID = "sid <> '' AND sid NOT LIKE '9909%'";
 
 const EVENT_LIST = COUNTED_EVENTS.map((e) => `'${e}'`).join(', ');
 
-// (v, sid) ごとに、最初の banner_view（received_at と id は同じ1行から取る）と、各段階の有無を作る
-function withEventMarks(extraEvWhere: string): string {
+// (v, sid) ごとに、最初の banner_view（received_at と id は同じ1行から取る）と、各段階の有無を作る。
+// sinceParam（例 '?3'）を渡すと received_at の下限で絞る。そのときだけ `+event` にして idx_events_event を
+// 使わせず、idx_events_received_at を使わせる（SQLite は1つの表で索引を1つしか選ばない）。
+// 渡さないときの SQL 文字列は -001 のときと1文字も変えない。
+function withEventMarks(extraEvWhere: string, sinceParam?: string): string {
+  const eventCond = sinceParam === undefined ? `event IN (${EVENT_LIST})` : `+event IN (${EVENT_LIST})`;
+  const sinceCond = sinceParam === undefined ? '' : ` AND received_at >= ${sinceParam}`;
   return `WITH ev AS MATERIALIZED (
   SELECT v, sid, event, param, received_at, id
   FROM events
-  WHERE event IN (${EVENT_LIST}) AND ${EXCLUDE_SID}${extraEvWhere}
+  WHERE ${eventCond} AND ${EXCLUDE_SID}${extraEvWhere}${sinceCond}
 ),
 fv AS (
   SELECT v, sid, received_at AS first_at, id AS first_id FROM (
@@ -123,10 +128,17 @@ export interface StatsSql {
 // 行は案5本 × 日数 × 2 までなので、JS 側で足し合わせても小さい。
 // 日の絞り込みは SQL では行わない（日×案の一覧も同じ1本で賄い、events の走査を増やさないため）。
 // 絞り込みは toPeriodStats が period を見て行う。
-export function buildStatsSql(_period: Period): StatsSql {
+// since（JST の時刻）を渡すと、その時刻以降の event だけを読む（日次の記録はこれを使う）。
+// 渡さないときの SQL と binds は -001 のまま（集計ページは今の呼び方を変えない）。
+export function buildStatsSql(_period: Period, since?: string): StatsSql {
   const binds: string[] = [FIX_BOUNDARY];
+  let sinceParam: string | undefined;
+  if (since !== undefined) {
+    binds.push(since);
+    sinceParam = `?${binds.length}`;
+  }
   const where = '';
-  const sql = `${withEventMarks('')}
+  const sql = `${withEventMarks('', sinceParam)}
 SELECT fv.v AS v,
     substr(fv.first_at, 1, 10) AS day,
     CASE WHEN fv.first_at < ?1 THEN 'before' ELSE 'after' END AS seg,
@@ -371,14 +383,20 @@ export interface TrialStats {
 
 // 試し中の案の進み具合。started_at 以降の最初の banner_view の早い順（同時刻は events.id 順）で
 // 先頭 N 件だけを数える。並べ替えは D1 の窓関数で行い、JS では sid を並べない。
-export function buildTrialSql(v: string, startedAt: string): StatsSql {
+export function buildTrialSql(v: string, startedAt: string, since?: string): StatsSql {
   const dest = destOf(v);
   const storeExpr = dest === 'app'
     ? 'tap = 1'
     : dest === 'unknown'
       ? '(tap_app = 1 OR store = 1)'
       : 'store = 1';
-  const sql = `${withEventMarks(' AND v = ?1')}
+  const binds: string[] = [v, startedAt];
+  let sinceParam: string | undefined;
+  if (since !== undefined) {
+    binds.push(since);
+    sinceParam = `?${binds.length}`;
+  }
+  const sql = `${withEventMarks(' AND v = ?1', sinceParam)}
 ,
 fvs AS (
   SELECT v, sid, received_at AS first_at, id AS first_id FROM (
@@ -407,7 +425,7 @@ SELECT
   COALESCE(MAX(CASE WHEN rn = 300 THEN first_at END), '') AS at300,
   COALESCE(MAX(CASE WHEN rn = 1000 THEN first_at END), '') AS at1000
 FROM ranked`;
-  return { sql, binds: [v, startedAt] };
+  return { sql, binds };
 }
 
 export function toTrial(v: string, rows: Record<string, unknown>[]): TrialStats {

@@ -14,3 +14,6 @@ html_handling = "auto-trailing-slash"
 binding = "DB"
 database_name = "mietore-mm"
 database_id = "3de965dc-510b-4fa6-b859-dadc322a775c"
+
+[triggers]
+crons = ["0 * * * *", "5 15 * * *"]
