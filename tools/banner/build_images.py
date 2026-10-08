@@ -14,6 +14,10 @@
 - 実機スクリーンショット（記録・ステージ選択・プレイ中）は、チェックページで CSS で
   切り抜いて使う範囲だけをあらかじめ切り出してから WebP にする（読み込む量を減らす）。
 - ふく多・しま模様・ルール説明 GIF は v3 の const A（または素材）からそのまま出す。
+
+方針の追加（TASK-I16-20261007-001）:
+- A7（キャンペーン説明・案1 動きあり）の層の画像6枚は、試作で字の大きさと位置を確かめた
+  現物をそのまま使うため、再圧縮せず bytes のまま写す（sha256 が試作と一致する）。
 """
 import base64
 import hashlib
@@ -32,6 +36,17 @@ SOZAI = EC / '20_実行/新規獲得/バナー配信/素材'
 SHOTS = EC / '10_基盤/モック開発/素材/images'
 V3 = EC / '20_実行/新規獲得/バナー配信/チェックページ試作/check_prototype_20260928_v3.html'
 ICON = EC / '10_基盤/ブランド素材/素材/ふく多(デフォ)_アイコン.png'
+A7_SRC = EC / '20_実行/新規獲得/バナー配信/バナー試作_20261008/v2'
+
+# A7 の層（出力の名前 → 試作の読み元）。土台と見出しだけ名前が違う
+A7_LAYERS = (
+    ('base', 'base_2.webp'),
+    ('head', 'head1.webp'),
+    ('ring', 'ring.webp'),
+    ('stamps', 'stamps.webp'),
+    ('coin', 'coin.webp'),
+    ('picture', 'picture.webp'),
+)
 
 # 実機スクリーンショット（750×1334）から、チェックページが見せる範囲（上端, 高さ）
 SHOT_CROP = {'kiroku': (154, 746), 'stage': (336, 564), 'play': (245, 995)}
@@ -77,6 +92,10 @@ def main() -> None:
     # 3倍に拡大した目視でも元と見分けがつかないことを確かめた（結果節に記録）
     webp(bc, 'banner_BC.webp', quality=100)
 
+    # --- A7（キャンペーン説明）の層6枚。再圧縮せず bytes のまま写す
+    for out, src in A7_LAYERS:
+        w(f'banner_A7_20261008_{out}.webp', (A7_SRC / src).read_bytes())
+
     # --- 第1問の絵（隠れ数字）。非可逆にしない
     dots = Image.open(BANNER / 'bc_dots.png')
     png(dots.convert('RGB') if dots.mode not in ('RGB', 'L') else dots, 'q1_dots.png')
@@ -117,6 +136,16 @@ def main() -> None:
     st = ImageStat.Stat(ImageChops.difference(bc, c))
     print('banner_BC 元との平均差: %.3f / 最大差: %d' % (sum(st.mean) / 3, max(st.extrema[i][1] for i in range(3))))
     print('元 bc_dots md5:', hashlib.md5((BANNER / 'bc_dots.png').read_bytes()).hexdigest())
+
+    # --- A7 の層は試作と bytes 一致（再圧縮していないこと）
+    a7 = 0
+    for out, src in A7_LAYERS:
+        p = OUT / f'banner_A7_20261008_{out}.webp'
+        d = p.read_bytes()
+        a7 += len(d)
+        same = hashlib.sha256(d).hexdigest() == hashlib.sha256((A7_SRC / src).read_bytes()).hexdigest()
+        print('A7 %-8s %7d bytes  試作と一致: %s  %s' % (out, len(d), same, hashlib.sha256(d).hexdigest()))
+    print('A7 層の合計: %d bytes（上限 170,000）' % a7)
 
 
 if __name__ == '__main__':

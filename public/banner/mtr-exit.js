@@ -1,4 +1,4 @@
-/* mtr-exit.js - exit banner delivery (5 creatives: A1/A2/A3/B/C)
+/* mtr-exit.js - exit banner delivery (6 creatives: A1/A2/A3/B/C/A7)
  * The agency only pastes this single tag into their LP:
  *   <script src="https://mietore.site/banner/mtr-exit.js" defer></script>
  *
@@ -12,6 +12,11 @@
  *   history hybrid, the LINE navboost (one replaceState after the first tap), a guard so
  *   in-page moves do not fire the banner (the origin entry is tagged with mtrb:0 and only a
  *   popstate that lands on it counts as leaving), and the exit_no_popup outcome event.
+ * A7 (TASK-I16-20261007-001) is the first creative built from layers instead of one flat
+ *   image: a base image plus 5 transparent layers moved by CSS keyframes alone (6s loop).
+ *   No JavaScript timer drives the animation. Its layers are preloaded once the config has
+ *   picked it, and the banner is only shown after every layer has loaded, so the loop is in
+ *   step from the first frame. The other 5 creatives keep the single-image markup unchanged.
  * Not carried over: the always-show preview patch, the game, the talk animation,
  *   the mailmag screens, the 7-day localStorage suppression, the scroll_up auxiliary
  *   signal, and the page_view / lp_click / scroll_up_signal events.
@@ -44,13 +49,19 @@
     CHECK_C: ORIGIN + '/banner/check/c'        /* no .html: avoids the 308 redirect Pages adds */
   };
 
-  /* The 5 creatives. v is the version identifier recorded with every event. */
+  /* The 6 creatives. v is the version identifier recorded with every event.
+     A1/A2/A3/B/C carry one flat image (img). A7 carries layers + pre instead: the file for
+     each layer is pre + <layer> + '.webp' and <layer> is also its CSS class, so the class and
+     the file can never drift apart. The order is the paint order (base first). */
   var CREATIVES = [
     { id: 'A1', v: 'banner-20260928-A1', img: 'banner_A1.webp', dest: 'app',     alt: '1\u65e53\u5206\u306e\u76ee\u306e\u30c8\u30ec\u30fc\u30cb\u30f3\u30b0' },
     { id: 'A2', v: 'banner-20260928-A2', img: 'banner_A2.webp', dest: 'app',     alt: '\u904b\u8ee2\u4e2d\u306b\u6a19\u8b58\u304c\u307c\u3084\u3051\u308b\u65b9\u3078' },
     { id: 'A3', v: 'banner-20260928-A3', img: 'banner_A3.webp', dest: 'app',     alt: '\u30b9\u30de\u30db\u306e\u5b57\u3092\u96e2\u3057\u3066\u8aad\u3080\u65b9\u3078' },
     { id: 'B',  v: 'banner-20260928-B',  img: 'banner_BC.webp', dest: 'check_b', alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u308f\u304b\u308a\u307e\u3059\u304b' },
-    { id: 'C',  v: 'banner-20260928-C',  img: 'banner_BC.webp', dest: 'check_c', alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u308f\u304b\u308a\u307e\u3059\u304b' }
+    { id: 'C',  v: 'banner-20260928-C',  img: 'banner_BC.webp', dest: 'check_c', alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u308f\u304b\u308a\u307e\u3059\u304b' },
+    { id: 'A7', v: 'banner-20261008-A7', pre: 'banner_A7_20261008_', dest: 'app',
+      layers: ['base', 'head', 'ring', 'stamps', 'coin', 'picture'],
+      alt: '\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u7121\u6599\u30027\u65e5\u9023\u7d9a\u30671\u65e51\u56de\u30b2\u30fc\u30e0\u3092\u30af\u30ea\u30a2\u3059\u308b\u3068\uff081\u65e53\u5206\uff09\u3001\u3075\u304f\u3075\u304f\u30dd\u30a4\u30f3\u30c81000\u30dd\u30a4\u30f3\u30c8\u30021000\u30dd\u30a4\u30f3\u30c8\u3067\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u30015,280\u5186(\u7a0e\u8fbc)\u304c\u7121\u6599\u3002\u7121\u6599\u30a2\u30d7\u30ea\u3067\u3001\u306f\u3058\u3081\u308b' }
   ];
 
   var QS = (function () {
@@ -221,7 +232,48 @@
     '.tap img{display:block;width:100%;height:100%;object-fit:contain}' +
     '.x{position:absolute;top:6px;right:6px;width:40px;height:40px;border-radius:50%;border:0;' +
     'background:rgba(0,0,0,.55);color:#fff;font-size:22px;font-weight:800;line-height:1;cursor:pointer}' +
-    '.x:focus-visible,.tap:focus-visible{outline:3px solid #f0a500;outline-offset:2px}';
+    '.x:focus-visible,.tap:focus-visible{outline:3px solid #f0a500;outline-offset:2px}' +
+    /* A7 only (.pop.lyr). Everything above is left exactly as it was, so the other 5
+       creatives are drawn by the same rules as before.
+       The layer positions and the keyframes are copied from the 2026-10-08 prototype in the
+       EC repo (banner-haishin / banner-shisaku_20261008/v2: layers_2.css and index_2.html)
+       with the same percentages and the same times.
+       Two differences from the prototype, both deliberate:
+         - the selectors are prefixed with .pop.lyr, because `.tap img{width:100%;height:100%}`
+           above would otherwise beat a bare `.head{width:...}` and stretch every layer;
+         - the prototype's `:root:not(.force-motion)` escape hatch is dropped: it is a capture
+           aid, it matches nothing inside a shadow root, and it would disable the
+           reduced-motion rules here.
+       `.x` needs a stacking order here because the layers are absolutely positioned and would
+       otherwise be painted over the close button. */
+    '.pop.lyr .tap{position:relative}' +
+    '.pop.lyr .tap img{position:absolute;display:block;height:auto;object-fit:fill}' +
+    '.pop.lyr .x{z-index:2}' +
+    '.pop.lyr .base{left:0;top:0;width:100%;height:100%}' +
+    '.pop.lyr .head{left:5.185%;top:10.677%;width:89.815%}' +
+    '.pop.lyr .ring{left:0.000%;top:29.427%;width:100.000%}' +
+    '.pop.lyr .stamps{left:28.889%;top:41.771%;width:45.556%}' +
+    '.pop.lyr .coin{left:12.593%;top:49.219%;width:18.519%}' +
+    '.pop.lyr .picture{left:70.926%;top:62.083%;width:27.778%}' +
+    /* 6s loop, repeating: 0-2s ring on row 1 and the 7 stamps fill one day at a time
+       (0-1.5s), 2-4s ring on row 2 and the coin hops, 4-6s ring on row 3 and the picture
+       hops. @keyframes inside a shadow root cannot collide with the host LP's own names. */
+    '.pop.lyr .ring{animation:ring 6s steps(1,end) infinite}' +
+    '.pop.lyr .stamps{animation:stamp 6s infinite}' +
+    '.pop.lyr .coin{animation:hopC 6s ease-out infinite}' +
+    '.pop.lyr .picture{animation:hopB 6s ease-out infinite}' +
+    '@keyframes ring{0%{top:29.427%}33.333%{top:45.260%}66.667%{top:61.094%}100%{top:61.094%}}' +
+    '@keyframes stamp{0%{clip-path:inset(0 100% 0 0);animation-timing-function:steps(7,end)}' +
+    '25%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 0)}}' +
+    '@keyframes hopC{0%,33.333%{transform:none}38%{transform:translateY(-8%) scale(1.12)}44%,100%{transform:none}}' +
+    '@keyframes hopB{0%,66.667%{transform:none}71%{transform:translateY(-6%) scale(1.1)}77%,100%{transform:none}}' +
+    /* Reduce motion: no ring at all, and the stamps stay as all 7 filled.
+       The ring rule is written as `.tap img.ring` on purpose: `.pop.lyr .tap img{display:block}`
+       above is (0,3,1) and would beat a plain `.pop.lyr .ring{display:none}` (0,3,0), which
+       would leave the ring drawn on row 1 for a visitor who asked for less motion. */
+    '@media (prefers-reduced-motion:reduce){' +
+    '.pop.lyr .tap img.ring{display:none}' +
+    '.pop.lyr .stamps,.pop.lyr .coin,.pop.lyr .picture{animation:none;clip-path:none}}';
 
   var host = null;
   function close(how) {
@@ -231,20 +283,72 @@
     host = null;
   }
 
-  function show(source) {
-    if (shown || seen()) return false;
-    shown = true;
-    markSeen();
+  /* ---------- layer preload (A7 only) ----------
+     A layered creative has to appear with its 6s loop already in step, so every layer is
+     loaded (and decoded where the browser offers decode()) before the banner is drawn, the
+     same way the prototype does it. Started by start() once the config has picked a layered
+     creative and the exit triggers are about to be registered, so a session that can never
+     show the banner never downloads the layers. Nothing here is a timer: the only thing that
+     moves the layers is CSS.
+       pending -> ok    draw on exit, or draw now if the exit already happened
+       pending -> fail  never draw, and send no banner_view (a half-loaded banner would show
+                        a white frame or a stamp row frozen at day 0) */
+  var layerState = 'none';          /* none | pending | ok | fail */
+  var layerWaiters = [];
+  function layerSrc(name) { return CFG.IMG_BASE + '/' + CRE.pre + name + '.webp'; }
+  function settleLayers(next) {
+    if (layerState !== 'pending') return;
+    layerState = next;
+    dbg('layers: ' + next);
+    var ws = layerWaiters;
+    layerWaiters = [];
+    for (var i = 0; i < ws.length; i++) { try { ws[i](); } catch (e) {} }
+  }
+  function preloadLayers() {
+    var left = CRE.layers.length, bad = false;
+    layerState = 'pending';
+    dbg('layers: loading ' + left);
+    CRE.layers.forEach(function (name) {
+      var im = new Image();
+      function done() {
+        if (--left > 0) return;
+        settleLayers(bad ? 'fail' : 'ok');
+      }
+      im.onload = function () {
+        /* A decode() failure is not a load failure: the bytes arrived. Treat it as loaded,
+           as the prototype does, so one odd browser cannot suppress the banner. */
+        if (typeof im.decode === 'function') im.decode().then(done, done);
+        else done();
+      };
+      im.onerror = function () { bad = true; done(); };
+      im.src = layerSrc(name);
+    });
+  }
+
+  function layerImgs() {
+    var h = '';
+    for (var i = 0; i < CRE.layers.length; i++) {
+      /* alt="" on every layer: the whole banner is one button and its aria-label carries
+         the text, so a screen reader must not read the picture 6 times. */
+      h += '<img class="' + CRE.layers[i] + '" src="' + layerSrc(CRE.layers[i]) + '" alt="">';
+    }
+    return h;
+  }
+
+  /* Draw and send banner_view. Only show() calls this, and only once. */
+  function render(source) {
     host = document.createElement('div');
     host.id = 'mtrb-root';
     var sr = host.attachShadow ? host.attachShadow({ mode: 'open' }) : null;
     var root = sr || host;
     var st = document.createElement('style'); st.textContent = CSS; root.appendChild(st);
     var bg = document.createElement('div'); bg.className = 'bg';
-    bg.innerHTML = '<div class="pop">' +
+    bg.innerHTML = '<div class="pop' + (CRE.layers ? ' lyr' : '') + '">' +
       '<button class="x" type="button" aria-label="\u9589\u3058\u308b">\u00d7</button>' +
       '<button class="tap" type="button" aria-label="' + CRE.alt + '">' +
-      '<img src="' + CFG.IMG_BASE + '/' + CRE.img + '" alt="' + CRE.alt + '"></button></div>';
+      (CRE.layers ? layerImgs()
+        : '<img src="' + CFG.IMG_BASE + '/' + CRE.img + '" alt="' + CRE.alt + '">') +
+      '</button></div>';
     root.appendChild(bg);
     document.body.appendChild(host);
     lastSource = source;
@@ -254,6 +358,34 @@
       location.href = destUrl();
     });
     track('banner_view', source);
+  }
+
+  /* Returns true when this exit has been claimed: either the banner is on screen now, or it
+     will be as soon as the layers finish loading. false means nothing was shown and nothing
+     was sent, and the caller lets the real navigation through.
+     For a layered creative the layers are usually ready long before the visitor leaves (they
+     start downloading at config time). The two other cases:
+       loading  claim the exit and draw when the layers arrive. A second back press goes
+                through the existing `popped` path, so the visitor is never stuck.
+       failed   do not claim it: the visitor leaves as if no banner existed. */
+  function show(source) {
+    if (shown || seen()) return false;
+    if (CRE.layers) {
+      if (layerState === 'fail') { dbg('show: skipped, layers failed'); return false; }
+      if (layerState === 'pending') {
+        shown = true;
+        markSeen();
+        dbg('show: waiting for layers (' + source + ')');
+        layerWaiters.push(function () {
+          if (layerState === 'ok') render(source);
+          else dbg('show: dropped, layers failed');
+        });
+        return true;
+      }
+    }
+    shown = true;
+    markSeen();
+    render(source);
     return true;
   }
 
@@ -475,7 +607,8 @@
      config says the banner runs, in the same order and with the same contents. When the config
      is unreadable, stopped, or leaves no eligible creative, nothing at all is registered: no
      popstate / pagehide / visibilitychange / pageshow / tap listener, no setTimeout(arm), no
-     CloseWatcher, no navboost, no pushState / replaceState, and no event is sent. */
+     CloseWatcher, no navboost, no pushState / replaceState, no layer download, and no event
+     is sent. */
   function start(cfg) {
     if (!cfg) { dbg('config: unreadable, nothing registered'); return; }
     if (cfg.stopped) { dbg('config: stopped, nothing registered'); return; }
@@ -500,6 +633,10 @@
     });
 
     if (seen()) { dbg('seen: skip'); return; }   /* never show twice within the same sid */
+
+    /* Only after seen(): a session that can no longer show the banner must not download
+       150KB of layers. */
+    if (CRE.layers) preloadLayers();
 
     if (navboostMode()) {
       ['touchend', 'pointerup', 'click'].forEach(function (t) {

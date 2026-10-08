@@ -71,6 +71,28 @@ test('A1 のストア到達はタップと同じ、B のストア到達は cta_s
   assert.equal(byV(stats.summary, B).store, 1);
 });
 
+test('destOf: 今の6本（A7 はストア直行なので app）', () => {
+  assert.equal(destOf('banner-20260928-A1'), 'app');
+  assert.equal(destOf('banner-20260928-A2'), 'app');
+  assert.equal(destOf('banner-20260928-A3'), 'app');
+  assert.equal(destOf('banner-20260928-B'), 'check_b');
+  assert.equal(destOf('banner-20260928-C'), 'check_c');
+  assert.equal(destOf('banner-20261008-A7'), 'app');
+});
+
+test('A7 はタップをそのままストア到達として数える（A1〜A3 と同じ）', () => {
+  const { db, add } = newDb();
+  const A7 = 'banner-20261008-A7';
+  add('2026-10-09T10:00:00+09:00', 'a7a', 'banner_view', A7);
+  add('2026-10-09T10:00:05+09:00', 'a7a', 'banner_tap', A7, 'app');
+  add('2026-10-09T10:00:00+09:00', 'a7b', 'banner_view', A7);
+  const { stats } = statsOf(db, { kind: 'all' });
+  assert.equal(byV(stats.summary, A7).views, 2);
+  assert.equal(byV(stats.summary, A7).taps, 1);
+  assert.equal(byV(stats.summary, A7).store, 1);
+  assert.equal(byV(stats.summary, A7).dest, 'app');
+});
+
 test('今の5本以外の v は、タップの param が app か cta_store でストア到達を数える（二重に数えない）', () => {
   const { db, add } = newDb();
   const X = 'banner-20261101-X';
