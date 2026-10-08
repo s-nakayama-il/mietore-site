@@ -9,13 +9,15 @@ export const FIX_PARAM_AFTER = 'cv=20261001';
 
 export type Dest = 'app' | 'check_b' | 'check_c' | 'unknown';
 
-// 今の5本。これ以外の v は dest を引けないので、タップの param と cta_store から決める
+// 今の6本。これ以外の v は dest を引けないので、タップの param と cta_store から決める
 export const DEST_BY_V: Record<string, Dest> = {
   'banner-20260928-A1': 'app',
   'banner-20260928-A2': 'app',
   'banner-20260928-A3': 'app',
   'banner-20260928-B': 'check_b',
   'banner-20260928-C': 'check_c',
+  // キャンペーン説明の A7（TASK-I16-20261007-001）。ストア直行なので A1〜A3 と同じ数え方
+  'banner-20261008-A7': 'app',
 };
 
 export function destOf(v: string): Dest {
