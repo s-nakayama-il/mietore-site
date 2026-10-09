@@ -355,23 +355,88 @@ test('A7 の層は CSS だけで動かす（keyframes と「動きを減らす�
   assert.ok(css.includes('.pop.lyr .x{z-index:2}'), '層が × を覆わないための指定が無い');
 });
 
-test('A7 が active に無ければ、層を読まず・出ない（B だけのとき）', async () => {
+test('B だけが active なら、読むのは B の層2枚だけ（A7 の層は読まない）', async () => {
   const dom = await started(makeDom({ config: { stopped: false, active: [B] } }));
-  assert.equal(dom.images.length, 0, 'B のときに A7 の層を読んでいる');
+  assert.deepEqual(dom.images.map((im) => String(im.src)), [
+    'https://mietore.site/banner/img/banner_BC_20261005_base.webp',
+    'https://mietore.site/banner/img/banner_BC_20261005_num.webp',
+  ], 'B 以外の層を読んでいる');
+  await dom.settle();
   await dom.leave();
   const html = dom.html();
-  assert.ok(html.includes('<img src="https://mietore.site/banner/img/banner_BC.webp"'));
-  assert.ok(!html.includes('lyr'));
+  assert.match(html, /<div class="pop lyr">/);
+  assert.ok(!html.includes('banner_A7_'), 'A7 の層が混ざっている');
   assert.equal(dom.events()[0].v, B);
 });
 
-test('既存5本の描き方は変わっていない（1枚の img・pop に lyr が付かない）', async () => {
+// B・C（TASK-I16-20261008-001）。10/5 の試作「強・4字そろえ」の層2枚に替えた
+test('B・C は層2枚（点の面と数字）で出る。active のときだけ', async () => {
+  for (const v of [B, C]) {
+    const dom = await started(makeDom({ config: { stopped: false, active: [v] } }));
+    await dom.settle();
+    await dom.leave();
+    const html = dom.html();
+    assert.ok(html, v + ' が出ていない');
+    assert.match(html, /<div class="pop lyr">/);
+    for (const l of ['base', 'num']) {
+      assert.ok(html.includes(`<img class="${l}" src="https://mietore.site/banner/img/banner_BC_20261005_${l}.webp" alt="">`),
+        `${v} の層 ${l} が無い`);
+    }
+    assert.equal((html.match(/<img /g) || []).length, 2, v);
+    // 一言は見本と同じ。古い1枚の画像は読まない
+    assert.ok(html.includes('aria-label="点の中の4けたの数字、見えますか"'), v);
+    assert.ok(!html.includes('banner_BC.webp'), v + ' が古い1枚の画像を読んでいる');
+    const ev = dom.events();
+    assert.deepEqual(ev.map((e) => e.event), ['banner_view']);
+    assert.equal(ev[0].v, v);
+  }
+});
+
+test('B・C の数字の層は CSS だけで動かす（keyframes と「動きを減らす」設定が入っている）', async () => {
+  const dom = await started(makeDom({ config: { stopped: false, active: [B] } }));
+  await dom.settle();
+  await dom.leave();
+  const css = dom.css();
+  // 見本（index.html の lv=strong2、層の位置 [13,874,1029,297]）と同じ位置・同じ時刻
+  assert.ok(css.includes('.pop.lyr .num{left:1.2037%;top:45.5208%;width:95.2778%;opacity:0;'
+    + 'animation:numRise 2.5s cubic-bezier(.2,.5,.35,1) both,numBreath 1.5s ease-in-out 2.5s infinite alternate}'));
+  assert.ok(css.includes('@keyframes numRise{from{opacity:0}to{opacity:1}}'));
+  assert.ok(css.includes('@keyframes numBreath{from{opacity:1}to{opacity:.93}}'));
+  // 「動きを減らす」設定では最初から opacity:1。同じ詳細度（0,3,0）なので .num の決まりより後ろに置く
+  const rm = '@media (prefers-reduced-motion:reduce){.pop.lyr .num{animation:none;opacity:1}}';
+  assert.ok(css.includes(rm));
+  assert.ok(css.indexOf(rm) > css.indexOf('.pop.lyr .num{'), '「動きを減らす」設定の指定が .num より前にある');
+  // A7 の「動きを減らす」設定は別のブロックのまま
+  assert.ok(css.includes('.pop.lyr .stamps,.pop.lyr .coin,.pop.lyr .picture{animation:none;clip-path:none}}'));
+});
+
+test('B の層の読み込みに失敗したら、出さず banner_view も送らない（A7 と同じ）', async () => {
+  const dom = await started(makeDom({ config: { stopped: false, active: [B] } }));
+  await dom.settle(['_num.webp']);
+  await dom.leave();
+  assert.equal(dom.html(), null, '読み込みに失敗したのに出ている');
+  assert.deepEqual(dom.events(), [], '出ていないのに送っている');
+  assert.ok(dom.backs >= 1, '出せないときは戻る操作を通すこと');
+  dom.fire('pagehide');
+  assert.deepEqual(dom.events().map((e) => e.event), ['exit_no_popup']);
+});
+
+test('B の層の読み込み中に離脱したら、読み終わった時点で出す（A7 と同じ）', async () => {
+  const dom = await started(makeDom({ config: { stopped: false, active: [B] }, deferImages: true }));
+  await dom.leave();
+  assert.equal(dom.html(), null, '読み終える前に出ている');
+  assert.deepEqual(dom.events(), [], '読み終える前に送っている');
+  await dom.settle();
+  assert.ok(dom.html(), '読み終わっても出ていない');
+  assert.deepEqual(dom.events().map((e) => e.event), ['banner_view']);
+  assert.equal(dom.events()[0].v, B);
+});
+
+test('A1〜A3 の描き方は変わっていない（1枚の img・pop に lyr が付かない）', async () => {
   const want = {
     'banner-20260928-A1': 'banner_A1.webp',
     'banner-20260928-A2': 'banner_A2.webp',
     'banner-20260928-A3': 'banner_A3.webp',
-    'banner-20260928-B': 'banner_BC.webp',
-    'banner-20260928-C': 'banner_BC.webp',
   };
   for (const [v, img] of Object.entries(want)) {
     const dom = await started(makeDom({ config: { stopped: false, active: [v] } }));
@@ -384,9 +449,9 @@ test('既存5本の描き方は変わっていない（1枚の img・pop に lyr
   }
 });
 
-test('5本が active のときの割り当ては sid で決まり、A7 を足しても変わらない', async () => {
-  // main の版（b4c1a15d…）で同じ sid を流して得た並び。A7 は CREATIVES の末尾なので
-  // 既存5本の pool の順も、hash の余りも変わらない
+test('5本が active のときの割り当ては sid で決まり、A7 を足しても B・C を層に替えても変わらない', async () => {
+  // main の版（b4c1a15d…）で同じ sid を流して得た並び。A7 は CREATIVES の末尾で、B・C の
+  // 層への差し替えは id・v・並び順を変えないので、pool の順も hash の余りも変わらない
   const expected = {
     '10000000': 'A1', '10000001': 'A2', '10000002': 'A3', '10000003': 'B', '10000004': 'C',
     '20000000': 'A2', '30000000': 'A3', '40000000': 'B', '55555555': 'C', '99999999': 'A2',

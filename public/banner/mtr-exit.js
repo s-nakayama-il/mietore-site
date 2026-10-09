@@ -16,7 +16,12 @@
  *   image: a base image plus 5 transparent layers moved by CSS keyframes alone (6s loop).
  *   No JavaScript timer drives the animation. Its layers are preloaded once the config has
  *   picked it, and the banner is only shown after every layer has loaded, so the loop is in
- *   step from the first frame. The other 5 creatives keep the single-image markup unchanged.
+ *   step from the first frame.
+ * B/C (TASK-I16-20261008-001) are drawn the same way, with 2 layers: the dots face as the
+ *   base image and the 4 digits (4682) as a transparent layer that CSS fades in over 2.5s
+ *   and then breathes. The digits are now all four equally strong, so the number read on the
+ *   banner is the answer to the first question of the check page. A1/A2/A3 keep the
+ *   single-image markup unchanged.
  * Not carried over: the always-show preview patch, the game, the talk animation,
  *   the mailmag screens, the 7-day localStorage suppression, the scroll_up auxiliary
  *   signal, and the page_view / lp_click / scroll_up_signal events.
@@ -50,15 +55,19 @@
   };
 
   /* The 6 creatives. v is the version identifier recorded with every event.
-     A1/A2/A3/B/C carry one flat image (img). A7 carries layers + pre instead: the file for
+     A1/A2/A3 carry one flat image (img). B/C and A7 carry layers + pre instead: the file for
      each layer is pre + <layer> + '.webp' and <layer> is also its CSS class, so the class and
      the file can never drift apart. The order is the paint order (base first). */
   var CREATIVES = [
     { id: 'A1', v: 'banner-20260928-A1', img: 'banner_A1.webp', dest: 'app',     alt: '1\u65e53\u5206\u306e\u76ee\u306e\u30c8\u30ec\u30fc\u30cb\u30f3\u30b0' },
     { id: 'A2', v: 'banner-20260928-A2', img: 'banner_A2.webp', dest: 'app',     alt: '\u904b\u8ee2\u4e2d\u306b\u6a19\u8b58\u304c\u307c\u3084\u3051\u308b\u65b9\u3078' },
     { id: 'A3', v: 'banner-20260928-A3', img: 'banner_A3.webp', dest: 'app',     alt: '\u30b9\u30de\u30db\u306e\u5b57\u3092\u96e2\u3057\u3066\u8aad\u3080\u65b9\u3078' },
-    { id: 'B',  v: 'banner-20260928-B',  img: 'banner_BC.webp', dest: 'check_b', alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u308f\u304b\u308a\u307e\u3059\u304b' },
-    { id: 'C',  v: 'banner-20260928-C',  img: 'banner_BC.webp', dest: 'check_c', alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u308f\u304b\u308a\u307e\u3059\u304b' },
+    { id: 'B',  v: 'banner-20260928-B',  pre: 'banner_BC_20261005_', dest: 'check_b',
+      layers: ['base', 'num'],
+      alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u898b\u3048\u307e\u3059\u304b' },
+    { id: 'C',  v: 'banner-20260928-C',  pre: 'banner_BC_20261005_', dest: 'check_c',
+      layers: ['base', 'num'],
+      alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u898b\u3048\u307e\u3059\u304b' },
     { id: 'A7', v: 'banner-20261008-A7', pre: 'banner_A7_20261008_', dest: 'app',
       layers: ['base', 'head', 'ring', 'stamps', 'coin', 'picture'],
       alt: '\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u7121\u6599\u30027\u65e5\u9023\u7d9a\u30671\u65e51\u56de\u30b2\u30fc\u30e0\u3092\u30af\u30ea\u30a2\u3059\u308b\u3068\uff081\u65e53\u5206\uff09\u3001\u3075\u304f\u3075\u304f\u30dd\u30a4\u30f3\u30c81000\u30dd\u30a4\u30f3\u30c8\u30021000\u30dd\u30a4\u30f3\u30c8\u3067\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u30015,280\u5186(\u7a0e\u8fbc)\u304c\u7121\u6599\u3002\u7121\u6599\u30a2\u30d7\u30ea\u3067\u3001\u306f\u3058\u3081\u308b' }
@@ -233,8 +242,9 @@
     '.x{position:absolute;top:6px;right:6px;width:40px;height:40px;border-radius:50%;border:0;' +
     'background:rgba(0,0,0,.55);color:#fff;font-size:22px;font-weight:800;line-height:1;cursor:pointer}' +
     '.x:focus-visible,.tap:focus-visible{outline:3px solid #f0a500;outline-offset:2px}' +
-    /* A7 only (.pop.lyr). Everything above is left exactly as it was, so the other 5
-       creatives are drawn by the same rules as before.
+    /* Layered creatives only (.pop.lyr). Everything above is left exactly as it was, so
+       A1/A2/A3 are drawn by the same rules as before.
+       First the rules shared by every layered creative and the A7 layers.
        The layer positions and the keyframes are copied from the 2026-10-08 prototype in the
        EC repo (banner-haishin / banner-shisaku_20261008/v2: layers_2.css and index_2.html)
        with the same percentages and the same times.
@@ -273,7 +283,23 @@
        would leave the ring drawn on row 1 for a visitor who asked for less motion. */
     '@media (prefers-reduced-motion:reduce){' +
     '.pop.lyr .tap img.ring{display:none}' +
-    '.pop.lyr .stamps,.pop.lyr .coin,.pop.lyr .picture{animation:none;clip-path:none}}';
+    '.pop.lyr .stamps,.pop.lyr .coin,.pop.lyr .picture{animation:none;clip-path:none}}' +
+    /* B/C only (.pop.lyr .num). The digits layer fades in over 2.5s and then breathes.
+       The position and the keyframes are copied from the 2026-10-05 prototype in the EC repo
+       (banner-haishin / banner-shisaku_20261005: index.html with lv=strong2) with the same
+       percentages and the same times: strong2 sits at [13,874,1029,297] in the 1080x1920
+       banner, which is 13/1080, 874/1920 and 1029/1080 here. The same two changes as A7 are
+       made: the selectors are prefixed with .pop.lyr, and the prototype's
+       :root:not(.force-motion) capture aid is dropped. */
+    '.pop.lyr .num{left:1.2037%;top:45.5208%;width:95.2778%;opacity:0;' +
+    'animation:numRise 2.5s cubic-bezier(.2,.5,.35,1) both,' +
+    'numBreath 1.5s ease-in-out 2.5s infinite alternate}' +
+    '@keyframes numRise{from{opacity:0}to{opacity:1}}' +
+    '@keyframes numBreath{from{opacity:1}to{opacity:.93}}' +
+    /* Reduce motion: the digits are drawn at full strength from the first frame.
+       This block has to stay after the .num rule above: both are (0,3,0), so the later one
+       wins. Put inside the A7 @media block it would lose and leave the digits invisible. */
+    '@media (prefers-reduced-motion:reduce){.pop.lyr .num{animation:none;opacity:1}}';
 
   var host = null;
   function close(how) {
@@ -283,8 +309,8 @@
     host = null;
   }
 
-  /* ---------- layer preload (A7 only) ----------
-     A layered creative has to appear with its 6s loop already in step, so every layer is
+  /* ---------- layer preload (layered creatives: B/C and A7) ----------
+     A layered creative has to appear with its animation already in step, so every layer is
      loaded (and decoded where the browser offers decode()) before the banner is drawn, the
      same way the prototype does it. Started by start() once the config has picked a layered
      creative and the exit triggers are about to be registered, so a session that can never
@@ -292,7 +318,8 @@
      moves the layers is CSS.
        pending -> ok    draw on exit, or draw now if the exit already happened
        pending -> fail  never draw, and send no banner_view (a half-loaded banner would show
-                        a white frame or a stamp row frozen at day 0) */
+                        a white frame, a stamp row frozen at day 0, or a dots face with no
+                        digits in it at all) */
   var layerState = 'none';          /* none | pending | ok | fail */
   var layerWaiters = [];
   function layerSrc(name) { return CFG.IMG_BASE + '/' + CRE.pre + name + '.webp'; }

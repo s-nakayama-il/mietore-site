@@ -30,7 +30,9 @@ IMG = '/banner/img'
 
 # テンプレートの A.<key> を、外部ファイルの URL に置き換える
 ASSETS = {
-    'dots': f'{IMG}/q1_dots.png',
+    # 第1問の絵は、離脱バナー B・C の作り直し版（10/5 の試作「強・4字そろえ」）と
+    # そろえた新しい絵にする（TASK-I16-20261008-001）。古い q1_dots.png は消さない
+    'dots': f'{IMG}/q1_dots_20261005.png',
     'icon': f'{IMG}/icon.png',
     'f_good': f'{IMG}/fukuta_good.png',
     'f_expect': f'{IMG}/fukuta_expect.png',
