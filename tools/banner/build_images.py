@@ -18,6 +18,12 @@
 方針の追加（TASK-I16-20261007-001）:
 - A7（キャンペーン説明・案1 動きあり）の層の画像6枚は、試作で字の大きさと位置を確かめた
   現物をそのまま使うため、再圧縮せず bytes のまま写す（sha256 が試作と一致する）。
+
+方針の追加（TASK-I16-20261008-001）:
+- B・C の作り直し版（10/5 の試作「強・4字そろえ」）も、濃さを ΔL で測って決めた現物を使うため、
+  層2枚と第1問の絵を再圧縮せず bytes のまま写す（sha256 が試作と一致する）。
+- 名前に日付を入れた新しいファイルとして出す（画像のキャッシュの指定が無いため、同じ名前で
+  置き換えると前に読んだブラウザに古い絵が残る）。古い `banner_BC.webp`・`q1_dots.png` は消さない。
 """
 import base64
 import hashlib
@@ -37,6 +43,7 @@ SHOTS = EC / '10_基盤/モック開発/素材/images'
 V3 = EC / '20_実行/新規獲得/バナー配信/チェックページ試作/check_prototype_20260928_v3.html'
 ICON = EC / '10_基盤/ブランド素材/素材/ふく多(デフォ)_アイコン.png'
 A7_SRC = EC / '20_実行/新規獲得/バナー配信/バナー試作_20261008/v2'
+BC_SRC = EC / '20_実行/新規獲得/バナー配信/バナー試作_20261005'
 
 # A7 の層（出力の名前 → 試作の読み元）。土台と見出しだけ名前が違う
 A7_LAYERS = (
@@ -46,6 +53,13 @@ A7_LAYERS = (
     ('stamps', 'stamps.webp'),
     ('coin', 'coin.webp'),
     ('picture', 'picture.webp'),
+)
+
+# B・C の作り直し版（出力の名前 → 試作の読み元）。層2枚と第1問の絵
+BC_FILES = (
+    ('banner_BC_20261005_base.webp', 'base_BC.webp'),
+    ('banner_BC_20261005_num.webp', 'layer_strong2.webp'),
+    ('q1_dots_20261005.png', 'q1_dots_strong.png'),
 )
 
 # 実機スクリーンショット（750×1334）から、チェックページが見せる範囲（上端, 高さ）
@@ -95,6 +109,10 @@ def main() -> None:
     # --- A7（キャンペーン説明）の層6枚。再圧縮せず bytes のまま写す
     for out, src in A7_LAYERS:
         w(f'banner_A7_20261008_{out}.webp', (A7_SRC / src).read_bytes())
+
+    # --- B・C の作り直し版（層2枚と第1問の絵）。再圧縮せず bytes のまま写す
+    for out, src in BC_FILES:
+        w(out, (BC_SRC / src).read_bytes())
 
     # --- 第1問の絵（隠れ数字）。非可逆にしない
     dots = Image.open(BANNER / 'bc_dots.png')
@@ -146,6 +164,16 @@ def main() -> None:
         same = hashlib.sha256(d).hexdigest() == hashlib.sha256((A7_SRC / src).read_bytes()).hexdigest()
         print('A7 %-8s %7d bytes  試作と一致: %s  %s' % (out, len(d), same, hashlib.sha256(d).hexdigest()))
     print('A7 層の合計: %d bytes（上限 170,000）' % a7)
+
+    # --- B・C の作り直し版も試作と bytes 一致（再圧縮していないこと）
+    bc2 = 0
+    for out, src in BC_FILES:
+        d = (OUT / out).read_bytes()
+        if out.endswith('.webp'):
+            bc2 += len(d)
+        same = hashlib.sha256(d).hexdigest() == hashlib.sha256((BC_SRC / src).read_bytes()).hexdigest()
+        print('BC %-28s %7d bytes  試作と一致: %s  %s' % (out, len(d), same, hashlib.sha256(d).hexdigest()))
+    print('B・C の層の合計: %d bytes（上限 235,000）' % bc2)
 
 
 if __name__ == '__main__':

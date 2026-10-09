@@ -58,10 +58,10 @@ Cloudflare Workers（static assets・GitHub連携の Workers Builds）。`main` 
   | A1 特徴列挙 | `banner-20260928-A1` | `/banner/img/banner_A1.webp` | `/app`（UA でストアへ振り分け） |
   | A2 症状×運転 | `banner-20260928-A2` | `/banner/img/banner_A2.webp` | `/app` |
   | A3 症状×スマホ | `banner-20260928-A3` | `/banner/img/banner_A3.webp` | `/app` |
-  | B 隠れ数字 | `banner-20260928-B` | `/banner/img/banner_BC.webp` | `/banner/check/b`（`.html` なし） |
-  | C 隠れ数字 | `banner-20260928-C` | `/banner/img/banner_BC.webp` | `/banner/check/c`（`.html` なし） |
+  | B 隠れ数字 | `banner-20260928-B` | `/banner/img/banner_BC_20261005_base.webp` ＋ `banner_BC_20261005_num.webp`（層2枚） | `/banner/check/b`（`.html` なし） |
+  | C 隠れ数字 | `banner-20260928-C` | `/banner/img/banner_BC_20261005_base.webp` ＋ `banner_BC_20261005_num.webp`（層2枚） | `/banner/check/c`（`.html` なし） |
 
-  B と C は同じ画像で、行き先だけが違う。出し分けはクライアント側で、sid を起点に5本から均等に決め、sessionStorage（`mtrb_creative`）に保存する。表示は sid ごとに1回（`mtrb_shown`）。
+  B と C は、点の面（土台）と4けたの数字（層）の2枚で、CSS が数字を 2.5秒で浮かび上がらせる（2026-10-08・TASK-I16-20261008-001）。古い1枚の `banner_BC.webp` は、前の版を持ったままの訪問者のために残してある。B と C は同じ画像で、行き先だけが違う。出し分けはクライアント側で、sid を起点に5本から均等に決め、sessionStorage（`mtrb_creative`）に保存する。表示は sid ごとに1回（`mtrb_shown`）。
 - イベント（`/banner` 用の10種を `src/lib/mm/validate.ts` の `ALLOWED_EVENTS` に追加済み。`exit_no_popup` は `/mm` 時代から入っている既存のイベントを流用するので、`validate.ts`・`schema/mm.sql`・`functions/mm/track.ts` の変更は無い）:
 
   | イベント | 送る場面 | `param` の形 |
@@ -89,7 +89,7 @@ Cloudflare Workers（static assets・GitHub連携の Workers Builds）。`main` 
   - template の先頭には `<!doctype html>`・`<meta charset="utf-8">`・`<meta name="viewport" content="width=device-width,initial-scale=1">` が入っている。
     これが無いと実機のスマホが互換モード（`document.compatMode` が `BackCompat`）になり、幅 980px で組まれて文字が約1/3に縮む。
   - 原本との違いは3点だけ。①画像を data URI ではなく `/banner/img/` の外部ファイルにした ②`track()` を `/mm/track` へ送る本物にした ③試作用の入口（バナーをもう一度タップさせる画面）を出さず第1問から始める。判定式（`Q[k].judge`・`ORDER`・`diagnose()`）と3問の出し方は原本のまま。
-- 画像は `/banner/img/`。隠れ数字（`q1_dots.png`）は非可逆圧縮をかけない（両はしの数字のうすさが変わると問題の難しさが変わるため）。
+- 画像は `/banner/img/`。チェックページ第1問の隠れ数字（`q1_dots_20261005.png`。古い `q1_dots.png` も残してある）は非可逆圧縮をかけない（数字の濃さが変わると問題の難しさが変わるため）。バナーの層2枚と第1問の絵は、EC 側の試作の現物を再圧縮せず bytes のまま写す（`tools/banner/build_images.py` が sha256 の一致を表示する）。
 - `mtr-exit.js` は ASCII だけで書く（日本語は `\uXXXX`。LP の文字コードに関係なく同じ文字が出るように。2026-09-29・TASK-I16-20260929-005）。
 - 出口 js は `public/mm/b/mietore-popup_mailmag.js` の離脱トリガーと送信関数を流用した派生物。保存キーとグローバルは既存（`mtr_*`）と混ざらないよう `mtrb_*` にしてある。7日間の抑制・`page_view`・`lp_click`・`scroll_up_signal`（上方向スクロールの補助シグナル）は持ち込んでいない。抑制は sessionStorage の `mtrb_shown` だけ（sid ごとに1回）。
 - 離脱の捕まえ方（2026-09-30・TASK-I16-20260930-003）。fukufuku 側（`ecommerce-project/20_実行/新規獲得/tool/src/exit-trigger.js` v3d-2.5.0）と同じ考え方に揃えてある。
