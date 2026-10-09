@@ -1,0 +1,28 @@
+---
+import Base from '../../layouts/Base.astro';
+import FukutaSay from '../../components/FukutaSay.astro';
+---
+<Base title="クエストの遊び方" description="ミエトレのクエストの遊び方。同じしま模様を2つタップして、線でつながれば消える。線は2回まで曲がれる。ぜんぶ消せたらクリア。">
+  <section class="sec container">
+    <h1 class="sec-title">クエストの遊び方</h1>
+    <p>アプリのアップデートで、クエストのルールがクラシックと同じ「<strong>線でつないで消す</strong>」ルールになります。進んだステージはそのまま、続きから遊べます。</p>
+    <img src="/images/quest-rule.gif" alt="遊び方のアニメーション。同じしま模様の2枚が線でつながると消える。線は空いた道を通り、曲がれるのは2回まで。道がふさがっているとつながらない" width="360" height="480" style="margin:20px auto;border-radius:var(--radius);box-shadow:var(--shadow)" />
+  </section>
+  <section class="sec container">
+    <h2 class="sec-title">ルール</h2>
+    <ol style="padding-left:1.4em">
+      <li><strong>同じしま模様</strong>を2つタップします</li>
+      <li>2つが線でつながれば消えます。消えたところは通り道になります</li>
+      <li>空いている道なら、線は曲がってもOK。盤の外側を回ってもOK。<strong>曲がれるのは2回まで</strong>です</li>
+      <li>道がふさがっていると、つながりません</li>
+      <li><strong>ぜんぶ消せたらクリア！</strong></li>
+    </ol>
+    <FukutaSay img="default">
+      <p>はじめは線を見つけるのに少し時間がかかるかもしれないけど、だんだん見えてくるよ。力を抜いて、ぼんやりながめてみてね。</p>
+    </FukutaSay>
+  </section>
+  <section class="sec container">
+    <h2 class="sec-title">アプリの中でも見られます</h2>
+    <p>アップデートのあとは、アプリの下のメニュー「各種説明」の「遊び方（はじめに）」にある「ゲームについて」でも、このアニメーションを見られます。</p>
+  </section>
+</Base>
