@@ -5,6 +5,8 @@
     python3 tools/banner/build_check.py
 
 正は EC 側（`ecommerce-project/20_実行/新規獲得/バナー配信/チェックページ試作/`、commit 26adcf2）。
+本 TASK で1問目を変えた（TASK-I16-20261013-003。秒読みをやめ、絵と選択肢を同時に出す形。
+EC のテンプレートは受入のときに EC 側で commit するため、それまでは未 commit の状態を読む）。
 本スクリプトは EC 側を読むだけで、変更しない（`/cp/` と同じ運用）。
 
 EC の組み立て（build_20260928_BC_v2.py）との違いは3点:
@@ -46,13 +48,17 @@ ASSETS = {
     'patches': [f'{IMG}/patch{i}.png' for i in range(6)],
 }
 
+# firstq は1問目の問いの文（テンプレートの __FIRSTQ__）。<br> は狭い画面での改行位置を固定する。
+# B・C は今は同じ値。B'・C' を作るときは値だけ替える（TASK-I16-20261013-003）
+FIRSTQ = 'かくれている数字は<br>どれでしょう？'
+
 VARIANTS = {
     'B': dict(title='目のチェック', lastbtn='結果を見る', afterq='result()',
               carddesc='しま模様を見分けるゲーム・無料', storebtn='無料で練習をはじめる',
-              version='banner-20260928-B'),
+              firstq=FIRSTQ, version='banner-20260928-B'),
     'C': dict(title='目の見分けチャレンジ', lastbtn='つぎへ', afterq='ruleIntro()',
               carddesc='いま遊んだゲームのアプリ・無料', storebtn='続きを無料で遊ぶ',
-              version='banner-20260928-C'),
+              firstq=FIRSTQ, version='banner-20260928-C'),
 }
 
 # 計測の送信関数。EC の console.log 版を差し替える。
@@ -167,7 +173,8 @@ def build(variant: str, tpl: str) -> str:
               .replace('__LASTBTN__', v['lastbtn'])
               .replace('__AFTERQ__', v['afterq'])
               .replace('__CARDDESC__', v['carddesc'])
-              .replace('__STOREBTN__', v['storebtn']))
+              .replace('__STOREBTN__', v['storebtn'])
+              .replace('__FIRSTQ__', v['firstq']))
     left = re.findall(r'__[A-Z]+__', out)
     if left:
         raise SystemExit('置き換え漏れ: %s' % set(left))
