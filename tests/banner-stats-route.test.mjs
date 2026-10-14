@@ -205,7 +205,7 @@ test('既存の道（/app・/mm/track・/mm/stats）は変わらない', async (
   const { env } = makeEnv();
   const app = await call(env, '/app', { headers: { 'user-agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 8)' } });
   assert.equal(app.status, 302);
-  assert.equal(app.headers.get('location'), 'https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja');
+  assert.equal(app.headers.get('location'), 'https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja&referrer=utm_source%3Dexit_banner%26utm_campaign%3Dapp');
   const track = await call(env, '/mm/track', { method: 'OPTIONS' });
   assert.equal(track.status, 204);
   const stats = await call(env, '/mm/stats');

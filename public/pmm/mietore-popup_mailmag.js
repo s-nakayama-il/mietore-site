@@ -1157,11 +1157,11 @@ var MTR_HTML_TEXT = `<!-- TETORI HTML欄用: styleタグ/scriptタグは入れ�
     </div>
     <a class="mtr-btn-green" id="mtr-search-cta" href="https://www.google.com/search?q=%E3%83%9F%E3%82%A8%E3%83%88%E3%83%AC+%E3%82%A2%E3%83%97%E3%83%AA">ミエトレで検索</a>
     <div class="mtr-store-buttons">
-      <a class="mtr-store-btn mtr-store-ios" id="mtr-dl-ios" href="https://apps.apple.com/jp/app/id6738352362">
+      <a class="mtr-store-btn mtr-store-ios" id="mtr-dl-ios" href="https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&amp;ct=mailmag_pmm&amp;mt=8">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="#fff" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
         App Store で入手
       </a>
-      <a class="mtr-store-btn mtr-store-android" id="mtr-dl-android" href="https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&amp;hl=ja">
+      <a class="mtr-store-btn mtr-store-android" id="mtr-dl-android" href="https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&amp;hl=ja&amp;referrer=utm_source%3Dmailmag%26utm_campaign%3Dpmm">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="#fff" aria-hidden="true"><path d="M3 13.65v-3.3c0-.6.45-1.1 1.05-1.15h.1c.6 0 1.1.45 1.15 1.05v3.5c0 .6-.45 1.1-1.05 1.15h-.1c-.6 0-1.1-.45-1.15-1.05v-.2zm14.7-7.45l1.15-2.1c.05-.15 0-.3-.1-.35-.15-.05-.3 0-.35.1L17.2 6c-.9-.4-1.9-.65-3-.65h-.4c-1.1 0-2.1.25-3 .65L9.6 3.85c-.1-.15-.25-.2-.4-.1-.1.05-.15.2-.1.35l1.15 2.1c-2.05 1.1-3.4 3.15-3.5 5.5h14.5c-.1-2.35-1.5-4.4-3.55-5.5zM10.5 8.8c-.35 0-.6-.25-.6-.6s.25-.6.6-.6.6.25.6.6-.25.6-.6.6zm3.4 0c-.35 0-.6-.25-.6-.6s.25-.6.6-.6.6.25.6.6-.25.6-.6.6zM7.25 21.15V13.2c0-.2.15-.35.35-.35h8.8c.2 0 .35.15.35.35v7.95c0 .6-.45 1.1-1.05 1.15h-.1c-.6 0-1.1-.45-1.15-1.05V14.8h-1v6.45c0 .6-.45 1.1-1.05 1.15h-.1c-.6 0-1.1-.45-1.15-1.05V14.8h-1v6.45c0 .6-.45 1.1-1.05 1.15h-.1c-.6 0-1.1-.45-1.15-1.05v-.2zm12.55-7.5v-3.3c0-.6.45-1.1 1.05-1.15h.1c.6 0 1.1.45 1.15 1.05v3.5c0 .6-.45 1.1-1.05 1.15h-.1c-.6 0-1.1-.45-1.15-1.05v-.2z"/></svg>
         Google Play で入手
       </a>
@@ -1741,11 +1741,11 @@ var MTR_HTML_TEXT = `<!-- TETORI HTML欄用: styleタグ/scriptタグは入れ�
         gate = document.createElement('a');
         gate.className = 'cc-gate';
         if(os === 'iOS'){
-          gate.href = 'https://apps.apple.com/jp/app/id6738352362';
+          gate.href = 'https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&ct=mailmag_pmm&mt=8';
           gate.textContent = '▶ App Store で無料ダウンロード';
           gate.addEventListener('click', function(){ trackStoreCta('cta_ios'); });
         } else {
-          gate.href = 'https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja';
+          gate.href = 'https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja&referrer=utm_source%3Dmailmag%26utm_campaign%3Dpmm';
           gate.textContent = '▶ Google Play で無料ダウンロード';
           gate.addEventListener('click', function(){ trackStoreCta('cta_android'); });
         }
@@ -1753,11 +1753,11 @@ var MTR_HTML_TEXT = `<!-- TETORI HTML欄用: styleタグ/scriptタグは入れ�
         gate = document.createElement('div');
         gate.className = 'cc-gate-stores mtr-store-buttons';
         gate.innerHTML =
-          '<a class="mtr-store-btn mtr-store-ios" href="https://apps.apple.com/jp/app/id6738352362">' +
+          '<a class="mtr-store-btn mtr-store-ios" href="https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&amp;ct=mailmag_pmm&amp;mt=8">' +
             '<svg viewBox="0 0 24 24" width="18" height="18" fill="#fff" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>' +
             'App Store で入手' +
           '</a>' +
-          '<a class="mtr-store-btn mtr-store-android" href="https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&amp;hl=ja">' +
+          '<a class="mtr-store-btn mtr-store-android" href="https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&amp;hl=ja&amp;referrer=utm_source%3Dmailmag%26utm_campaign%3Dpmm">' +
             '<svg viewBox="0 0 24 24" width="18" height="18" fill="#fff" aria-hidden="true"><path d="M3 13.65v-3.3c0-.6.45-1.1 1.05-1.15h.1c.6 0 1.1.45 1.15 1.05v3.5c0 .6-.45 1.1-1.05 1.15h-.1c-.6 0-1.1-.45-1.15-1.05v-.2zm14.7-7.45l1.15-2.1c.05-.15 0-.3-.1-.35-.15-.05-.3 0-.35.1L17.2 6c-.9-.4-1.9-.65-3-.65h-.4c-1.1 0-2.1.25-3 .65L9.6 3.85c-.1-.15-.25-.2-.4-.1-.1.05-.15.2-.1.35l1.15 2.1c-2.05 1.1-3.4 3.15-3.5 5.5h14.5c-.1-2.35-1.5-4.4-3.55-5.5zM10.5 8.8c-.35 0-.6-.25-.6-.6s.25-.6.6-.6.6.25.6.6-.25.6-.6.6zm3.4 0c-.35 0-.6-.25-.6-.6s.25-.6.6-.6.6.25.6.6-.25.6-.6.6zM7.25 21.15V13.2c0-.2.15-.35.35-.35h8.8c.2 0 .35.15.35.35v7.95c0 .6-.45 1.1-1.05 1.15h-.1c-.6 0-1.1-.45-1.15-1.05V14.8h-1v6.45c0 .6-.45 1.1-1.05 1.15h-.1c-.6 0-1.1-.45-1.15-1.05V14.8h-1v6.45c0 .6-.45 1.1-1.05 1.15h-.1c-.6 0-1.1-.45-1.15-1.05v-.2zm12.55-7.5v-3.3c0-.6.45-1.1 1.05-1.15h.1c.6 0 1.1.45 1.15 1.05v3.5c0 .6-.45 1.1-1.05 1.15h-.1c-.6 0-1.1-.45-1.15-1.05v-.2z"/></svg>' +
             'Google Play で入手' +
           '</a>';

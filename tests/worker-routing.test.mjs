@@ -59,13 +59,13 @@ test('/app は全メソッドで app.ts（302・UA で location が変わる）'
     const { env, assets } = makeEnv();
     const res = await worker.fetch(req('/app', { method, headers: { 'user-agent': UA_IPHONE } }), env, ctx);
     assert.equal(res.status, 302);
-    assert.equal(res.headers.get('location'), 'https://apps.apple.com/jp/app/id6738352362');
+    assert.equal(res.headers.get('location'), 'https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&ct=exit_banner_app&mt=8');
     assert.equal(assets.length, 0);
   }
   const { env } = makeEnv();
   const android = await worker.fetch(req('/app', { headers: { 'user-agent': UA_ANDROID } }), env, ctx);
   assert.equal(android.status, 302);
-  assert.equal(android.headers.get('location'), 'https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja');
+  assert.equal(android.headers.get('location'), 'https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja&referrer=utm_source%3Dexit_banner%26utm_campaign%3Dapp');
   const noUa = await worker.fetch(req('/app'), env, ctx);
   assert.equal(noUa.status, 302);
   assert.equal(noUa.headers.get('location'), 'https://mietore.site/download');
