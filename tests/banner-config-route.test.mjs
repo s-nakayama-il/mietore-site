@@ -142,7 +142,7 @@ test('/banner/config/ など完全一致しないパスは ASSETS に回る', as
 test('-001 までの振り分けは変わっていない（/app・/mm/track・/mm/stats・/mm/banner-stats）', async () => {
   const app = await call(makeEnv().env, '/app', { headers: { 'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)' } });
   assert.equal(app.status, 302);
-  assert.equal(app.headers.get('location'), 'https://apps.apple.com/jp/app/id6738352362');
+  assert.equal(app.headers.get('location'), 'https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&ct=exit_banner_app&mt=8');
 
   const track = await call(makeEnv().env, '/mm/track', { method: 'OPTIONS' });
   assert.equal(track.status, 204);

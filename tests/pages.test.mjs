@@ -33,7 +33,7 @@ test('トップ: FV・遊び方・あそびかた導線・エビデンス導線�
 
 test('download.html に両ストアのリンク', () => {
   const h = html('download/index.html');
-  assert.match(h, /apps\.apple\.com\/jp\/app\/id6738352362/);
+  assert.match(h, /apps\.apple\.com\/app\/apple-store\/id6738352362/);
   assert.match(h, /play\.google\.com\/store\/apps\/details\?id=com\.ilinksnet\.gabor/);
 });
 
