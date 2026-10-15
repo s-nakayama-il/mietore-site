@@ -101,6 +101,20 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 .screen.q1 h1{font-size:23px;line-height:1.35}
 .screen.q1 .opt{min-height:56px}
 .screen.q1 .fig img{aspect-ratio:1040 / 720}
+/* B 版の結果（2026-10-15 中山さん決定）：「研究の一文＋動く絵」を細い枠でひとまとまりに、
+   「ひとこと＋アプリの説明＋ボタン」をクリーム色の面に分ける。押せる所はボタン1つ（アプリの説明は枠なし） */
+.meter .mt{margin:0}
+.z1{border:1px solid var(--line);border-radius:14px;padding:8px 8px 6px;display:flex;flex-direction:column;gap:2px}
+.z1 .frame{height:168px}
+.z1 .med{height:140px}
+.act{background:#fff4dc;border-radius:16px;padding:10px 12px 14px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.hook{margin:0;text-align:center;font-weight:800;font-size:21px;line-height:1.35;color:var(--teal-d)}
+.info{display:flex;align-items:center;justify-content:center;gap:8px;margin:0}
+.info img{width:34px;border-radius:8px}
+.info p{margin:0;font-size:14px;line-height:1.35;color:var(--sub);font-weight:700}
+.info b{color:var(--ink);font-size:16px}
+.tight .act .btn{min-height:56px;font-size:23px;padding:6px 12px;box-shadow:0 5px 0 var(--green-d)}
+.note.far{margin-top:6px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -271,26 +285,29 @@ function shot(src,ct,ch,alt){return `<div class="shot" style="--ct:${ct};--ch:${
 
 function stores(){return `<div class="stores">`+(os==='ios'?store(IOS,'ios','App Store'):os==='android'?store(AND,'android','Google Play')
   :store(IOS,'ios','App Store（iPhone）')+store(AND,'android','Google Play（Android）'))+`</div>`}
-function store(href,o,name){return `<a class="btn" href="${href}" data-os="${o}">無料で練習をはじめる<small>${name}</small></a>`}
+function store(href,o,name){return `<a class="btn" href="${href}" data-os="${o}">無料ではじめる<small>${name} が開きます</small></a>`}
 function appCard(){return `<div class="app-card"><div class="app-h"><img src="${A.icon}" alt=""><div><span>しま模様を見分けるゲーム・無料</span><b>ミエトレ</b></div></div>
    <span class="dl">1万DL突破</span></div>`}
 const NOTE='<p class="note">このチェックは見え方の目安です。<br>医師による診断ではありません。</p>';
 
 /*@B*/
-// B 版の結果：タイプ → 目盛り → 一文 → コマ枠（B-1→B-2→B-3）→ ストア →（ここまで 640px 以内）→ カード・注記
+// B 版の結果：タイプ → 目盛り → 枠［一文 → コマ枠（B-1→B-2→B-3）］→ 面［ひとこと → アプリの説明 → ストア］（ここまで 640px 以内）→ 注記
+// 2026-10-15 中山さん決定：カードとボタンの2つが押せそうに見えたため、押せる所をボタン1つにし、
+//   ボタンの上に「見えてるうちに、はじめる目のケア」。コマのキャプションは1コマずつで意味が通る文にした。
 // B-3 のキャプションは Lv5（全問正解）のときだけ「保つ」方向にする（2026-09-29 の受入で中山さんが採用）。
-//   採用: Lv5 =「見えている今を、保つ」／ Lv5 以外 =「1日3分、続く」
+//   採用: Lv5 =「見えている今を、保つ」／ Lv5 以外 =「1日3分、続けられる」（10/15 に「続く」から変更）
 //   不採用の別案: 「1日3分で、保つ」
 function resultBody(d){
   return `<p class="res-type${d.type.length > 13 ? ' long' : ''}">${d.type}</p>
    ${meter(d.lv)}
-   <p class="lead">このしま模様は老眼対策の研究で使われています</p>
-   ${frame([{m:'<div id="b1" style="display:flex"></div>',c:'さっき見た、この模様が'},
-            {m:`<img src="${A.b2still}" alt="同じ模様の2枚が線でつながった場面">`,c:'ゲームになって'},
-            {m:shot(A.kiroku,0,746,'アプリの記録カレンダー'),c:d.lv===5?'見えている今を、保つ':'1日3分、続く'}])}
-   ${stores()}
-   ${appCard()}
-   ${NOTE}`}
+   <div class="z1"><p class="lead">このしま模様は老眼対策の研究で使われています</p>
+   ${frame([{m:'<div id="b1" style="display:flex"></div>',c:'さっき見た、この模様で'},
+            {m:`<img src="${A.b2still}" alt="同じ模様の2枚が線でつながった場面">`,c:'同じ模様をさがすゲーム'},
+            {m:shot(A.kiroku,0,746,'アプリの記録カレンダー'),c:d.lv===5?'見えている今を、保つ':'1日3分、続けられる'}])}</div>
+   <div class="act"><p class="hook">見えてるうちに、<br>はじめる目のケア</p>
+   <div class="info"><img src="${A.icon}" alt=""><p><b>ミエトレ</b>（無料アプリ）<br>1日3分・1万人が利用</p></div>
+   ${stores()}</div>
+   ${NOTE.replace('class="note"','class="note far"')}`}
 function resultAfter(){Q.contrast.render($('#b1'))}   // B-1 は2問目と同じ描画をその場で呼ぶ
 /*@/B*/
 
