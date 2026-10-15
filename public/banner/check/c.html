@@ -101,6 +101,20 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 .screen.q1 h1{font-size:23px;line-height:1.35}
 .screen.q1 .opt{min-height:56px}
 .screen.q1 .fig img{aspect-ratio:1040 / 720}
+/* B 版の結果（2026-10-15 中山さん決定）：「研究の一文＋動く絵」を細い枠でひとまとまりに、
+   「ひとこと＋アプリの説明＋ボタン」をクリーム色の面に分ける。押せる所はボタン1つ（アプリの説明は枠なし） */
+.meter .mt{margin:0}
+.z1{border:1px solid var(--line);border-radius:14px;padding:8px 8px 6px;display:flex;flex-direction:column;gap:2px}
+.z1 .frame{height:168px}
+.z1 .med{height:140px}
+.act{background:#fff4dc;border-radius:16px;padding:10px 12px 14px;display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.hook{margin:0;text-align:center;font-weight:800;font-size:21px;line-height:1.35;color:var(--teal-d)}
+.info{display:flex;align-items:center;justify-content:center;gap:8px;margin:0}
+.info img{width:34px;border-radius:8px}
+.info p{margin:0;font-size:14px;line-height:1.35;color:var(--sub);font-weight:700}
+.info b{color:var(--ink);font-size:16px}
+.tight .act .btn{min-height:56px;font-size:23px;padding:6px 12px;box-shadow:0 5px 0 var(--green-d)}
+.note.far{margin-top:6px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 /*@C*/
 .gtitle{background:linear-gradient(135deg,#0f7a74,#2f9e8f);color:#fff;border-radius:14px;padding:8px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}

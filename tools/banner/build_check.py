@@ -62,12 +62,12 @@ PLAY = ('https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja
 
 VARIANTS = {
     'B': dict(title='目のチェック', lastbtn='結果を見る', afterq='result()',
-              carddesc='しま模様を見分けるゲーム・無料', storebtn='無料で練習をはじめる',
+              carddesc='しま模様を見分けるゲーム・無料', storebtn='無料ではじめる', storesub=' が開きます',
               firstq=FIRSTQ, version='banner-20260928-B',
               ios_url=APP_STORE % 'exit_banner_check_b',
               and_url=PLAY % ('exit_banner', 'check_b')),
     'C': dict(title='目の見分けチャレンジ', lastbtn='つぎへ', afterq='ruleIntro()',
-              carddesc='いま遊んだゲームのアプリ・無料', storebtn='続きを無料で遊ぶ',
+              carddesc='いま遊んだゲームのアプリ・無料', storebtn='続きを無料で遊ぶ', storesub='',
               firstq=FIRSTQ, version='banner-20260928-C',
               ios_url=APP_STORE % 'exit_banner_check_c',
               and_url=PLAY % ('exit_banner', 'check_c')),
@@ -186,6 +186,7 @@ def build(variant: str, tpl: str) -> str:
               .replace('__AFTERQ__', v['afterq'])
               .replace('__CARDDESC__', v['carddesc'])
               .replace('__STOREBTN__', v['storebtn'])
+              .replace('__STORESUB__', v['storesub'])
               .replace('__FIRSTQ__', v['firstq'])
               .replace('__IOS_URL__', v['ios_url'])
               .replace('__AND_URL__', v['and_url']))
