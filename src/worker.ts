@@ -3,6 +3,7 @@ import { onRequest as trackOnRequest } from '../functions/mm/track.ts';
 import { onRequestGet as statsOnRequestGet } from '../functions/mm/stats.ts';
 import { handleBannerStats } from './routes/banner-stats.ts';
 import { handleBannerConfig } from './routes/banner-config.ts';
+import { handleBannerPv } from './routes/banner-pv.ts';
 import { runBannerCron } from './scheduled/banner-cron.ts';
 
 interface Env {
@@ -56,6 +57,10 @@ export default {
     if (pathname === '/banner/config') {
       // GET・HEAD 以外（405）は道の中で見る。/banner/config/ など完全一致しないパスは ASSETS に回る
       return handleBannerConfig(request, env);
+    }
+    if (pathname === '/banner/pv') {
+      // LP を開いた回数を +1。POST 以外も 204（/mm/track と同じ）
+      return handleBannerPv(request, env);
     }
     // /mm/stats の GET 以外（Pages でも関数を通らず静的の 404 になる）と、それ以外すべて
     return env.ASSETS.fetch(request);

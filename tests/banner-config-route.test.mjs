@@ -307,7 +307,8 @@ function makeDom({ sid = '12345678', config = { stopped: false, active: [] }, de
       const st = root.children.find((c) => c.tag === 'style');
       return st ? st.textContent : null;
     },
-    events() { return sent.map((s) => JSON.parse(s.blob.text)); },
+    events() { return sent.filter((s) => s.url.endsWith('/mm/track')).map((s) => JSON.parse(s.blob.text)); },
+    pvs() { return sent.filter((s) => s.url.endsWith('/banner/pv')).map((s) => JSON.parse(s.blob.text)); },
   };
   // sendBeacon の Blob は中身を読めるようにする
   ctx.navigator.sendBeacon = (url, blob) => { sent.push({ url, blob: { text: blob.__t } }); return true; };
@@ -525,4 +526,35 @@ test('mtr-exit.js に動きのための JS タイマーは無い（CSS だけで
   assert.equal((MTR_SRC.match(/requestAnimationFrame/g) || []).length, 0);
   const timeouts = (MTR_SRC.match(/setTimeout\(/g) || []).length;
   assert.equal(timeouts, 5, 'setTimeout の数が main の版（5か所）から変わった');
+});
+
+// LP を開いた回数（2026-10-16）。配信中のページで1回だけ /banner/pv に送る。sid は送らない
+test('配信中なら、開いたときに /banner/pv へ1回だけ送る（seen 0・sid なし）', async () => {
+  const dom = await started(makeDom({ config: { stopped: false, active: [B] } }));
+  const pv = dom.pvs();
+  assert.equal(pv.length, 1);
+  assert.deepEqual(pv[0], { url: 'https://lp.example.com/', os: 'Android', ua_family: 'browser', v: B, seen: 0 });
+  assert.deepEqual(dom.events(), [], '開いただけで /mm/track に送っている');
+  await dom.settle();
+  await dom.leave();
+  assert.equal(dom.pvs().length, 1, 'バナーが出たあとにもう一度送っている');
+});
+
+test('同じ sid ですでに見たページは seen 1 で数える', async () => {
+  const dom = makeDom({ config: { stopped: false, active: [B] } });
+  dom.store.set('mtrb_shown', '1');
+  // makeDom の中で設定の読み込みは始まっているが、start() はこのあとの tick で動く
+  await started(dom);
+  assert.deepEqual(dom.pvs().map((p) => p.seen), [1]);
+});
+
+test('止めている・設定が読めない・デモの sid は数えない', async () => {
+  for (const [opt, why] of [
+    [{ config: { stopped: true, active: [B] } }, 'stopped'],
+    [{ config: null }, '読めない'],
+    [{ config: { stopped: false, active: [B] }, sid: '99091234' }, 'デモの sid'],
+  ]) {
+    const dom = await started(makeDom(opt));
+    assert.deepEqual(dom.pvs(), [], why);
+  }
 });

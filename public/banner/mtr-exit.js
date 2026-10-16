@@ -47,6 +47,7 @@
 
   var CFG = {
     TRACK_URL: ORIGIN + '/mm/track',
+    PV_URL: ORIGIN + '/banner/pv',
     CONFIG: ORIGIN + '/banner/config',
     IMG_BASE: ORIGIN + '/banner/img',
     APP_URL: ORIGIN + '/app',
@@ -209,6 +210,23 @@
     } catch (e) {}
     try {
       var p = fetch(CFG.TRACK_URL, { method: 'POST', body: body, keepalive: true, mode: 'no-cors' });
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
+  }
+
+  /* LP opens, the denominator of the banner (2026-10-16). Only a count is kept on the server
+     (POST /banner/pv adds 1 to day x hour x LP x ad x campaign x OS x UA x v x seen); no sid is
+     sent. Called once per page load from start(), so only pages where the banner runs count.
+     The demo page (sid 9909xxxx) and ?mtr_debug=1 are not counted. */
+  function sendPv(already) {
+    if (QS.debug || /^9909/.test(sid())) return;
+    var body = JSON.stringify({ url: location.href, os: osName(), ua_family: uaFamily(), v: CRE.v, seen: already ? 1 : 0 });
+    try {
+      if (navigator.sendBeacon &&
+          navigator.sendBeacon(CFG.PV_URL, new Blob([body], { type: 'text/plain' })) === true) return;
+    } catch (e) {}
+    try {
+      var p = fetch(CFG.PV_URL, { method: 'POST', body: body, keepalive: true, mode: 'no-cors' });
       if (p && p.catch) p.catch(function () {});
     } catch (e) {}
   }
@@ -658,6 +676,8 @@
          history, so a visitor coming back through bfcache must still be able to leave. */
       if (e.persisted) { dbg('pageshow: bfcache'); armed = false; popped = false; }
     });
+
+    sendPv(seen());
 
     if (seen()) { dbg('seen: skip'); return; }   /* never show twice within the same sid */
 
