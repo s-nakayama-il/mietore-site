@@ -2,6 +2,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>目のチェック</title>
+<!-- Microsoft Clarity（操作の記録。2026-10-17 中山さん決定。開示 = /banner/check/privacy）。
+     Cookie を使わない設定（consentv2 で analytics_Storage・ad_Storage を denied）で動かす -->
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "yywtqumgrt");
+    window.clarity("consentv2",{ad_Storage:"denied",analytics_Storage:"denied"});
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap">
 <style>
@@ -115,6 +125,9 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 .info b{color:var(--ink);font-size:16px}
 .tight .act .btn{min-height:56px;font-size:23px;padding:6px 12px;box-shadow:0 5px 0 var(--green-d)}
 .note.far{margin-top:6px}
+/* 一番下の小さいリンク（押せる所はボタン1つを崩さないよう、文字だけで薄く） */
+.foot-privacy{margin:14px 0 0;text-align:center;font-size:12px;line-height:1.5}
+.foot-privacy a{color:var(--sub)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -123,6 +136,7 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
     <div class="top"><span class="brand">目のチェック</span><div class="prog" aria-hidden="true"><i id="bar"></i></div></div>
     <div id="view"></div>
   </div>
+  <p class="foot-privacy"><a href="/banner/check/privacy" target="_blank" rel="noopener">このページでの情報の取り扱い</a></p>
 </main>
 
 <script>
