@@ -69,6 +69,12 @@
     { id: 'C',  v: 'banner-20260928-C',  pre: 'banner_BC_20261005_', dest: 'check_c',
       layers: ['base', 'num'],
       alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u898b\u3048\u307e\u3059\u304b' },
+    /* C2 (2026-10-19, Nakayama): white test-chart look, the digits are readable from the first
+       frame and fade (edges first), and the four answers are HTML buttons over the card. A tap
+       on an answer is the banner tap and carries the answer (a=) to the check page. */
+    { id: 'C2', v: 'banner-20261019-C2', pre: 'banner_C2_20261019_', dest: 'check_c', cls: 'c2',
+      layers: ['base', 'edge', 'mid'], choices: ['4682', '4687', '9682', '4632'],
+      alt: '\u3044\u307e\u898b\u3048\u305f\u6570\u5b57\u306f\uff1f \u898b\u3048\u305f\u6570\u5b57\u3092\u30bf\u30c3\u30d7' },
     { id: 'A7', v: 'banner-20261008-A7', pre: 'banner_A7_20261008_', dest: 'app',
       layers: ['base', 'head', 'ring', 'stamps', 'coin', 'picture'],
       alt: '\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u7121\u6599\u30027\u65e5\u9023\u7d9a\u30671\u65e51\u56de\u30b2\u30fc\u30e0\u3092\u30af\u30ea\u30a2\u3059\u308b\u3068\uff081\u65e53\u5206\uff09\u3001\u3075\u304f\u3075\u304f\u30dd\u30a4\u30f3\u30c81000\u30dd\u30a4\u30f3\u30c8\u30021000\u30dd\u30a4\u30f3\u30c8\u3067\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u30015,280\u5186(\u7a0e\u8fbc)\u304c\u7121\u6599\u3002\u7121\u6599\u30a2\u30d7\u30ea\u3067\u3001\u306f\u3058\u3081\u308b' }
@@ -317,7 +323,22 @@
     /* Reduce motion: the digits are drawn at full strength from the first frame.
        This block has to stay after the .num rule above: both are (0,3,0), so the later one
        wins. Put inside the A7 @media block it would lose and leave the digits invisible. */
-    '@media (prefers-reduced-motion:reduce){.pop.lyr .num{animation:none;opacity:1}}';
+    '@media (prefers-reduced-motion:reduce){.pop.lyr .num{animation:none;opacity:1}}' +
+    /* C2 only (.pop.c2). Layer boxes and the fade curve are copied from the 2026-10-19 prototype
+       in the EC repo (banner-shisaku_20261019: gen_c2_20261019.py / work/measure.json).
+       Edges (4 and 2) fade to .3 by 5.5s, the middle (6 and 8) to .6 by 9.5s; both keep the
+       end value (`both`). The answer buttons sit over the lower part of the card. */
+    '.pop.c2 .tap{cursor:default}' +
+    '.pop.c2 .edge{left:4.7222%;top:24.8958%;width:88.4259%;animation:c2edge 5.5s linear both}' +
+    '.pop.c2 .mid{left:28.4259%;top:24.8958%;width:43.3333%;animation:c2mid 9.5s linear both}' +
+    '@keyframes c2edge{0%,1.8%{opacity:1}4.5%{opacity:.84}9.1%{opacity:.7}18.2%{opacity:.67}36.4%{opacity:.51}54.5%{opacity:.4}100%{opacity:.3}}' +
+    '@keyframes c2mid{0%,1.05%{opacity:1}2.6%{opacity:.92}5.3%{opacity:.88}10.5%{opacity:.87}21%{opacity:.82}31.6%{opacity:.77}57.9%{opacity:.69}100%{opacity:.6}}' +
+    '.pop.c2 .opts{position:absolute;left:4.5%;right:4.5%;top:57.5%;bottom:5.5%;display:grid;grid-template-columns:1fr 1fr;gap:4.5% 4%;z-index:2}' +
+    '.pop.c2 .opt{font:800 clamp(19px,7.6vw,28px) "M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;' +
+    'border-radius:12px;border:2px solid #b9cbc7;background:#fff;color:#17201e;box-shadow:0 3px 0 #b9cbc7;cursor:pointer;padding:0;margin:0}' +
+    '.pop.c2 .opt:active{transform:translateY(2px);box-shadow:none}' +
+    '.pop.c2 .opt:focus-visible{outline:3px solid #f0a500;outline-offset:2px}' +
+    '@media (prefers-reduced-motion:reduce){.pop.c2 .edge,.pop.c2 .mid{animation:none;opacity:1}}';
 
   var host = null;
   function close(how) {
@@ -370,6 +391,14 @@
     });
   }
 
+  function choiceBtns() {
+    var h = '';
+    for (var i = 0; i < CRE.choices.length; i++) {
+      h += '<button class="opt" type="button" data-a="' + CRE.choices[i] + '">' + CRE.choices[i] + '</button>';
+    }
+    return h;
+  }
+
   function layerImgs() {
     var h = '';
     for (var i = 0; i < CRE.layers.length; i++) {
@@ -388,20 +417,36 @@
     var root = sr || host;
     var st = document.createElement('style'); st.textContent = CSS; root.appendChild(st);
     var bg = document.createElement('div'); bg.className = 'bg';
-    bg.innerHTML = '<div class="pop' + (CRE.layers ? ' lyr' : '') + '">' +
+    bg.innerHTML = '<div class="pop' + (CRE.layers ? ' lyr' : '') + (CRE.cls ? ' ' + CRE.cls : '') + '">' +
       '<button class="x" type="button" aria-label="\u9589\u3058\u308b">\u00d7</button>' +
-      '<button class="tap" type="button" aria-label="' + CRE.alt + '">' +
-      (CRE.layers ? layerImgs()
-        : '<img src="' + CFG.IMG_BASE + '/' + CRE.img + '" alt="' + CRE.alt + '">') +
-      '</button></div>';
+      (CRE.choices
+        /* answers as buttons: the picture itself is not a tap target */
+        ? '<div class="tap" role="img" aria-label="' + CRE.alt + '">' + layerImgs() + '</div>' +
+          '<div class="opts">' + choiceBtns() + '</div>'
+        : '<button class="tap" type="button" aria-label="' + CRE.alt + '">' +
+          (CRE.layers ? layerImgs()
+            : '<img src="' + CFG.IMG_BASE + '/' + CRE.img + '" alt="' + CRE.alt + '">') +
+          '</button>') +
+      '</div>';
     root.appendChild(bg);
     document.body.appendChild(host);
     lastSource = source;
     root.querySelector('.x').addEventListener('click', function () { close('x'); });
-    root.querySelector('.tap').addEventListener('click', function () {
-      track('banner_tap', CRE.dest);
-      location.href = destUrl();
-    });
+    if (CRE.choices) {
+      var opts = root.querySelectorAll('.opt');
+      for (var i = 0; i < opts.length; i++) {
+        opts[i].addEventListener('click', function (ev) {
+          var a = ev.currentTarget.getAttribute('data-a');
+          track('banner_tap', CRE.dest + ';a=' + a);
+          location.href = destUrl() + '&a=' + encodeURIComponent(a);
+        });
+      }
+    } else {
+      root.querySelector('.tap').addEventListener('click', function () {
+        track('banner_tap', CRE.dest);
+        location.href = destUrl();
+      });
+    }
     track('banner_view', source);
   }
 

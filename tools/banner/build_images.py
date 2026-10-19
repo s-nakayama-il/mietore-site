@@ -62,6 +62,14 @@ BC_FILES = (
     ('q1_dots_20261005.png', 'q1_dots_strong.png'),
 )
 
+# C2（2026-10-19。白い検査表・数字は最初から見えて薄くなる・4択は HTML）。試作の現物を bytes のまま写す（中山さん指示で直接。TASK なし）
+C2_SRC = EC / '20_実行/新規獲得/バナー配信/バナー試作_20261019'
+C2_FILES = (
+    ('banner_C2_20261019_base.webp', 'banner_C2_20261019_base.webp'),
+    ('banner_C2_20261019_edge.webp', 'banner_C2_20261019_edge.webp'),
+    ('banner_C2_20261019_mid.webp', 'banner_C2_20261019_mid.webp'),
+)
+
 # 実機スクリーンショット（750×1334）から、チェックページが見せる範囲（上端, 高さ）
 SHOT_CROP = {'kiroku': (154, 746), 'stage': (336, 564), 'play': (245, 995)}
 B2_FRAME = 22            # あいさつなし GIF の23コマ目（線でペアがつながった場面）
@@ -174,6 +182,15 @@ def main() -> None:
         same = hashlib.sha256(d).hexdigest() == hashlib.sha256((BC_SRC / src).read_bytes()).hexdigest()
         print('BC %-28s %7d bytes  試作と一致: %s  %s' % (out, len(d), same, hashlib.sha256(d).hexdigest()))
     print('B・C の層の合計: %d bytes（上限 235,000）' % bc2)
+
+    # --- C2 も試作と bytes 一致
+    c2 = 0
+    for out, src in C2_FILES:
+        d = (OUT / out).read_bytes()
+        c2 += len(d)
+        same = hashlib.sha256(d).hexdigest() == hashlib.sha256((C2_SRC / src).read_bytes()).hexdigest()
+        print('C2 %-28s %7d bytes  試作と一致: %s  %s' % (out, len(d), same, hashlib.sha256(d).hexdigest()))
+    print('C2 の層の合計: %d bytes（上限 235,000）' % c2)
 
 
 if __name__ == '__main__':

@@ -189,6 +189,9 @@ const SID=(function(){let s=QS.get('sid')||'';
   try{sessionStorage.setItem('mtrb_sid',s)}catch(e){}
   return s.slice(0,64)})();
 const VER=(QS.get('v')||'banner-20260928-C').slice(0,64);
+// バナー C2（2026-10-19）: 4択をバナー上で押して来た人は a= に答えが付く。1問目はその答えの答え合わせから始める（選択肢はバナーと同じ4つ）
+const BANNER_CHOICES=['4682','4687','9682','4632'];
+const PRE_A=BANNER_CHOICES.includes(QS.get('a')||'')?QS.get('a'):'';
 function osName(){const ua=navigator.userAgent||'';
   if(/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return 'iOS';
   if(/Android/.test(ua))return 'Android';return 'PC'}
@@ -221,10 +224,11 @@ function gabor(ctx,cx,cy,size,deg,contrast){
 // 各問題：見出しは読みやすい位置で改行する（<br>）
 // 第1問は絵と選択肢を同時に出す（タイマー無し）、第2問もタイマー無し、第3問だけ timer で時間切れがある
 const Q={
- dots:{title:'かくれている数字は<br>どれでしょう？',ans:NUM,cls:'q1',   // 絵と選択肢を同時に出す（秒読み・覚えておく一言は無し）
+ dots:{title:PRE_A?'いま見えた数字は？':'かくれている数字は<br>どれでしょう？',ans:NUM,cls:'q1',   // 絵と選択肢を同時に出す（秒読み・覚えておく一言は無し）
   // 絵はバナーと同じ bc_dots.png（毎回ランダムに描き直さない）
   render(box){box.innerHTML='<div class="fig"><img width="1040" height="720" alt="点の中に4けたの数字がかくれた画像" src="'+A.dots+'"></div>'},
-  opts(){const rd=n=>Math.floor(Math.random()*n);
+  opts(){if(PRE_A)return shuffle([...BANNER_CHOICES]);   // バナーで答えた人はバナーと同じ4つ
+    const rd=n=>Math.floor(Math.random()*n);
     // まちがいの選択肢は、うすい両はしを形の似た数字にする
     const SIM={'0':'689','1':'74','2':'73','3':'892','4':'19','5':'63','6':'085','7':'14','8':'3906','9':'830'};
     const alt=p=>{const a=[...NUM];p.forEach(i=>{const c=[...SIM[NUM[i]]].filter(d=>!(i===0&&d==='0'));a[i]=c[rd(c.length)]});return a.join('')};
@@ -266,7 +270,9 @@ function showBanner(){clearInterval(timerId);step=0;trialSec=null;ORDER.forEach(
   document.body.appendChild(ov);
   $('#bn').onclick=()=>{closeAd();start()};$('#px').onclick=()=>{/* 試作では閉じない */}}
 
-function start(){track('check_start','cv=20261001');step=0;ask()}
+function start(){track('check_start','cv=20261001');step=0;ask();
+  // バナーで答えて来た人（a=）は、1問目をその答えで答え合わせ済みにして始める
+  if(PRE_A){const b=[...view.querySelectorAll('.opt')].find(x=>x.textContent===PRE_A);if(b)answer('dots',b)}}
 
 // のこり秒の表示と赤いバー。0 になったら onEnd を呼ぶ
 // バーの幅は「のこり N秒」の表示と同じ割合（t/total）にする。transition 1s で次の1秒をかけて減り、
@@ -296,7 +302,7 @@ function answer(k,btn){clearInterval(timerId);const q=Q[k],r=q.judge(btn.textCon
   if(timeOver&&r.ok){r.body=q.timer+'秒より少し時間がかかりましたが、よく似た向きも見分けられました。'}
   rec[k]={a:btn.textContent,ok:r.ok,penalty:r.s,sec,timeOver};
   view.querySelectorAll('.opt').forEach(b=>{b.disabled=true});btn.classList.add(r.ok?'ok':'ng');
-  track('check_answer','q='+(step+1)+';ok='+(r.ok?1:0)+';p='+r.s+';s='+sec+';t='+(timeOver?1:0)+';a='+btn.textContent);
+  track('check_answer','q='+(step+1)+';ok='+(r.ok?1:0)+';p='+r.s+';s='+sec+';t='+(timeOver?1:0)+';a='+btn.textContent+(PRE_A&&step===0?';b=1':''));   // b=1 はバナーで答えた人
   const last=step===ORDER.length-1;
   $('#fb').innerHTML=`<div class="fb enter"><img src="${r.ok?A.f_good:A.f_expect}" alt=""><p><span class="big ${r.ok?'ok':'ng'}">${r.head}</span>${r.body}</p></div>
    <button class="btn enter" type="button" id="next" style="margin-top:14px">${last?'つぎへ':'つぎの問題へ'}</button>`;
