@@ -69,10 +69,13 @@
     { id: 'C',  v: 'banner-20260928-C',  pre: 'banner_BC_20261005_', dest: 'check_c',
       layers: ['base', 'num'],
       alt: '\u70b9\u306e\u4e2d\u306e4\u3051\u305f\u306e\u6570\u5b57\u3001\u898b\u3048\u307e\u3059\u304b' },
-    /* C2 (2026-10-19, Nakayama): white test-chart look, the digits are readable from the first
-       frame and fade (edges first), and the four answers are HTML buttons over the card. A tap
-       on an answer is the banner tap and carries the answer (a=) to the check page. */
-    { id: 'C2', v: 'banner-20261019-C2', pre: 'banner_C2_20261019_', dest: 'check_c', cls: 'c2',
+    /* C2 (2026-10-19, Nakayama): the first screen of the check page in miniature (pale green
+       page, white card, teal band, question, picture, four answers). The digits are readable
+       from the first frame and fade (edges first); the four answers are HTML buttons over the
+       card. A tap on an answer is the banner tap and carries the answer (a=) to the check page.
+       2026-10-19 afternoon: the white test-chart look (banner_C2_20261019_*) was replaced by
+       the check-page look (banner_C2_20261019b_*); v stays the same. */
+    { id: 'C2', v: 'banner-20261019-C2', pre: 'banner_C2_20261019b_', dest: 'check_c', cls: 'c2',
       layers: ['base', 'edge', 'mid'], choices: ['4682', '4687', '9682', '4632'],
       alt: '\u3044\u307e\u898b\u3048\u305f\u6570\u5b57\u306f\uff1f \u898b\u3048\u305f\u6570\u5b57\u3092\u30bf\u30c3\u30d7' },
     { id: 'A7', v: 'banner-20261008-A7', pre: 'banner_A7_20261008_', dest: 'app',
@@ -325,15 +328,15 @@
        wins. Put inside the A7 @media block it would lose and leave the digits invisible. */
     '@media (prefers-reduced-motion:reduce){.pop.lyr .num{animation:none;opacity:1}}' +
     /* C2 only (.pop.c2). Layer boxes and the fade curve are copied from the 2026-10-19 prototype
-       in the EC repo (banner-shisaku_20261019: gen_c2_20261019.py / work/measure.json).
+       in the EC repo (banner-shisaku_20261019: gen_c2_20261019_v2.py / work/measure_v2.json).
        Edges (4 and 2) fade to .3 by 5.5s, the middle (6 and 8) to .6 by 9.5s; both keep the
        end value (`both`). The answer buttons sit over the lower part of the card. */
     '.pop.c2 .tap{cursor:default}' +
-    '.pop.c2 .edge{left:4.7222%;top:24.8958%;width:88.4259%;animation:c2edge 5.5s linear both}' +
-    '.pop.c2 .mid{left:28.4259%;top:24.8958%;width:43.3333%;animation:c2mid 9.5s linear both}' +
+    '.pop.c2 .edge{left:10.5556%;top:32.8125%;width:77.5%;animation:c2edge 5.5s linear both}' +
+    '.pop.c2 .mid{left:31.2037%;top:32.8125%;width:37.7778%;animation:c2mid 9.5s linear both}' +
     '@keyframes c2edge{0%,1.8%{opacity:1}4.5%{opacity:.84}9.1%{opacity:.7}18.2%{opacity:.67}36.4%{opacity:.51}54.5%{opacity:.4}100%{opacity:.3}}' +
     '@keyframes c2mid{0%,1.05%{opacity:1}2.6%{opacity:.92}5.3%{opacity:.88}10.5%{opacity:.87}21%{opacity:.82}31.6%{opacity:.77}57.9%{opacity:.69}100%{opacity:.6}}' +
-    '.pop.c2 .opts{position:absolute;left:4.5%;right:4.5%;top:57.5%;bottom:5.5%;display:grid;grid-template-columns:1fr 1fr;gap:4.5% 4%;z-index:2}' +
+    '.pop.c2 .opts{position:absolute;left:9.63%;top:63.84%;width:80.74%;height:24.9%;display:grid;grid-template-columns:1fr 1fr;gap:2.4% 4.26%;z-index:2}' +
     '.pop.c2 .opt{font:800 clamp(19px,7.6vw,28px) "M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;' +
     'border-radius:12px;border:2px solid #b9cbc7;background:#fff;color:#17201e;box-shadow:0 3px 0 #b9cbc7;cursor:pointer;padding:0;margin:0}' +
     '.pop.c2 .opt:active{transform:translateY(2px);box-shadow:none}' +

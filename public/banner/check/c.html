@@ -1,7 +1,7 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>目の見分けチャレンジ</title>
+<title>見え方チェック</title>
 <!-- Microsoft Clarity（操作の記録。2026-10-17 中山さん決定。開示 = /banner/check/privacy。C には 2026-10-19 に B から移した）。
      Cookie を使わない設定（consentv2 で analytics_Storage・ad_Storage を denied）で動かす -->
 <script type="text/javascript">
@@ -129,6 +129,15 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 .foot-privacy{margin:14px 0 0;text-align:center;font-size:12px;line-height:1.5}
 .foot-privacy a{color:var(--sub)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* バナー C2 の 4択で答えて来た人の最初の画面（答え合わせ。2026-10-19）: ポップアップ（チェックページの小型版）の続きとして、
+   通常の見た目（薄い緑の背景・白いカード・帯「見え方チェック」・緑のボタン）のまま答えを出す。進捗バーと問番号は 2問目から。
+   選択肢の再表示と赤緑の採点は出さない（中山さん「別のところに来て採点された」を消す） */
+body.c2ans .prog{display:none}
+.screen.ans{padding:14px 18px 20px;gap:12px}
+.ans-head{margin:0;text-align:center;font-size:26px;font-weight:800;line-height:1.3;color:var(--ink)}
+.ans-body{margin:0;text-align:center;font-size:17px;line-height:1.55;color:var(--sub);font-weight:700}
+.screen.ans .fig img{aspect-ratio:1040 / 720}
+.screen.ans .btn{font-size:19px}   /* 「つづけて、しま模様を見る」を幅 360 でも1行に */
 /*@C*/
 .gtitle{background:linear-gradient(135deg,#0f7a74,#2f9e8f);color:#fff;border-radius:14px;padding:8px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
 .gtitle span{font-weight:800;font-size:14px;background:#f5b700;color:#3a2a00;border-radius:999px;padding:1px 12px;line-height:1.4}
@@ -160,7 +169,7 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 
 <main class="app" lang="ja">
   <div class="card" id="card">
-    <div class="top"><span class="brand">目のチェック</span><div class="prog" aria-hidden="true"><i id="bar"></i></div></div>
+    <div class="top"><span class="brand">見え方チェック</span><div class="prog" aria-hidden="true"><i id="bar"></i></div></div>
     <div id="view"></div>
   </div>
   <p class="foot-privacy"><a href="/banner/check/privacy" target="_blank" rel="noopener">このページでの情報の取り扱い</a></p>
@@ -168,7 +177,7 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 
 <script>
 const VARIANT='C';
-const A={"dots": "/banner/img/q1_dots_20261005.png", "icon": "/banner/img/icon.png", "f_good": "/banner/img/fukuta_good.png", "f_expect": "/banner/img/fukuta_expect.png", "f_komari": "/banner/img/fukuta_good.png", "f_iwai": "/banner/img/fukuta_good.png", "b2still": "/banner/img/b2_pair.webp", "kiroku": "/banner/img/shot_kiroku.webp", "stage": "/banner/img/shot_stage.webp", "play": "/banner/img/shot_play.webp", "rule_gif": "/banner/img/rule.gif", "patches": ["/banner/img/patch0.png", "/banner/img/patch1.png", "/banner/img/patch2.png", "/banner/img/patch3.png", "/banner/img/patch4.png", "/banner/img/patch5.png"]};
+const A={"reveal": "/banner/img/q1_dots_reveal_20261019.webp", "dots": "/banner/img/q1_dots_20261005.png", "icon": "/banner/img/icon.png", "f_good": "/banner/img/fukuta_good.png", "f_expect": "/banner/img/fukuta_expect.png", "f_komari": "/banner/img/fukuta_good.png", "f_iwai": "/banner/img/fukuta_good.png", "b2still": "/banner/img/b2_pair.webp", "kiroku": "/banner/img/shot_kiroku.webp", "stage": "/banner/img/shot_stage.webp", "play": "/banner/img/shot_play.webp", "rule_gif": "/banner/img/rule.gif", "patches": ["/banner/img/patch0.png", "/banner/img/patch1.png", "/banner/img/patch2.png", "/banner/img/patch3.png", "/banner/img/patch4.png", "/banner/img/patch5.png"]};
 const NUM='4682';                     // バナーと共通の4けたの数字
 const IOS='https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&ct=exit_banner_check_c&mt=8';
 const AND='https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja&referrer=utm_source%3Dexit_banner%26utm_campaign%3Dcheck_c';
@@ -270,9 +279,21 @@ function showBanner(){clearInterval(timerId);step=0;trialSec=null;ORDER.forEach(
   document.body.appendChild(ov);
   $('#bn').onclick=()=>{closeAd();start()};$('#px').onclick=()=>{/* 試作では閉じない */}}
 
-function start(){track('check_start','cv=20261001');step=0;ask();
-  // バナーで答えて来た人（a=）は、1問目をその答えで答え合わせ済みにして始める
-  if(PRE_A){const b=[...view.querySelectorAll('.opt')].find(x=>x.textContent===PRE_A);if(b)answer('dots',b)}}
+function start(){track('check_start','cv=20261001');step=0;if(PRE_A){answerIntro()}else{ask()}}
+
+// バナー C2 の 4択で答えて来た人の最初の画面。ポップアップの続き（答え → 数字の正体 → 一文 → つづける）。
+// 問番号・進捗バー・選択肢の再表示・赤緑の採点は出さない（2026-10-19 中山さん「別のところに来て採点された」を消す）。
+// 見た目は通常の画面と同じ（帯「見え方チェック」・薄い緑の背景・緑のボタン）。body.c2ans は進捗バーを隠すためだけ
+function answerIntro(){window.scrollTo(0,0);clearInterval(timerId);document.body.classList.add('c2ans');
+  const q=Q.dots,r=q.judge(PRE_A);
+  rec.dots={a:PRE_A,ok:r.ok,penalty:r.s,sec:0,timeOver:false};
+  track('check_answer','q=1;ok='+(r.ok?1:0)+';p='+r.s+';s=0;t=0;a='+PRE_A+';b=1');
+  view.innerHTML=`<div class="screen ans enter">
+   <p class="ans-head">${r.ok?NUM+'、正解です':'正解は '+NUM}</p>
+   <div class="fig"><img width="1040" height="720" alt="4けたの数字 4682 がはっきり見える画像" src="${A.reveal}"></div>
+   <p class="ans-body">${r.ok?'薄れていく両はしまで、<br>読めています。':'両はしの 4 と 2 が、<br>先に薄れていきました。<br>うすい数字は、疲れや年齢で<br>見えにくくなるといわれています。'}</p>
+   <button class="btn" type="button" id="next">つづけて、しま模様を見る</button></div>`;
+  $('#next').onclick=()=>{document.body.classList.remove('c2ans');step=1;ask()}}
 
 // のこり秒の表示と赤いバー。0 になったら onEnd を呼ぶ
 // バーの幅は「のこり N秒」の表示と同じ割合（t/total）にする。transition 1s で次の1秒をかけて減り、
