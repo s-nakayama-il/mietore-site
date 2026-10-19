@@ -135,9 +135,15 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 body.c2ans .prog{display:none}
 .screen.ans{padding:14px 18px 20px;gap:12px}
 .ans-head{margin:0;text-align:center;font-size:26px;font-weight:800;line-height:1.3;color:var(--ink)}
-.ans-body{margin:0;text-align:center;font-size:17px;line-height:1.55;color:var(--sub);font-weight:700}
+.ans-thanks{margin:0;text-align:center;font-size:15px;font-weight:700;color:var(--sub)}
+.ans-next{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:4px}
+.ans-next span{font-size:14px;font-weight:700;color:var(--sub)}
+.ans-next i{display:block;width:100%;height:5px;border-radius:999px;background:var(--line);overflow:hidden}
+.ans-next b{display:block;height:100%;width:100%;background:var(--green);transform-origin:left;transform:scaleX(0)}
 .screen.ans .fig img{aspect-ratio:1040 / 720}
-.screen.ans .btn{font-size:19px}   /* 「つづけて、しま模様を見る」を幅 360 でも1行に */
+/* 正解のときだけ、絵の真ん中に高さいっぱいの緑の〇（真円。楕円は不可。右上の小さい〇は「？」になる。赤緑の採点は出さない。2026-10-19 中山さん） */
+.ansfig{position:relative}
+.okmark{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 /*@C*/
 .gtitle{background:linear-gradient(135deg,#0f7a74,#2f9e8f);color:#fff;border-radius:14px;padding:8px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
 .gtitle span{font-weight:800;font-size:14px;background:#f5b700;color:#3a2a00;border-radius:999px;padding:1px 12px;line-height:1.4}
@@ -281,7 +287,10 @@ function showBanner(){clearInterval(timerId);step=0;trialSec=null;ORDER.forEach(
 
 function start(){track('check_start','cv=20261001');step=0;if(PRE_A){answerIntro()}else{ask()}}
 
-// バナー C2 の 4択で答えて来た人の最初の画面。ポップアップの続き（答え → 数字の正体 → 一文 → つづける）。
+// バナー C2 の 4択で答えて来た人の最初の画面。ポップアップの続き（はっきり見える数字の絵（正解は緑の〇）→ 見出し → 一文 → つづける）。
+// 2026-10-19 夕 中山さん: 釣りの形で反射的に答えた人なので、判断の画面（説明文・ボタン）を出さない。
+// 上に小さくお礼、絵と〇（不正解は「正解は 4682」）を ANS_MS だけ見せて、自動で2問目へ進む。
+const ANS_MS=3200;   // 1.3 秒・2.2 秒は「答えが出てすぐ次」で早い。下の線と「どこを押しても進む」とあわせて 3.2 秒（2026-10-19 中山さん）
 // 問番号・進捗バー・選択肢の再表示・赤緑の採点は出さない（2026-10-19 中山さん「別のところに来て採点された」を消す）。
 // 見た目は通常の画面と同じ（帯「見え方チェック」・薄い緑の背景・緑のボタン）。body.c2ans は進捗バーを隠すためだけ
 function answerIntro(){window.scrollTo(0,0);clearInterval(timerId);document.body.classList.add('c2ans');
@@ -289,11 +298,24 @@ function answerIntro(){window.scrollTo(0,0);clearInterval(timerId);document.body
   rec.dots={a:PRE_A,ok:r.ok,penalty:r.s,sec:0,timeOver:false};
   track('check_answer','q=1;ok='+(r.ok?1:0)+';p='+r.s+';s=0;t=0;a='+PRE_A+';b=1');
   view.innerHTML=`<div class="screen ans enter">
-   <p class="ans-head">${r.ok?NUM+'、正解です':'正解は '+NUM}</p>
-   <div class="fig"><img width="1040" height="720" alt="4けたの数字 4682 がはっきり見える画像" src="${A.reveal}"></div>
-   <p class="ans-body">${r.ok?'薄れていく両はしまで、<br>読めています。':'両はしの 4 と 2 が、<br>先に薄れていきました。<br>うすい数字は、疲れや年齢で<br>見えにくくなるといわれています。'}</p>
-   <button class="btn" type="button" id="next">つづけて、しま模様を見る</button></div>`;
-  $('#next').onclick=()=>{document.body.classList.remove('c2ans');step=1;ask()}}
+   <p class="ans-thanks">おつきあい、ありがとうございます</p>
+   <div class="fig ansfig"><img width="1040" height="720" alt="4けたの数字 4682 がはっきり見える画像" src="${A.reveal}">${r.ok?'<svg class="okmark" viewBox="0 0 1040 720" role="img" aria-label="正解"><circle cx="520" cy="360" r="318" fill="none" stroke="#fff" stroke-width="40" opacity=".9"/><circle cx="520" cy="360" r="318" fill="none" stroke="#2fbf5f" stroke-width="28"/></svg>':''}</div>
+   ${r.ok?'':'<p class="ans-head">正解は '+NUM+'</p>'}
+   ${nextLine('つぎの問題へ')}</div>`;
+  // 判断の画面にしない：ボタンも説明文も出さず、ANS_MS で2問目へ進む（2026-10-19 中山さん「提案A」。反射で答えた人の勢いを止めない）
+  autoNext(ANS_MS,()=>{document.body.classList.remove('c2ans');step=1;ask()})}
+
+// 答え合わせのあとは、ボタンを出さずに自動で次へ（2026-10-19 中山さん：最初だけ自動でその後が手動だと「止まった？」になる）。
+// 下の細い線が ms かけて伸び、伸びきったら次へ。画面のどこを押しても待たずに進む。
+// 線は CSS の動きでなく毎フレーム伸ばす（「動きを減らす」設定の端末でも止まらない。待てば進む目印なので飾りではない）
+const FB_MS=6000;   // 2問目・3問目の答え合わせ。録画で答え→「つぎ」を押すまでの真ん中が 6〜7 秒（B・C2、2026-10-17〜19）
+const nextLine=t=>`<div class="ans-next"><span>${t}</span><i><b id="nline"></b></i></div>`;
+function autoNext(ms,next){let moved=false,tid;const line=$('#nline'),t0=performance.now();
+  const go=()=>{if(moved)return;moved=true;clearTimeout(tid);document.removeEventListener('click',go);next()};
+  const grow=()=>{if(moved)return;const k=Math.min(1,(performance.now()-t0)/ms);if(line)line.style.transform='scaleX('+k+')';if(k<1)requestAnimationFrame(grow)};
+  requestAnimationFrame(grow);tid=setTimeout(go,ms);
+  // 答えを押したタップがそのまま「どこを押しても進む」に数えられないよう、次の番から受け付ける
+  setTimeout(()=>{if(!moved)document.addEventListener('click',go)},0)}
 
 // のこり秒の表示と赤いバー。0 になったら onEnd を呼ぶ
 // バーの幅は「のこり N秒」の表示と同じ割合（t/total）にする。transition 1s で次の1秒をかけて減り、
@@ -326,9 +348,9 @@ function answer(k,btn){clearInterval(timerId);const q=Q[k],r=q.judge(btn.textCon
   track('check_answer','q='+(step+1)+';ok='+(r.ok?1:0)+';p='+r.s+';s='+sec+';t='+(timeOver?1:0)+';a='+btn.textContent+(PRE_A&&step===0?';b=1':''));   // b=1 はバナーで答えた人
   const last=step===ORDER.length-1;
   $('#fb').innerHTML=`<div class="fb enter"><img src="${r.ok?A.f_good:A.f_expect}" alt=""><p><span class="big ${r.ok?'ok':'ng'}">${r.head}</span>${r.body}</p></div>
-   <button class="btn enter" type="button" id="next" style="margin-top:14px">${last?'つぎへ':'つぎの問題へ'}</button>`;
-  $('#next').onclick=()=>{step++;if(step<ORDER.length){ask()}else{ruleIntro()}};
-  $('#next').scrollIntoView({behavior:'smooth',block:'nearest'})}
+   <div style="margin-top:14px">${nextLine(last?'つぎへ':'つぎの問題へ')}</div>`;
+  autoNext(FB_MS,()=>{step++;if(step<ORDER.length){ask()}else{ruleIntro()}});
+  $('#nline').scrollIntoView({behavior:'smooth',block:'nearest'})}
 
 // タイプ・Lv・ふく多のひとことを、本人の回答から決める
 function diagnose(){
@@ -409,14 +431,17 @@ function ruleIntro(){window.scrollTo(0,0);bar(ORDER.length/(ORDER.length+1)*100)
   $('#go').onclick=trial}
 
 function trial(){track('trial_start','');
-  const R=3,C=4,kinds=[0,1,2,3,4,5].flatMap(k=>[k,k]);
+  // 模様は向きのちがう4種類だけ（0 縦・1 横・2 右下がり・3 右上がり）。細かさだけちがう 4 縦・5 横は使わない（2026-10-19 中山さん：録画で同じに見えて何度も間違えていた）。
+  // 12マス＝6組なので、毎回2種類を選んで2組ずつにする
+  const R=3,C=4,kinds=[0,1,2,3,...shuffle([0,1,2,3]).slice(0,2)].flatMap(k=>[k,k]);
   let g;const build=list=>{g=Array.from({length:R+2},()=>Array(C+2).fill(-1));let n=0;for(let r=1;r<=R;r++)for(let c=1;c<=C;c++)g[r][c]=list[n++]};
   // 二角取り：外周1マスを通路として、曲がりが2回以内でつながるか
-  const canLink=(a,b)=>{if(g[a[0]][a[1]]!==g[b[0]][b[1]])return null;const D=[[0,1],[1,0],[0,-1],[-1,0]],best={},q=[];
+  // lim は曲がれる回数（ふつうは2。つながらない理由を見分けるときだけ大きくして、道があるかを調べる）
+  const canLink=(a,b,lim=2)=>{if(g[a[0]][a[1]]!==g[b[0]][b[1]])return null;const D=[[0,1],[1,0],[0,-1],[-1,0]],best={},q=[];
     for(let d=0;d<4;d++)q.push([a[0],a[1],d,0,[[a[0],a[1]]]]);
     while(q.length){const [r,c,d,t,path]=q.shift(),nr=r+D[d][0],nc=c+D[d][1];if(nr<0||nc<0||nr>R+1||nc>C+1)continue;
       const np=[...path,[nr,nc]];if(nr===b[0]&&nc===b[1])return np;if(g[nr][nc]!==-1)continue;
-      for(let nd=0;nd<4;nd++){const nt=t+(nd===d?0:1);if(nt>2)continue;const key=nr+','+nc+','+nd;if(best[key]!==undefined&&best[key]<=nt)continue;best[key]=nt;q.push([nr,nc,nd,nt,np])}}
+      for(let nd=0;nd<4;nd++){const nt=t+(nd===d?0:1);if(nt>lim)continue;const key=nr+','+nc+','+nd;if(best[key]!==undefined&&best[key]<=nt)continue;best[key]=nt;q.push([nr,nc,nd,nt,np])}}
     return null};
   const cells=()=>{const a=[];for(let r=1;r<=R;r++)for(let c=1;c<=C;c++)if(g[r][c]>=0)a.push([r,c]);return a};
   const anyMove=()=>{const a=cells();for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(canLink(a[i],a[j]))return true;return false};
@@ -451,7 +476,8 @@ function trial(){track('trial_start','');
       setTimeout(()=>{render();if(!cells().length){finish();return}
         if(!anyMove()){const rest=cells().map(([rr,cc])=>g[rr][cc]);let n=0;do{shuffle(rest);n++;let i=0;cells().forEach(([rr,cc])=>{g[rr][cc]=rest[i++]})}while(!anyMove()&&n<50);
           render();say('つなげる2つがなくなったので、並べかえました')}},520)}
-    else{say(g[sel[0]][sel[1]]!==g[r][c]?'ちがう模様です。同じ模様を選んでね':'この2つはつながりません（道がふさがっている・曲がりが3回以上）。別の2つを');
+    // つながらない理由を1つだけ言う（2026-10-19 中山さん：ちがう模様／道がふさがっている／曲がりが多い）
+    else{say(g[sel[0]][sel[1]]!==g[r][c]?'ちがう模様です':canLink(sel,[r,c],99)?'曲がりが多すぎます（曲がれるのは2回まで）':'道がふさがっています');
       [prev,b].forEach(e=>{if(!e)return;e.classList.add('shake');setTimeout(()=>e.classList.remove('shake'),300)});if(prev)prev.classList.remove('sel');sel=null}};
   render()}
 /*@/C*/
