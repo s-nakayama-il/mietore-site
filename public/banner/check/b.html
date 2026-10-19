@@ -206,7 +206,7 @@ const Q={
   judge(a){const miss=[0,3].filter(i=>a[i]!==NUM[i]).length;return {s:miss,ok:miss===0,
     head:miss===0?`正解！ ${NUM}です`:`正解は ${NUM}です`,
     body:miss===0?'<span class="nw">うすい数字まで、</span><wbr><span class="nw">見えています。</span>'
-      :'<span class="nw">うすい数字は、</span><wbr><span class="nw">年をとると</span><wbr><span class="nw">見えにくくなると</span><wbr><span class="nw">いわれています。</span>'}}},
+      :'<span class="nw">うすい数字は、</span><wbr><span class="nw">疲れや年齢で</span><wbr><span class="nw">見えにくくなると</span><wbr><span class="nw">いわれています。</span>'}}},
  contrast:{title:'しま模様は<br>何番まで見えますか？',ans:'5番',
   render(box){const c=document.createElement('canvas');c.width=520;c.height=400;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,400);
     const pos=[[90,90],[260,90],[430,90],[175,285],[345,285]];
@@ -215,7 +215,7 @@ const Q={
   opts:['1〜2番','3番','4番','5番'],
   judge(a){const s={'1〜2番':2,'3番':1,'4番':1,'5番':0}[a];return {s,ok:s===0,
     head:s===0?'5番まで見えました！':'4番と5番は、とてもうすい模様です',
-    body:s===0?'ほとんど見えないほど、うすい模様です。':'うすい模様は、年をとると見えにくくなるといわれています。'}}},
+    body:s===0?'ほとんど見えないほど、うすい模様です。':'<span class="nw">こうしたうすい模様は、</span><wbr><span class="nw">疲れや年齢で</span><wbr><span class="nw">見分けにくくなると</span><wbr><span class="nw">いわれています。</span>'}}},
  same:{title:'お手本と同じ模様は<br>何個ありますか？',timer:30,ans:'5個',
   render(box){const c=document.createElement('canvas');c.width=520;c.height=640;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,640);
     x.fillStyle='#eef3f2';x.fillRect(0,0,520,136);gabor(x,76,68,116,45,1);x.fillStyle='#17201e';x.font='800 30px '+FONT;x.textAlign='left';x.fillText('← お手本',150,60);x.font='700 24px '+FONT;x.fillText('これと同じ向きを数えてね',150,100);

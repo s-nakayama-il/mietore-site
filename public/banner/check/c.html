@@ -63,7 +63,7 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 /* 結果・ルール説明：ストアボタンの下端を CSS 640px 以内に収めるため、この2画面だけ間隔と文字を詰める */
 .screen.tight{padding:12px 18px 20px;gap:8px}
 .res-type{text-align:center;font-size:20px;font-weight:800;margin:0;line-height:1.3;color:var(--teal-d);white-space:nowrap}
-.res-type.long{font-size:17px}   /* 14字以上のタイプ名を、折り返さずに横幅へ収める */
+.res-type.long{font-size:18px}   /* 2行のタイプ名（<br> で折る）。2026-10-17 */
 .res-time{text-align:center;font-size:26px;font-weight:800;margin:0;line-height:1.25;color:#2f7bd0}
 .res-score{text-align:center;font-size:15px;font-weight:800;margin:0;line-height:1.3;color:var(--sub)}
 .meter{display:flex;flex-direction:column;gap:4px;background:var(--soft);border-radius:12px;padding:8px 10px}
@@ -233,7 +233,7 @@ const Q={
   judge(a){const miss=[0,3].filter(i=>a[i]!==NUM[i]).length;return {s:miss,ok:miss===0,
     head:miss===0?`正解！ ${NUM}です`:`正解は ${NUM}です`,
     body:miss===0?'<span class="nw">うすい数字まで、</span><wbr><span class="nw">見えています。</span>'
-      :'<span class="nw">うすい数字は、</span><wbr><span class="nw">年をとると</span><wbr><span class="nw">見えにくくなると</span><wbr><span class="nw">いわれています。</span>'}}},
+      :'<span class="nw">うすい数字は、</span><wbr><span class="nw">疲れや年齢で</span><wbr><span class="nw">見えにくくなると</span><wbr><span class="nw">いわれています。</span>'}}},
  contrast:{title:'しま模様は<br>何番まで見えますか？',ans:'5番',
   render(box){const c=document.createElement('canvas');c.width=520;c.height=400;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,400);
     const pos=[[90,90],[260,90],[430,90],[175,285],[345,285]];
@@ -242,7 +242,7 @@ const Q={
   opts:['1〜2番','3番','4番','5番'],
   judge(a){const s={'1〜2番':2,'3番':1,'4番':1,'5番':0}[a];return {s,ok:s===0,
     head:s===0?'5番まで見えました！':'4番と5番は、とてもうすい模様です',
-    body:s===0?'ほとんど見えないほど、うすい模様です。':'うすい模様は、年をとると見えにくくなるといわれています。'}}},
+    body:s===0?'ほとんど見えないほど、うすい模様です。':'<span class="nw">こうしたうすい模様は、</span><wbr><span class="nw">疲れや年齢で</span><wbr><span class="nw">見分けにくくなると</span><wbr><span class="nw">いわれています。</span>'}}},
  same:{title:'お手本と同じ模様は<br>何個ありますか？',timer:30,ans:'5個',
   render(box){const c=document.createElement('canvas');c.width=520;c.height=640;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,640);
     x.fillStyle='#eef3f2';x.fillRect(0,0,520,136);gabor(x,76,68,116,45,1);x.fillStyle='#17201e';x.font='800 30px '+FONT;x.textAlign='left';x.fillText('← お手本',150,60);x.font='700 24px '+FONT;x.fillText('これと同じ向きを数えてね',150,100);
@@ -282,7 +282,7 @@ function showOpts(k,q){const opts=typeof q.opts==='function'?q.opts():q.opts;
   view.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answer(k,b))}
 
 function ask(){window.scrollTo(0,0);clearInterval(timerId);bar(step/(ORDER.length+1)*100);const k=ORDER[step],q=Q[k];
-  view.innerHTML=`<div class="screen enter${q.cls?' '+q.cls:''}"><span class="qno">第${step+1}問（全${ORDER.length}問）</span><h1 id="qt">${q.title}</h1>
+  view.innerHTML=`<div class="screen enter${q.cls?' '+q.cls:''}"><span class="qno">第${step+1}問（全4問）</span><h1 id="qt">${q.title}</h1>
    ${q.timer?`<div class="timer" aria-live="polite"><div class="tb"><i id="tbar"></i></div><b id="tsec">のこり ${q.timer}秒</b></div>`:''}
    <div id="box"></div><div class="opts" id="opts"></div><div id="fb"></div></div>`;
   q.render($('#box'));
@@ -315,9 +315,11 @@ function diagnose(){
   const say={dots:'1問目のうすい数字で、つまずいたみたい。',contrast:'2問目のうすいしま模様で、つまずいたみたい。',same:'3問目の向きのちがう模様で、つまずいたみたい。'};
   return {type,lv,pen,word:first?say[first]:'ぜんぶ見分けられたね！',img:first?A.f_komari:A.f_iwai}}
 
-function meter(lv){const bars=[1,2,3,4,5].map(n=>`<span class="${n<=lv?'on':''}">Lv${n}</span>`).join('');
-  const you=[1,2,3,4,5].map(n=>`<span>${n===lv?'あなた':''}</span>`).join('');
-  return `<div class="meter"><p class="mt">見分ける力の目盛り</p><div class="bars">${bars}</div><div class="you">${you}</div></div>`}
+// 2026-10-17 中山さん: Lv の目盛り（多数が「真ん中」になる）をやめ、2問目で何番まで見えたかをそのまま出す（C は 10/19 に反映）
+function meter(){const seen={'5番':5,'4番':4,'3番':3,'1〜2番':2}[rec.contrast&&rec.contrast.a]||2;
+  const bars=[1,2,3,4,5].map(n=>`<span class="${n<=seen?'on':''}">${n}番</span>`).join('');
+  const cap=seen===5?'5番まで、ぜんぶ見えました':seen+'番まで見えました。'+(seen+1)+'番からは、見えにくいようです';
+  return `<div class="meter"><p class="mt">うすいしま模様</p><div class="bars">${bars}</div><p class="mt">${cap}</p></div>`}
 
 // コマ枠。1つの枠にコマを重ねて CSS だけで切り替える（1コマ4秒・各コマに1行のキャプション）
 function frame(cells){return `<div class="frame frame${cells.length}">`+cells.map((c,i)=>
@@ -327,22 +329,24 @@ function shot(src,ct,ch,alt){return `<div class="shot" style="--ct:${ct};--ch:${
 
 function stores(){return `<div class="stores">`+(os==='ios'?store(IOS,'ios','App Store'):os==='android'?store(AND,'android','Google Play')
   :store(IOS,'ios','App Store（iPhone）')+store(AND,'android','Google Play（Android）'))+`</div>`}
-function store(href,o,name){return `<a class="btn" href="${href}" data-os="${o}">続きを無料で遊ぶ<small>${name} が開きます</small></a>`}
+function store(href,o,name){return `<a class="btn" href="${href}" data-os="${o}">無料ではじめる<small>${name} が開きます</small></a>`}
 function appCard(){return `<div class="app-card"><div class="app-h"><img src="${A.icon}" alt=""><div><span>いま遊んだゲームのアプリ・無料</span><b>ミエトレ</b></div></div>
    <span class="dl">1万DL突破</span></div>`}
 const NOTE='<p class="note">このチェックは見え方の目安です。<br>医師による診断ではありません。</p>';
 
 /*@C*/
-// C 版の結果：タイム → 3問中◯問正解 → 枠［コマ枠（C-1→C-2）］→ 面［ひとこと → アプリの説明 → ストア］（ここまで 640px 以内）→ 注記
-// 2026-10-19: B の 10/15 の形（押せる所はボタン1つ。カードは枠なしの説明に）を C にも移した。
-//   ひとことは C の流れに合わせて「この続きのステージは、アプリで」（B は「見えてるうちに、はじめる目のケア」）
+// C 版の結果（2026-10-19 中山さん）：B と同じ目の結果（タイプ → 何番まで見えた）→ 4問目のタイム → 枠［一文 → コマ枠（C-1→C-2）］
+//   → 面［見えてるうちに、はじめる目のケア → アプリの説明 → ストア］（ここまで 640px 以内）→ 注記。
+//   ゲームの続きの誘いではなく、4問目を「アプリの目のトレーニング」として目のケアの入口にする。押せる所はボタン1つ。
 function resultBody(d){
-  const s=Math.round(trialSec),hit=ORDER.filter(k=>rec[k].ok).length;
-  return `<p class="res-time">${trialSec<=30?`ラストチャレンジ ${s}秒 目標クリア！`:`ラストチャレンジ ${s}秒 クリア！`}</p>
-   <p class="res-score">3問中${hit}問正解</p>
-   <div class="z1">${frame([{m:shot(A.stage,0,564,'アプリのステージ選択の画面'),c:'次のステージがある'},
-            {m:shot(A.play,0,995,'アプリの広い盤面の画面'),c:'盤面が広くなる'}])}</div>
-   <div class="act"><p class="hook">この続きのステージは、<br>アプリで</p>
+  const s=Math.round(trialSec);
+  return `<p class="res-type${d.type.length > 13 ? ' long' : ''}">${d.type}</p>
+   ${meter()}
+   <p class="res-score">4問目（同じ模様を消す）${s}秒でクリア</p>
+   <div class="z1"><p class="lead">いまのしま模様は老眼対策の研究で使われています</p>
+   ${frame([{m:shot(A.stage,0,564,'アプリのステージ選択の画面'),c:'アプリには、次のステージがある'},
+            {m:shot(A.play,0,995,'アプリの広い盤面の画面'),c:'1日3分、続けられる'}])}</div>
+   <div class="act"><p class="hook">見えてるうちに、<br>はじめる目のケア</p>
    <div class="info"><img src="${A.icon}" alt=""><p><b>ミエトレ</b>（無料アプリ）<br>1日3分・1万人が利用</p></div>
    ${stores()}</div>
    ${NOTE.replace('class="note"','class="note far"')}`}
@@ -357,19 +361,19 @@ function result(){window.scrollTo(0,0);bar(100);const d=diagnose();resType=d.typ
     +';o='+ORDER.map(k=>rec[k].ok?1:0).join('')+';cb=20261019'+(VARIANT==='C'?';ts='+trialSec:''));
   view.querySelectorAll('a.btn').forEach(a=>a.addEventListener('click',()=>track('cta_store',
     'os='+a.dataset.os+';ty='+(TYPE_NO[resType]||0)+';lv='+resLv+(VARIANT==='C'?';ts='+trialSec:''))));
-  if(d.pen===0&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const cf=document.createElement('div');cf.className='confetti';   // 2026-10-17: 全問正解のときだけ
+  if(d.pen===0&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const cf=document.createElement('div');cf.className='confetti';   // 2026-10-17: 全問正解のときだけ（C も同じ。2026-10-19 中山さん）
     for(let i=0;i<40;i++){const p=document.createElement('i');p.style.left=Math.random()*100+'%';p.style.background=['#f6c343','#12807a','#e8373a','#4a6fe3'][i%4];p.style.animationDelay=Math.random()*.6+'s';cf.appendChild(p)}
     $('#card').appendChild(cf);setTimeout(()=>cf.remove(),2600)}}
 
 /*@C*/
-// ルール説明（試作 v3 と同じ組み立て。ゲームの前なのでアプリ名は出さない）
+// 第4問の出題画面（2026-10-19 中山さん: ゲームも「見えてるうちに、はじめる目のケア」の中。3問で終わりと言わず4問目として出す。
+//   「ゲームタイム」「二角取り」の名前は出さない。rule_view の計測名はそのまま）
 function ruleIntro(){window.scrollTo(0,0);bar(ORDER.length/(ORDER.length+1)*100);track('rule_view','');
-  view.innerHTML=`<div class="screen tight enter"><span class="qno">3問クリア！ あと1つ</span>
-   <div class="gtitle"><span>ここからは ゲームタイム！</span>
-    <div class="gt2"><b>二角取り</b><em><span class="nw">しま模様のパズル</span></em></div></div>
-   <p class="rule-sub">同じしま模様を線でつないで、<br>ぜんぶ消せたらクリア！</p>
-   <div class="fig rgif"><img src="${A.rule_gif}" alt="二角取りのあそび方のアニメーション"></div>
-   <button class="btn" type="button" id="go">さっそく遊んでみる<small>1回 30秒ほど</small></button></div>`;
+  view.innerHTML=`<div class="screen tight enter"><span class="qno">第4問（全4問）</span>
+   <h1>同じ模様を、<br>2つずつ消していこう</h1>
+   <p class="rule-sub">これが、アプリの目のトレーニング<br>（1回 30秒ほど）</p>
+   <div class="fig rgif"><img src="${A.rule_gif}" alt="同じしま模様を2つつないで消す様子のアニメーション"></div>
+   <button class="btn" type="button" id="go">はじめる</button></div>`;
   $('#go').onclick=trial}
 
 function trial(){track('trial_start','');
@@ -385,7 +389,7 @@ function trial(){track('trial_start','');
   const cells=()=>{const a=[];for(let r=1;r<=R;r++)for(let c=1;c<=C;c++)if(g[r][c]>=0)a.push([r,c]);return a};
   const anyMove=()=>{const a=cells();for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(canLink(a[i],a[j]))return true;return false};
   do{build(shuffle([...kinds]))}while(!anyMove());
-  view.innerHTML=`<div class="screen enter"><span class="qno">ラストチャレンジ</span><h1>同じ模様を<br>2つタップしよう</h1>
+  view.innerHTML=`<div class="screen enter"><span class="qno">第4問（全4問）</span><h1>同じ模様を<br>2つタップしよう</h1>
    <p class="rule1">同じ模様を2つタップ。線は2回まで曲がれます</p>
    <div class="trial"><span class="left" id="left">のこり 30秒</span><h2>全消ししよう！</h2>
     <div class="board"><div class="tgrid" id="tg"></div><svg id="ln" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible"></svg></div></div>
