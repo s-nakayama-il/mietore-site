@@ -388,6 +388,11 @@ function result(){window.scrollTo(0,0);bar(100);const d=diagnose();resType=d.typ
     +';o='+ORDER.map(k=>rec[k].ok?1:0).join('')+';cb=20261019'+(VARIANT==='C'?';ts='+trialSec:''));
   view.querySelectorAll('a.btn').forEach(a=>a.addEventListener('click',()=>track('cta_store',
     'os='+a.dataset.os+';ty='+(TYPE_NO[resType]||0)+';lv='+resLv+(VARIANT==='C'?';ts='+trialSec:''))));
+  // 「無料ではじめる」が画面に入ったら1回だけ記録（2026-10-19 中山さん: 結果画面でボタンまで来ているかを数で見る）。
+  // h=表示域の高さ・y=そのときのスクロール量（y=0 なら最初から見えていた）。小さい iPhone（SE: h≈550）は 100〜150px 下にある
+  const cb=view.querySelector('a.btn');
+  if(cb&&'IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();
+    track('cta_seen','h='+innerHeight+';y='+Math.round(scrollY)+';ty='+(TYPE_NO[resType]||0))}},{threshold:.9});io.observe(cb)}
   if(d.pen===0&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const cf=document.createElement('div');cf.className='confetti';   // 2026-10-17: 全問正解のときだけ（C も同じ。2026-10-19 中山さん）
     for(let i=0;i<40;i++){const p=document.createElement('i');p.style.left=Math.random()*100+'%';p.style.background=['#f6c343','#12807a','#e8373a','#4a6fe3'][i%4];p.style.animationDelay=Math.random()*.6+'s';cf.appendChild(p)}
     $('#card').appendChild(cf);setTimeout(()=>cf.remove(),2600)}}
