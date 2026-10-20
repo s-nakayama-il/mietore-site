@@ -66,12 +66,6 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 .res-type.long{font-size:18px}   /* 2行のタイプ名（<br> で折る）。2026-10-17 */
 .res-time{text-align:center;font-size:26px;font-weight:800;margin:0;line-height:1.25;color:#2f7bd0}
 .res-score{text-align:center;font-size:15px;font-weight:800;margin:0;line-height:1.3;color:var(--sub)}
-.meter{display:flex;flex-direction:column;gap:4px;background:var(--soft);border-radius:12px;padding:8px 10px}
-.meter .mt{font-size:13px;font-weight:800;color:var(--sub);text-align:center;line-height:1.3}
-.meter .bars{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-.meter .bars span{height:20px;border-radius:6px;background:#dbe7e4;display:grid;place-items:center;font-size:12px;font-weight:800;color:#7c8c89}
-.meter .bars span.on{background:var(--teal);color:#fff}
-.meter .you{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;font-size:12px;font-weight:800;color:var(--teal-d);text-align:center;line-height:1.3}
 .lead{margin:0;font-weight:800;font-size:17px;text-align:center;line-height:1.45}
 .note{font-size:13px;color:var(--sub);text-align:center;margin:0;line-height:1.5}
 .app-card{border:2px solid var(--teal);border-radius:14px;padding:5px 10px;display:flex;align-items:center;gap:8px}
@@ -117,7 +111,6 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 .screen.q1 .fig img{aspect-ratio:1040 / 720}
 /* B 版の結果（2026-10-15 中山さん決定）：「研究の一文＋動く絵」を細い枠でひとまとまりに、
    「ひとこと＋アプリの説明＋ボタン」をクリーム色の面に分ける。押せる所はボタン1つ（アプリの説明は枠なし） */
-.meter .mt{margin:0}
 .z1{border:1px solid var(--line);border-radius:14px;padding:8px 8px 6px;display:flex;flex-direction:column;gap:2px}
 .z1 .frame{height:168px}
 .z1 .med{height:140px}
@@ -368,12 +361,6 @@ function diagnose(){
   const say={dots:'1問目のうすい数字で、つまずいたみたい。',contrast:'2問目のうすいしま模様で、つまずいたみたい。',same:'3問目の向きのちがう模様で、つまずいたみたい。'};
   return {type,lv,pen,word:first?say[first]:'ぜんぶ見分けられたね！',img:first?A.f_komari:A.f_iwai}}
 
-// 2026-10-17 中山さん: Lv の目盛り（多数が「真ん中」になる）をやめ、2問目で何番まで見えたかをそのまま出す（C は 10/19 に反映）
-function meter(){const seen={'5番':5,'4番':4,'3番':3,'1〜2番':2}[rec.contrast&&rec.contrast.a]||2;
-  const bars=[1,2,3,4,5].map(n=>`<span class="${n<=seen?'on':''}">${n}番</span>`).join('');
-  const cap=seen===5?'5番まで、ぜんぶ見えました':seen+'番まで見えました。'+(seen+1)+'番からは、見えにくいようです';
-  return `<div class="meter"><p class="mt">うすいしま模様</p><div class="bars">${bars}</div><p class="mt">${cap}</p></div>`}
-
 // コマ枠。1つの枠にコマを重ねて CSS だけで切り替える（1コマ4秒・各コマに1行のキャプション）
 function frame(cells){return `<div class="frame frame${cells.length}">`+cells.map((c,i)=>
   `<div class="cel" style="animation-delay:${i*4}s"><div class="med">${c.m}</div><p class="cap">${c.c}</p></div>`).join('')+`</div>`}
@@ -388,13 +375,12 @@ function appCard(){return `<div class="app-card"><div class="app-h"><img src="${
 const NOTE='<p class="note">このチェックは見え方の目安です。<br>医師による診断ではありません。</p>';
 
 /*@C*/
-// C 版の結果（2026-10-19 中山さん）：B と同じ目の結果（タイプ → 何番まで見えた）→ 4問目のタイム → 枠［一文 → コマ枠（C-1→C-2）］
+// C 版の結果（2026-10-19 中山さん）：B と同じ目の結果（タイプ）→ 4問目のタイム → 枠［一文 → コマ枠（C-1→C-2）］
 //   → 面［見えてるうちに、はじめる目のケア → アプリの説明 → ストア］（ここまで 640px 以内）→ 注記。
 //   ゲームの続きの誘いではなく、4問目を「アプリの目のトレーニング」として目のケアの入口にする。押せる所はボタン1つ。
 function resultBody(d){
   const s=Math.round(trialSec);
   return `<p class="res-type${d.type.length > 13 ? ' long' : ''}">${d.type}</p>
-   ${meter()}
    <p class="res-score">4問目（同じ模様を消す）${s}秒でクリア</p>
    <div class="z1"><p class="lead">いまの4問目は、見え方の研究に<br>もとづいた目のケアです</p>
    ${frame([{m:shot(A.stage,0,564,'アプリのステージ選択の画面'),c:'アプリには、次のステージがある'},
@@ -431,7 +417,7 @@ function ruleIntro(){window.scrollTo(0,0);bar(ORDER.length/(ORDER.length+1)*100)
    <h1>同じ模様を、<br>2つずつ消していこう</h1>
    <p class="rule-sub">目のトレーニングを1回<br>（30秒ほど）</p>
    <div class="fig rgif"><img src="${A.rule_gif}" alt="同じしま模様を2つつないで消す様子のアニメーション"></div>
-   <button class="btn" type="button" id="go">はじめる</button></div>`;
+   <button class="btn" type="button" id="go">最後の1問へ<small>30秒ほどで、結果がわかります</small></button></div>`;
   $('#go').onclick=trial}
 
 function trial(){track('trial_start','');

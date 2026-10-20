@@ -66,12 +66,6 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 .res-type.long{font-size:18px}   /* 2行のタイプ名（<br> で折る）。2026-10-17 */
 .res-time{text-align:center;font-size:26px;font-weight:800;margin:0;line-height:1.25;color:#2f7bd0}
 .res-score{text-align:center;font-size:15px;font-weight:800;margin:0;line-height:1.3;color:var(--sub)}
-.meter{display:flex;flex-direction:column;gap:4px;background:var(--soft);border-radius:12px;padding:8px 10px}
-.meter .mt{font-size:13px;font-weight:800;color:var(--sub);text-align:center;line-height:1.3}
-.meter .bars{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-.meter .bars span{height:20px;border-radius:6px;background:#dbe7e4;display:grid;place-items:center;font-size:12px;font-weight:800;color:#7c8c89}
-.meter .bars span.on{background:var(--teal);color:#fff}
-.meter .you{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;font-size:12px;font-weight:800;color:var(--teal-d);text-align:center;line-height:1.3}
 .lead{margin:0;font-weight:800;font-size:17px;text-align:center;line-height:1.45}
 .note{font-size:13px;color:var(--sub);text-align:center;margin:0;line-height:1.5}
 .app-card{border:2px solid var(--teal);border-radius:14px;padding:5px 10px;display:flex;align-items:center;gap:8px}
@@ -113,7 +107,6 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 .screen.q1 .fig img{aspect-ratio:1040 / 720}
 /* B 版の結果（2026-10-15 中山さん決定）：「研究の一文＋動く絵」を細い枠でひとまとまりに、
    「ひとこと＋アプリの説明＋ボタン」をクリーム色の面に分ける。押せる所はボタン1つ（アプリの説明は枠なし） */
-.meter .mt{margin:0}
 .z1{border:1px solid var(--line);border-radius:14px;padding:8px 8px 6px;display:flex;flex-direction:column;gap:2px}
 .z1 .frame{height:168px}
 .z1 .med{height:140px}
@@ -289,12 +282,6 @@ function diagnose(){
   const say={dots:'1問目のうすい数字で、つまずいたみたい。',contrast:'2問目のうすいしま模様で、つまずいたみたい。',same:'3問目の向きのちがう模様で、つまずいたみたい。'};
   return {type,lv,pen,word:first?say[first]:'ぜんぶ見分けられたね！',img:first?A.f_komari:A.f_iwai}}
 
-// 2026-10-17 中山さん: Lv の目盛り（多数が「真ん中」になる）をやめ、2問目で何番まで見えたかをそのまま出す
-function meter(){const seen={'5番':5,'4番':4,'3番':3,'1〜2番':2}[rec.contrast&&rec.contrast.a]||2;
-  const bars=[1,2,3,4,5].map(n=>`<span class="${n<=seen?'on':''}">${n}番</span>`).join('');
-  const cap=seen===5?'5番まで、ぜんぶ見えました':seen+'番まで見えました。'+(seen+1)+'番からは、見えにくいようです';
-  return `<div class="meter"><p class="mt">うすいしま模様</p><div class="bars">${bars}</div><p class="mt">${cap}</p></div>`}
-
 // コマ枠。1つの枠にコマを重ねて CSS だけで切り替える（1コマ4秒・各コマに1行のキャプション）
 function frame(cells){return `<div class="frame frame${cells.length}">`+cells.map((c,i)=>
   `<div class="cel" style="animation-delay:${i*4}s"><div class="med">${c.m}</div><p class="cap">${c.c}</p></div>`).join('')+`</div>`}
@@ -309,7 +296,7 @@ function appCard(){return `<div class="app-card"><div class="app-h"><img src="${
 const NOTE='<p class="note">このチェックは見え方の目安です。<br>医師による診断ではありません。</p>';
 
 /*@B*/
-// B 版の結果：タイプ → 目盛り → 枠［一文 → コマ枠（B-1→B-2→B-3）］→ 面［ひとこと → アプリの説明 → ストア］（ここまで 640px 以内）→ 注記
+// B 版の結果：タイプ → 枠［一文 → コマ枠（B-1→B-2→B-3）］→ 面［ひとこと → アプリの説明 → ストア］（ここまで 640px 以内）→ 注記
 // 2026-10-15 中山さん決定：カードとボタンの2つが押せそうに見えたため、押せる所をボタン1つにし、
 //   ボタンの上に「見えてるうちに、はじめる目のケア」。コマのキャプションは1コマずつで意味が通る文にした。
 // B-3 のキャプションは Lv5（全問正解）のときだけ「保つ」方向にする（2026-09-29 の受入で中山さんが採用）。
@@ -317,7 +304,6 @@ const NOTE='<p class="note">このチェックは見え方の目安です。<br>
 //   不採用の別案: 「1日3分で、保つ」
 function resultBody(d){
   return `<p class="res-type${d.type.length > 13 ? ' long' : ''}">${d.type}</p>
-   ${meter()}
    <div class="z1"><p class="lead">このしま模様は老眼対策の研究で使われています</p>
    ${frame([{m:'<div id="b1" style="display:flex"></div>',c:'さっき見た、この模様で'},
             {m:`<img src="${A.b2still}" alt="同じ模様の2枚が線でつながった場面">`,c:'同じ模様をさがすゲーム'},
