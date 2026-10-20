@@ -46,6 +46,13 @@ test('/banner 追加10イベントは通過し、param は64文字上限', () =>
   assert.equal(long.param.length, 64);
 });
 
+test('cta_seen は画面の高さ・スクロール量・タイプをそのまま受け付ける', () => {
+  const r = validateAndClean({ ...base, event: 'cta_seen', param: 'h=612;y=830;ty=2' });
+  assert.notEqual(r, null);
+  assert.equal(r.event, 'cta_seen');
+  assert.equal(r.param, 'h=612;y=830;ty=2');
+});
+
 test('/banner 追加後も既存14イベントの扱いは変わらない', () => {
   const existing = [
     'page_view', 'popup_view', 'anime_end', 'play_start', 'stage_clear', 'all_clear',

@@ -82,6 +82,10 @@ h1{font-size:26px;font-weight:800;line-height:1.45;margin:0}
 .dl{background:#f5a000;color:#3a2a00;font-weight:800;font-size:12px;border-radius:999px;padding:2px 9px;white-space:nowrap;line-height:1.4}
 .tight .btn{min-height:48px;font-size:19px;padding:5px 12px}
 .tight .btn small{font-size:13px}
+.rule-intro.enter{animation:rule-in .3s ease-out}
+@keyframes rule-in{from{opacity:0}}
+.screen.rule-intro{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+.rule-intro #go{position:fixed;z-index:10;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(calc(100% - 84px),392px)}
 .stores{display:flex;flex-direction:column;gap:7px}
 /* コマ枠：1つの枠にコマを重ね、CSS だけで切り替える（1コマ4秒）。各コマに1行のキャプション */
 .frame{position:relative;height:200px}
@@ -422,8 +426,8 @@ function result(){window.scrollTo(0,0);bar(100);const d=diagnose();resType=d.typ
 /*@C*/
 // 第4問の出題画面（2026-10-19 中山さん: ゲームも「見えてるうちに、はじめる目のケア」の中。3問で終わりと言わず4問目として出す。
 //   「ゲームタイム」「二角取り」の名前は出さない。rule_view の計測名はそのまま）
-function ruleIntro(){window.scrollTo(0,0);bar(ORDER.length/(ORDER.length+1)*100);track('rule_view','');
-  view.innerHTML=`<div class="screen tight enter"><span class="qno">第4問（全4問）</span>
+function ruleIntro(){window.scrollTo(0,0);bar(ORDER.length/(ORDER.length+1)*100);track('rule_view','h='+innerHeight);
+  view.innerHTML=`<div class="screen tight rule-intro enter"><span class="qno">第4問（全4問）</span>
    <h1>同じ模様を、<br>2つずつ消していこう</h1>
    <p class="rule-sub">目のトレーニングを1回<br>（30秒ほど）</p>
    <div class="fig rgif"><img src="${A.rule_gif}" alt="同じしま模様を2つつないで消す様子のアニメーション"></div>
