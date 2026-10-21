@@ -411,6 +411,24 @@ test('B・C の数字の層は CSS だけで動かす（keyframes と「動き�
   assert.ok(css.includes('.pop.lyr .stamps,.pop.lyr .coin,.pop.lyr .picture{animation:none;clip-path:none}}'));
 });
 
+test('C2 の数字の2層は B と同じ動きで現れ、「動きを減らす」設定では最初から見える', async () => {
+  const dom = await started(makeDom({ config: { stopped: false, active: [B] } }));
+  await dom.settle();
+  await dom.leave();
+  const css = dom.css();
+  const motion = 'opacity:0;animation:numRise 2.5s cubic-bezier(.2,.5,.35,1) both,'
+    + 'numBreath 1.5s ease-in-out 2.5s infinite alternate}';
+  assert.ok(css.includes('.pop.c2 .edge{left:10.5556%;top:32.8125%;width:77.5%;' + motion));
+  assert.ok(css.includes('.pop.c2 .mid{left:31.2037%;top:32.8125%;width:37.7778%;' + motion));
+  assert.ok(!css.includes('c2edge'));
+  assert.ok(!css.includes('c2mid'));
+  assert.equal((css.match(/@keyframes numRise\{/g) || []).length, 1);
+  assert.equal((css.match(/@keyframes numBreath\{/g) || []).length, 1);
+  const rm = '@media (prefers-reduced-motion:reduce){.pop.c2 .edge,.pop.c2 .mid{animation:none;opacity:1}}';
+  assert.ok(css.includes(rm));
+  assert.ok(css.indexOf(rm) > css.indexOf('.pop.c2 .mid{'), '「動きを減らす」設定の指定が C2 の層より前にある');
+});
+
 test('B の層の読み込みに失敗したら、出さず banner_view も送らない（A7 と同じ）', async () => {
   const dom = await started(makeDom({ config: { stopped: false, active: [B] } }));
   await dom.settle(['_num.webp']);
