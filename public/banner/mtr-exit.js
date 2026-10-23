@@ -76,8 +76,9 @@
        to the check page.
        2026-10-19 afternoon: the white test-chart look (banner_C2_20261019_*) was replaced by
        the check-page look (banner_C2_20261019b_*); v stays the same. On 2026-10-21 the question
-       was matched to B and the image name became banner_C2_20261021_*; v still stays the same. */
-    { id: 'C2', v: 'banner-20261019-C2', pre: 'banner_C2_20261021_', dest: 'check_c', cls: 'c2',
+       was matched to B and the image name became banner_C2_20261021_*; v still stays the same.
+       On 2026-10-23 each digit's strength was matched to B (banner_C2_20261023_*). */
+    { id: 'C2', v: 'banner-20261019-C2', pre: 'banner_C2_20261023_', dest: 'check_c', cls: 'c2',
       layers: ['base', 'edge', 'mid'], choices: ['4682', '4687', '9682', '4632'],
       alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u307e\u3059\u304b\uff1f \u898b\u3048\u305f\u6570\u5b57\u3092\u30bf\u30c3\u30d7' },
     { id: 'A7', v: 'banner-20261008-A7', pre: 'banner_A7_20261008_', dest: 'app',
