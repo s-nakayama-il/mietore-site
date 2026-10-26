@@ -8,7 +8,8 @@ export const ALLOWED_EVENTS = [
   // /banner 離脱バナー配信（TASK-I16-20260929-003）。param は64文字上限のまま使う
   'banner_view', 'banner_tap', 'banner_close',
   'check_start', 'check_answer', 'check_result',
-  'rule_view', 'trial_start', 'trial_clear', 'cta_store', 'cta_seen',
+  // トレーニング見学の表示（2026-10-26、TASK-I16-20261026-016）
+  'rule_view', 'training_view', 'trial_start', 'trial_clear', 'cta_store', 'cta_seen',
 ];
 
 const ALLOWED_ANIME_END = ['complete', 'skip_talk', 'skip_bridge'];

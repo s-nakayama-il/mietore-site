@@ -23,6 +23,8 @@ const { default: worker } = await import(pathToFileURL(outfile).href);
 const ASSETS_STATUS = 599; // ASSETS に回ったことが分かる印
 const B = 'banner-20260928-B';
 const C = 'banner-20260928-C';
+const D = 'banner-20261026-D';
+const E = 'banner-20261026-E';
 const ctx = { waitUntil() {}, passThroughOnException() {} };
 
 // D1 を模す。表が無いときは D1 と同じように例外を投げる
@@ -309,6 +311,7 @@ function makeDom({ sid = '12345678', config = { stopped: false, active: [] }, de
     },
     events() { return sent.filter((s) => s.url.endsWith('/mm/track')).map((s) => JSON.parse(s.blob.text)); },
     pvs() { return sent.filter((s) => s.url.endsWith('/banner/pv')).map((s) => JSON.parse(s.blob.text)); },
+    tap() { const e = Object.entries(hooks).find(([k, x]) => k.startsWith('.tap@') && x.on.click); assert.ok(e, 'tap handler'); e[1].on.click(); return ctx.location.href; },
   };
   // sendBeacon の Blob は中身を読めるようにする
   ctx.navigator.sendBeacon = (url, blob) => { sent.push({ url, blob: { text: blob.__t } }); return true; };
@@ -409,6 +412,21 @@ test('B・C の数字の層は CSS だけで動かす（keyframes と「動き�
   assert.ok(css.indexOf(rm) > css.indexOf('.pop.lyr .num{'), '「動きを減らす」設定の指定が .num より前にある');
   // A7 の「動きを減らす」設定は別のブロックのまま
   assert.ok(css.includes('.pop.lyr .stamps,.pop.lyr .coin,.pop.lyr .picture{animation:none;clip-path:none}}'));
+});
+
+test('D・E は同じ層2枚で出て、sid・v付きの別々のチェックページへ進む', async () => {
+  for (const [v, id, dest] of [[D, 'D', 'check_d'], [E, 'E', 'check_e']]) {
+    const dom = await started(makeDom({ sid: '99091234', config: { stopped: false, active: [v] } }));
+    await dom.settle();
+    await dom.leave();
+    const html = dom.html();
+    assert.match(html, /<div class="pop lyr">/);
+    assert.ok(html.includes('/banner/img/banner_20261026_base.webp'));
+    assert.ok(html.includes('/banner/img/banner_20261026_num.webp'));
+    assert.equal(dom.store.get('mtrb_creative'), id);
+    assert.equal(dom.tap(), `https://mietore.site/banner/check/${id.toLowerCase()}?sid=99091234&v=${v}`);
+    assert.deepEqual(dom.events().map((e) => [e.event, e.param]), [['banner_view', 'back'], ['banner_tap', dest]]);
+  }
 });
 
 test('C2 の数字の2層は B と同じ動きで現れ、「動きを減らす」設定では最初から見える', async () => {

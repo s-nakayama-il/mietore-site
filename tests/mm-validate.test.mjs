@@ -32,10 +32,10 @@ test('B版追加3イベント（exit_no_popup/scroll_up_signal/lp_click）は通
 const BANNER_EVENTS = [
   'banner_view', 'banner_tap', 'banner_close',
   'check_start', 'check_answer', 'check_result',
-  'rule_view', 'trial_start', 'trial_clear', 'cta_store',
+  'rule_view', 'training_view', 'trial_start', 'trial_clear', 'cta_store',
 ];
 
-test('/banner 追加10イベントは通過し、param は64文字上限', () => {
+test('/banner 追加11イベントは通過し、param は64文字上限', () => {
   for (const event of BANNER_EVENTS) {
     const r = validateAndClean({ ...base, event, param: 'q=1;ok=1;p=0;s=3.2', v: 'banner-20260928-B' });
     assert.equal(r?.event, event);
@@ -44,6 +44,13 @@ test('/banner 追加10イベントは通過し、param は64文字上限', () =>
   }
   const long = validateAndClean({ ...base, event: 'check_result', param: 'a'.repeat(100) });
   assert.equal(long.param.length, 64);
+});
+
+test('training_view は画面の高さを受け付ける', () => {
+  const r = validateAndClean({ ...base, event: 'training_view', param: 'h=548' });
+  assert.notEqual(r, null);
+  assert.equal(r.event, 'training_view');
+  assert.equal(r.param, 'h=548');
 });
 
 test('cta_seen は画面の高さ・スクロール量・タイプをそのまま受け付ける', () => {
