@@ -203,9 +203,9 @@ function q2(){screen('q2','挑戦中','2／'+T,`<h1>しま模様は、何番ま�
     const p={'1〜2番':2,'3番':1,'4番':1,'5番':0}[a],sec=Math.round((performance.now()-qStart)/100)/10;rec.q2={a,ok:p===0};track('check_answer','q=2;ok='+(p===0?1:0)+';p='+p+';s='+sec+';t=0;a='+a);q2ans()})}   // 判定は今のページのまま（5番だけ〇）
 // 4 2問目の答え
 function q2ans(){const a=rec.q2.a,n={'1〜2番':2,'3番':3,'4番':4,'5番':5}[a];
-  // 5番以外：見えていなかった番号を 1 文で知らせる（4番→「5番にも」、3番→「4番・5番にも」、1〜2番→「3番・4番・5番にも」）
-  const rest=[3,4,5].filter(k=>k>n).map(k=>k+'番').join('・');
-  screen('q2ans','答え合わせ','2／'+T,`<div class="ans2fig" id="fb"></div><p class="big">${a}まで見えました</p>${rest?`<p class="one">${rest}にも、同じ しま模様があります</p>`:''}${SC(1)}`,
+  // 5番以外：見えていなかった番号を 1 文で知らせる（4番→「実は ⑤にも」、3番→「実は ④⑤にも」、1〜2番→「実は ③④⑤にも」。丸数字は絵の番号の札に合わせる）
+  const rest=[3,4,5].filter(k=>k>n).map(k=>'③④⑤'[k-3]).join('');
+  screen('q2ans','答え合わせ','2／'+T,`<div class="ans2fig" id="fb"></div><p class="big">${a}まで見えました</p>${rest?`<p class="one">実は ${rest}にも、同じ しま模様があります</p>`:''}${SC(1)}`,
     'つぎへ（あと1問）',q3,'a');
   $('#fb').appendChild(canvas2(n,true))}
 // 5 3問目（30秒。過ぎても答えられる）
