@@ -91,7 +91,7 @@ body.q main{height:calc(100vh - 46px);padding-bottom:14px}
 /* 008: 答えの画面（1〜3問目）と結果を詰めて、「今の私のこと」をボタンの上に見せる。入りきらない画面は、ボタンのすぐ上に下へ続く影 */
 body.a main{padding-top:10px;gap:8px}
 body.a .ansfig{width:calc(min(86vw,calc(80vh * 9 / 16)) * .8)}
-body.a .ans2fig canvas{max-height:184px}
+body.a .ans2fig canvas{max-height:205px}
 body.a .ans3fig canvas{max-height:200px}
 .ask{margin:0;font-size:17px;font-weight:800;line-height:1.4;text-align:center}
 .scene div{flex-direction:row;justify-content:center;gap:4px;padding:5px 4px;text-align:left}
@@ -166,12 +166,20 @@ function gabor(ctx,cx,cy,size,deg,contrast){
 // 2問目の絵（今のページと同じ描き方）。mark＝選んだ番号（1〜5）に印
 // reveal＝答えの画面だけ true。選んだ番号より先（見えていなかった番号）の模様を濃く描き、点線の丸を付ける（007）
 const POS2=[[90,90],[260,90],[430,90],[175,285],[345,285]];
-function canvas2(mark,reveal){const c=document.createElement('canvas');c.width=520;c.height=400;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,400);
-  [1,.35,.12,.045,.02].forEach((k,i)=>{const [cx,cy]=POS2[i],hid=reveal&&i+1>mark;gabor(x,cx,cy,150,45,hid?.6:k);
-    if(hid){x.save();x.strokeStyle='#f5a000';x.lineWidth=6;x.setLineDash([14,10]);x.beginPath();x.arc(cx,cy,82,0,7);x.stroke();x.restore()}
-    x.fillStyle='#0f7a74';x.beginPath();x.arc(cx-58,cy-58,20,0,7);x.fill();x.fillStyle='#fff';x.font='800 24px '+FONT;x.textAlign='center';x.textBaseline='middle';x.fillText(String(i+1),cx-58,cy-57)});
-  if(mark){const [cx,cy]=POS2[mark-1];x.strokeStyle='#f5a000';x.lineWidth=8;x.beginPath();x.arc(cx,cy,82,0,7);x.stroke()}
-  c.setAttribute('role','img');c.setAttribute('aria-label',reveal&&mark<5?'5つのしま模様。見えていなかった番号の模様を濃くして、点線の丸':'だんだんうすくなる、5つのしま模様');return c}
+// 017: 選んだ番号は緑の実線の丸（番号の札の下にくぐらせる）と、丸の下に「あなた」の札。
+// 札を置く余白のため、答えの画面だけ 2段目を 27 下げ、高さを 446 にする（問題の画面は今のまま）
+function canvas2(mark,reveal){const H=reveal?446:400,P=POS2.map(([px,py])=>[px,reveal&&py>200?py+27:py]);
+  const c=document.createElement('canvas');c.width=520;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,H);
+  const ring=(cx,cy,col,w,dash)=>{x.save();x.strokeStyle=col;x.lineWidth=w;x.setLineDash(dash);x.beginPath();x.arc(cx,cy,82,0,7);x.stroke();x.restore()};
+  // 順番：模様 → 丸 → 番号の札 → 「あなた」（模様は四角ごと塗るので先に描く）
+  [1,.35,.12,.045,.02].forEach((k,i)=>{const [cx,cy]=P[i];gabor(x,cx,cy,150,45,reveal&&i+1>mark?.6:k)});
+  P.forEach(([cx,cy],i)=>{if(reveal&&i+1>mark)ring(cx,cy,'#f5a000',6,[14,10])});
+  if(mark){const [cx,cy]=P[mark-1];ring(cx,cy,'#0f7a74',8,[])}
+  P.forEach(([cx,cy],i)=>{x.fillStyle='#0f7a74';x.beginPath();x.arc(cx-58,cy-58,20,0,7);x.fill();x.fillStyle='#fff';x.font='800 24px '+FONT;x.textAlign='center';x.textBaseline='middle';x.fillText(String(i+1),cx-58,cy-57)});
+  if(mark){const [cx,cy]=P[mark-1],r=18,ty=cy+90;x.font='800 26px '+FONT;const w=Math.ceil(x.measureText('あなた').width)+30,l=cx-w/2;
+    x.fillStyle='#0f7a74';x.beginPath();x.arc(l+r,ty+r,r,Math.PI/2,Math.PI*1.5);x.arc(l+w-r,ty+r,r,-Math.PI/2,Math.PI/2);x.closePath();x.fill();
+    x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';x.fillText('あなた',cx,ty+r+1)}
+  c.setAttribute('role','img');c.setAttribute('aria-label',!reveal?'だんだんうすくなる、5つのしま模様':mark<5?'5つのしま模様。あなたが選んだ番号に緑の丸。見えていなかった番号の模様を濃くして、点線の丸':'5つのしま模様。あなたが選んだ番号に緑の丸');return c}
 function canvas3(){const c=document.createElement('canvas');c.width=520;c.height=640;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,640);
   x.fillStyle='#eef3f2';x.fillRect(0,0,520,136);gabor(x,76,68,116,45,1);x.fillStyle='#17201e';x.font='800 30px '+FONT;x.textAlign='left';x.fillText('← お手本',150,60);x.font='700 24px '+FONT;x.fillText('これと同じ向きを数えてね',150,100);
   const g=[45,35,60,90,55,45,30,45,35,0,60,45,30,55,135,45];x.strokeStyle='#17201e';x.lineWidth=3;x.strokeRect(2,150,516,488);
