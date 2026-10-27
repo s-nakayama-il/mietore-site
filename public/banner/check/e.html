@@ -110,17 +110,19 @@ body.a .care{margin:0}
 .ew .ewh p{margin:0;font-size:17px;font-weight:800;line-height:1.45}
 .ew .ewr{margin:0;text-align:center;font-size:17px;font-weight:800;line-height:1.5;color:var(--band-t)}
 .fade{position:fixed;left:0;right:0;height:24px;z-index:6;pointer-events:none;background:linear-gradient(rgba(255,255,255,0),#fff);display:none}
-/* 010: 4問目（見るだけ）の見出し。3 つの文を同じ所に重ね、順に出す（1・2 は約 3.5 秒で消え、3 は残る）。高さは一番高い文に合わせて固定。動きを減らす設定では 2 と 3 を縦に並べる（011）（3 つ並べると模様がボタンに隠れるため）。見出しが高くなる分、模様の絵を小さくする */
+/* 010: 4問目（見るだけ）の見出し。5 つの文を同じ所に重ね、順に出す（1〜4 は約 3.5 秒で消え、5 は残る。021 で 3 → 5 文）。高さは一番高い文に合わせて固定。動きを減らす設定では 2 と 5 を縦に並べる（011）（全部並べると模様がボタンに隠れるため）。見出しが高くなる分、模様の絵を小さくする */
 .wh{display:grid}
 .wh span{grid-area:1/1;opacity:0}
 .wh span:nth-child(1){animation:whOut .4s ease 3.5s both}
 .wh span:nth-child(2){animation:whIn .4s ease 3.9s both,whOut .4s ease 7.8s forwards}
-.wh span:nth-child(3){animation:whIn .4s ease 8.2s both}
+.wh span:nth-child(3){animation:whIn .4s ease 8.2s both,whOut .4s ease 12.1s forwards}
+.wh span:nth-child(4){animation:whIn .4s ease 12.5s both,whOut .4s ease 16.4s forwards}
+.wh span:nth-child(5){animation:whIn .4s ease 16.8s both}
 @keyframes whIn{from{opacity:0}to{opacity:1}}
 @keyframes whOut{from{opacity:1}to{opacity:0}}
 @media (prefers-reduced-motion:reduce){.wh{display:flex;flex-direction:column;gap:4px}
  .wh span{animation:none!important;opacity:1}
- .wh span:nth-child(1){display:none}
+ .wh span:nth-child(1),.wh span:nth-child(3),.wh span:nth-child(4){display:none}
  .wfig{width:min(100%,330px,calc((100vh - 400px) * 492 / 442))}}
 </style>
 </head>
@@ -236,8 +238,8 @@ function q3ans(){screen('q3ans','答え合わせ','3／'+T,`<div class="ans3fig"
   'つぎへ（最後の1問）',watch,'a');
   $('#fb').appendChild(canvas3ans())}
 // 7 C2（見るだけ）の4問目
-function watch(){track('training_view','h='+innerHeight);screen('watch','ミエトレ見学','4／4',`<h1 class="wh"><span>1万人が使うアプリで、毎日やっている目のトレーニングです</span><span>ノーベル物理学賞の学者の名前がついた「ガボール模様」を使っています</span><span>しばらく ながめて、目が慣れたら判定へ</span></h1>
-   <span class="okl">目で追うだけの トレーニング</span>
+function watch(){track('training_view','h='+innerHeight);screen('watch','ミエトレ見学','4／4',`<h1 class="wh"><span>1万人が使うアプリで、毎日やっている目のトレーニングです</span><span>ノーベル物理学賞の学者の名前がついた「ガボール模様」を使っています</span><span>ルールに沿いながら、じっくり見てペアを消す</span><span>1年以上、毎日つづけている人も大勢います</span><span>しばらく ながめて、目が慣れたら判定へ</span></h1>
+   <span class="okl">毎日ちょっとずつが最強</span>
    <div class="wfig"><img src="/banner/img/training_watch.gif" alt="同じ模様が2つずつ消えていく動き"></div>
    <p class="wl">アプリでは、これを1日3分</p>`,'私の目の判定を見る',result)}
 const TRACK_URL=location.origin+'/mm/track';
@@ -251,7 +253,7 @@ let qStart=0,q3Start=0,ctaObserver=null;
 function osName(){if(/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return 'iOS';if(/Android/.test(ua))return 'Android';return 'PC'}
 function uaFamily(){if(/musical_ly|trill|Bytedance|TTWebView/.test(ua))return 'tiktok';if(/ Line\//.test(ua))return 'line';if(/Instagram/.test(ua))return 'instagram';if(/FBAN|FBAV/.test(ua))return 'facebook';if(/; wv\)/.test(ua))return 'wv';return 'browser'}
 function track(ev,p){const payload={ts:new Date().toISOString(),sid:SID,event:ev,param:String(p==null?'':p).slice(0,64),url:location.href,os:osName(),v:VER,ua_family:uaFamily()};if(DEBUG){try{console.log('[check]',ev,JSON.stringify(payload))}catch(e){}return}const body=JSON.stringify(payload);try{if(navigator.sendBeacon&&navigator.sendBeacon(TRACK_URL,new Blob([body],{type:'text/plain'}))===true)return}catch(e){}try{const q=fetch(TRACK_URL,{method:'POST',body,keepalive:true,mode:'no-cors'});if(q&&q.catch)q.catch(function(){})}catch(e){}}
-function store(href,o,name){return '<a class="go" href="'+href+'" data-os="'+o+'">さっきの続きを、アプリで試す<small>'+name+' が開きます</small></a>'}
+function store(href,o,name){return '<a class="go" href="'+href+'" data-os="'+o+'">ゲームで目をトレーニングッ！<small>'+name+' が開きます</small></a>'}
 function stores(){return os==='ios'?store(IOS,'ios','App Store'):os==='android'?store(AND,'android','Google Play'):store(IOS,'ios','App Store')+store(AND,'android','Google Play')}
 
 // 8 結果

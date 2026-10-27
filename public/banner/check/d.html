@@ -102,14 +102,16 @@ body.a .care{margin:0}
 .tbl + .one{margin-top:-4px;font-size:17px;font-weight:700;color:var(--sub)}
 .tbl + .one + .care{margin-top:12px;padding:10px 0;border-top:4px solid var(--band)}
 .care p{letter-spacing:.04em}
-/* 020: 結果画面のミエトレ見学（.rec と .fine の間）。見出しは 3 つの文を同じ所で順に出し、止まらず繰り返す（1 文 約3.5秒）。4問目用の .wh span:nth-child の動きより強く当てるため .dw を前に付ける */
+/* 020: 結果画面のミエトレ見学（.rec と .fine の間）。見出しは 5 つの文を同じ所で順に出し、止まらず繰り返す（1 文 約3.5秒、1 回 17.5秒。021）。4問目用の .wh span:nth-child の動きより強く当てるため .dw を前に付ける */
 .dw{border:1.5px solid var(--line);border-radius:16px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;margin-top:6px}
 .dw .dwl{align-self:flex-start;font-size:13px;font-weight:800;color:var(--sub);line-height:1.4}
 .dw .wh{margin:0;font-size:18px;font-weight:800;line-height:1.45;text-align:center}
-.dw .wh.loop span{animation:whLoop 10.5s linear infinite both}
+.dw .wh.loop span{animation:whLoop 17.5s linear infinite both}
 .dw .wh.loop span:nth-child(2){animation-delay:3.5s}
 .dw .wh.loop span:nth-child(3){animation-delay:7s}
-@keyframes whLoop{0%{opacity:0}4%{opacity:1}30%{opacity:1}33.3%{opacity:0}100%{opacity:0}}
+.dw .wh.loop span:nth-child(4){animation-delay:10.5s}
+.dw .wh.loop span:nth-child(5){animation-delay:14s}
+@keyframes whLoop{0%{opacity:0}2.4%{opacity:1}18%{opacity:1}20%{opacity:0}100%{opacity:0}}
 .dw .okl{margin:0}
 .dw .wfig{width:min(100%,280px)}
 .wl{margin:-4px 0 0;text-align:center;font-size:17px;font-weight:700;line-height:1.5;color:var(--sub)}
@@ -264,9 +266,9 @@ function result(){const r1=rec.q1.ok,r2=rec.q2.ok,r3=rec.q3.ok,anyX=!r1||!r2||!r
    <div class="rec"><div class="hd"><img src="/banner/img/fukuta_good.png" alt=""><p>ミエトレ（無料アプリ）</p></div>
     <p class="txt">今の模様の見分けを、1日3分。ゲームしながら続けられます。</p>
     <div class="shot"><img src="/banner/img/shot_play.webp" alt="ミエトレのアプリの画面"></div></div>
-   <div class="dw"><span class="dwl">ミエトレ見学</span>
-    <p class="wh loop"><span>1万人が使うアプリで、毎日やっている目のトレーニングです</span><span>ノーベル物理学賞の学者の名前がついた「ガボール模様」を使っています</span><span>目が慣れたら、お試しを</span></p>
-    <span class="okl">目で追うだけの トレーニング</span>
+   <div class="dw"><span class="dwl">ミエトレって、こういったトレーニングです</span>
+    <p class="wh loop"><span>1万人が使うアプリで、毎日やっている目のトレーニングです</span><span>ノーベル物理学賞の学者の名前がついた「ガボール模様」を使っています</span><span>ルールに沿いながら、じっくり見てペアを消す</span><span>1年以上、毎日つづけている人も大勢います</span><span>このページで見慣れてきたら、アプリでお試しを</span></p>
+    <span class="okl">毎日ちょっとずつが最強</span>
     <div class="wfig"><img src="/banner/img/training_watch.gif" alt="同じ模様が2つずつ消えていく動き"></div>
     <p class="wl">アプリでは、これを1日3分</p></div>
    <p class="fine">このチェックは見え方の目安です。<br>医師による診断ではありません。</p>`,
