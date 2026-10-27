@@ -103,6 +103,12 @@ body.a .care{margin:0}
 .tbl + .one{margin-top:-4px;font-size:17px;font-weight:700;color:var(--sub)}
 .tbl + .one + .care{margin-top:12px;padding:10px 0;border-top:4px solid var(--band)}
 .care p{letter-spacing:.04em}
+/* 020: 結果画面の振り返り（.rec と .fine の間）。4問目でながめた模様を小さく出し、その人の結果を 1 行 */
+.ew{border:1.5px solid var(--line);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.ew .ewh{display:flex;align-items:center;gap:10px}
+.ew .ewh img{width:38%;max-width:140px;flex:none;border-radius:10px;background:#f7f8fb;display:block;height:auto}
+.ew .ewh p{margin:0;font-size:17px;font-weight:800;line-height:1.45}
+.ew .ewr{margin:0;text-align:center;font-size:17px;font-weight:800;line-height:1.5;color:var(--band-t)}
 .fade{position:fixed;left:0;right:0;height:24px;z-index:6;pointer-events:none;background:linear-gradient(rgba(255,255,255,0),#fff);display:none}
 /* 010: 4問目（見るだけ）の見出し。3 つの文を同じ所に重ね、順に出す（1・2 は約 3.5 秒で消え、3 は残る）。高さは一番高い文に合わせて固定。動きを減らす設定では 2 と 3 を縦に並べる（011）（3 つ並べると模様がボタンに隠れるため）。見出しが高くなる分、模様の絵を小さくする */
 .wh{display:grid}
@@ -245,11 +251,13 @@ let qStart=0,q3Start=0,ctaObserver=null;
 function osName(){if(/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return 'iOS';if(/Android/.test(ua))return 'Android';return 'PC'}
 function uaFamily(){if(/musical_ly|trill|Bytedance|TTWebView/.test(ua))return 'tiktok';if(/ Line\//.test(ua))return 'line';if(/Instagram/.test(ua))return 'instagram';if(/FBAN|FBAV/.test(ua))return 'facebook';if(/; wv\)/.test(ua))return 'wv';return 'browser'}
 function track(ev,p){const payload={ts:new Date().toISOString(),sid:SID,event:ev,param:String(p==null?'':p).slice(0,64),url:location.href,os:osName(),v:VER,ua_family:uaFamily()};if(DEBUG){try{console.log('[check]',ev,JSON.stringify(payload))}catch(e){}return}const body=JSON.stringify(payload);try{if(navigator.sendBeacon&&navigator.sendBeacon(TRACK_URL,new Blob([body],{type:'text/plain'}))===true)return}catch(e){}try{const q=fetch(TRACK_URL,{method:'POST',body,keepalive:true,mode:'no-cors'});if(q&&q.catch)q.catch(function(){})}catch(e){}}
-function store(href,o,name){return '<a class="go" href="'+href+'" data-os="'+o+'">無料ではじめる<small>'+name+' が開きます</small></a>'}
+function store(href,o,name){return '<a class="go" href="'+href+'" data-os="'+o+'">さっきの続きを、アプリで試す<small>'+name+' が開きます</small></a>'}
 function stores(){return os==='ios'?store(IOS,'ios','App Store'):os==='android'?store(AND,'android','Google Play'):store(IOS,'ios','App Store')+store(AND,'android','Google Play')}
 
 // 8 結果
 function result(){const r1=rec.q1.ok,r2=rec.q2.ok,r3=rec.q3.ok,anyX=!r1||!r2||!r3;
+  // 020: 振り返りの 1 行。✕ があれば、表の上から最初の ✕ の項目名を入れる
+  const firstX=!r1?'うすい数字':!r2?'うすい しま模様':!r3?'似た向きの見分け':'';
   const row=(t,v)=>`<tr><td>${t}</td><td class="m${v?' o':' x'}">${v?'〇':'✕'}</td><td class="c">${v?'見えている今を保つ':'1日3分で、ケアできます'}</td></tr>`;
   screen('result','結果','',`<h1>あなたの見え方</h1>
    <table class="tbl">${row('うすい数字',r1)}${row('うすい しま模様',r2)}${row('似た向きの見分け',r3)}</table>
@@ -258,6 +266,8 @@ function result(){const r1=rec.q1.ok,r2=rec.q2.ok,r3=rec.q3.ok,anyX=!r1||!r2||!r
    <div class="rec"><div class="hd"><img src="/banner/img/fukuta_good.png" alt=""><p>ミエトレ（無料アプリ）</p></div>
     <p class="txt">今の模様の見分けを、1日3分。ゲームしながら続けられます。</p>
     <div class="shot"><img src="/banner/img/shot_play.webp" alt="ミエトレのアプリの画面"></div></div>
+   <div class="ew"><div class="ewh"><img src="/banner/img/training_watch.gif" alt="同じ模様が2つずつ消えていく動き"><p>さっき ながめた模様が、<br>ミエトレのトレーニングです</p></div>
+    <p class="ewr">${firstX?'✕だった「'+firstX+'」も、<br>1日3分の練習で':'見えている今を、1日3分で保つ'}</p></div>
    <p class="fine">このチェックは見え方の目安です。<br>医師による診断ではありません。</p>`,
   null,null,'a');
   track('check_result','o='+(r1?1:0)+(r2?1:0)+(r3?1:0)+';cb=20261026');
