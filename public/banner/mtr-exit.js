@@ -191,6 +191,23 @@
   var CRE = null;
 
   /* ---------- tracking ---------- */
+  /* Device model and OS version (2026-10-28, TASK-I16-20261028-001). Android Chrome hides the
+     model in the UA ("Android 10; K"), so ask userAgentData once at load. Only a reply within
+     300ms is kept; track() never waits for it and sends as before when it is missing. iOS and
+     browsers without userAgentData send nothing extra. */
+  var HINTS = null;
+  (function () {
+    try {
+      var uad = navigator.userAgentData;
+      if (!uad || typeof uad.getHighEntropyValues !== 'function') return;
+      var t0 = Date.now();
+      var p = uad.getHighEntropyValues(['model', 'platformVersion']);
+      if (p && p.then) p.then(function (h) {
+        if (!h || Date.now() - t0 > 300) return;
+        HINTS = { md: String(h.model || '').slice(0, 40), pv: String(h.platformVersion || '').slice(0, 20) };
+      }, function () {});
+    } catch (e) {}
+  })();
   function osName() {
     var ua = navigator.userAgent || '';
     if (/iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'iOS';
@@ -220,6 +237,10 @@
       v: CRE.v,
       ua_family: uaFamily()
     };
+    if (HINTS) {
+      if (HINTS.md) payload.md = HINTS.md;
+      if (HINTS.pv) payload.pv = HINTS.pv;
+    }
     if (QS.debug) { try { console.log('[mtrb]', payload); } catch (e) {} return; }
     var body = JSON.stringify(payload);
     /* sendBeacon returns false when it cannot queue the payload; resend with a no-cors fetch

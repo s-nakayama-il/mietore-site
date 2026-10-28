@@ -5,6 +5,10 @@ import { PV_CSV_HEADER, PV_EXPORT_SQL } from '../../src/lib/banner/pv';
 
 interface Env { DB: D1Database; STATS_KEY: string }
 
+// ?export=csv の列。今までの 9 列の後ろに 8 列を足す（取込側 load_mm_events.py は両方を受ける）
+const COLS_9 = ['received_at', 'ts', 'sid', 'event', 'param', 'url', 'os', 'v', 'ua_family'] as const;
+const COLS_17 = [...COLS_9, 'ua', 'asn', 'as_org', 'region', 'city', 'postal', 'model', 'os_version'] as const;
+
 // GET /mm/stats: key認証済みの計測集計表示。month絞り込み・CSVエクスポート対応
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const u = new URL(request.url);
@@ -25,20 +29,28 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   if (month && !/^\d{6}$/.test(month)) {
     return new Response('Bad Request', { status: 400 });
   }
-  let sql = 'SELECT received_at, ts, sid, event, param, url, os, v, ua_family FROM events';
+  // 2026-10-28 に足した 8 列（TASK-I16-20261028-001）。D1 に列がまだ無い（ALTER 前）ときは今までの 9 列で読む
+  let where = '';
   const binds: string[] = [];
   if (month) {
-    sql += ' WHERE received_at LIKE ?1';
+    where = ' WHERE received_at LIKE ?1';
     binds.push(`${month.slice(0, 4)}-${month.slice(4)}%`);
   }
-  sql += ' ORDER BY received_at';
-  const { results } = await env.DB.prepare(sql).bind(...binds).all();
+  const select = (cols: readonly string[]) => `SELECT ${cols.join(', ')} FROM events${where} ORDER BY received_at`;
+  let cols: readonly string[] = COLS_17;
+  let results: unknown[];
+  try {
+    ({ results } = await env.DB.prepare(select(COLS_17)).bind(...binds).all());
+  } catch {
+    cols = COLS_9;
+    ({ results } = await env.DB.prepare(select(COLS_9)).bind(...binds).all());
+  }
   const rows = results as unknown as EventRow[];
 
   if (u.searchParams.get('export') === 'csv') {
-    const headerLine = 'received_at,ts,sid,event,param,url,os,v,ua_family';
+    const headerLine = cols.join(',');
     const q = (s: unknown) => `"${String(s ?? '').replace(/"/g, '""')}"`;
-    const body = rows.map((r) => [r.received_at, r.ts, r.sid, r.event, r.param, r.url, r.os, r.v, r.ua_family].map(q).join(',')).join('\n');
+    const body = (rows as unknown as Record<string, unknown>[]).map((r) => cols.map((c) => q(r[c])).join(',')).join('\n');
     return new Response(headerLine + '\n' + body + (body ? '\n' : ''), {
       headers: { 'Content-Type': 'text/csv; charset=UTF-8', 'Content-Disposition': 'attachment; filename="mm_events.csv"' },
     });

@@ -26,7 +26,7 @@ export interface CleanRow {
   ua_family: string;
 }
 
-function clean(value: unknown, maxLen: number): string {
+export function clean(value: unknown, maxLen: number): string {
   let s = (typeof value === 'string' || typeof value === 'number') ? String(value) : '';
   s = s.replace(/[\r\n]/g, ' ');
   s = s.slice(0, maxLen);
@@ -64,4 +64,18 @@ export function validateAndClean(payload: unknown): CleanRow | null {
     v: clean(p.v, 64),
     ua_family: ua,
   };
+}
+
+// 機種と OS の版（2026-10-28、TASK-I16-20261028-001）。Android の Chrome 系が送れたときだけ届く任意の項目。
+// validateAndClean の返り値とはじく条件は変えないため別の関数にする。無い・空なら null
+export interface ClientHints {
+  model: string | null;
+  os_version: string | null;
+}
+
+export function cleanHints(payload: unknown): ClientHints {
+  const p = (payload !== null && typeof payload === 'object' && !Array.isArray(payload)) ? payload as Record<string, unknown> : {};
+  const model = clean(p.md, 40);
+  const osVersion = clean(p.pv, 20);
+  return { model: model || null, os_version: osVersion || null };
 }

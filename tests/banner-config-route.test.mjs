@@ -196,7 +196,7 @@ const MTR_SRC = readFileSync(process.env.MTR_PATH
 
 // mtr-exit.js が触る分だけの DOM。innerHTML は文字列のまま持ち、querySelector は
 // class="…" の有無で引く（描いた HTML をそのまま確かめたいので、解析はしない）
-function makeDom({ sid = '12345678', config = { stopped: false, active: [] }, deferImages = false } = {}) {
+function makeDom({ sid = '12345678', config = { stopped: false, active: [] }, deferImages = false, uad } = {}) {
   const store = new Map();
   if (sid) store.set('mtrb_sid', sid);
   const sent = [];
@@ -317,6 +317,8 @@ function makeDom({ sid = '12345678', config = { stopped: false, active: [] }, de
   ctx.navigator.sendBeacon = (url, blob) => { sent.push({ url, blob: { text: blob.__t } }); return true; };
   ctx.Blob = function FakeBlob(parts) { return { __t: parts.join('') }; };
 
+  // navigator.userAgentData（Android の Chrome 系だけにある）。渡さなければ今までどおり無い（2026-10-28）
+  if (uad !== undefined) Object.assign(ctx.navigator, { userAgentData: uad });
   vm.runInContext(MTR_SRC, ctx);
   return dom;
 }
@@ -593,4 +595,72 @@ test('止めている・設定が読めない・デモの sid は数えない', 
     const dom = await started(makeDom(opt));
     assert.deepEqual(dom.pvs(), [], why);
   }
+});
+
+// 機種と OS の版（TASK-I16-20261028-001）。userAgentData が 300ms 以内に答えたときだけ md・pv を足す。
+// 送る順・event・param・他の項目は変えない
+const BASE_KEYS = ['ts', 'sid', 'event', 'param', 'url', 'os', 'v', 'ua_family'];
+const uadWith = (answer) => ({ getHighEntropyValues: () => answer });
+
+test('userAgentData が無い（iOS など）と、送る記録は今までと同じ 8 項目', async () => {
+  const dom = await started(makeDom({ config: { stopped: false, active: [B] } }));
+  await dom.settle();
+  await dom.leave();
+  const ev = dom.events();
+  assert.deepEqual(ev.map((e) => e.event), ['banner_view']);
+  assert.deepEqual(Object.keys(ev[0]), BASE_KEYS);
+});
+
+test('userAgentData がすぐ答えると md・pv が足される（長すぎる値は 40・20 文字で切る）', async () => {
+  const dom = await started(makeDom({ config: { stopped: false, active: [B] },
+    uad: uadWith(Promise.resolve({ model: 'TEST-MODEL-' + 'x'.repeat(50), platformVersion: '14.0.0' + '.9'.repeat(20) })) }));
+  await dom.settle();
+  await dom.leave();
+  const ev = dom.events();
+  assert.deepEqual(ev.map((e) => e.event), ['banner_view']);
+  assert.deepEqual(Object.keys(ev[0]), [...BASE_KEYS, 'md', 'pv']);
+  assert.equal(ev[0].md.length, 40);
+  assert.ok(ev[0].md.startsWith('TEST-MODEL-'));
+  assert.equal(ev[0].pv.length, 20);
+  assert.equal(ev[0].v, B);
+  // 後の記録（タップ）にも付く
+  dom.tap();
+  const tap = dom.events().find((e) => e.event === 'banner_tap');
+  assert.ok(tap.md.startsWith('TEST-MODEL-'));
+});
+
+test('機種が空（PC など）なら md は付けない', async () => {
+  const dom = await started(makeDom({ config: { stopped: false, active: [B] },
+    uad: uadWith(Promise.resolve({ model: '', platformVersion: '15.0.0' })) }));
+  await dom.settle();
+  await dom.leave();
+  assert.deepEqual(Object.keys(dom.events()[0]), [...BASE_KEYS, 'pv']);
+});
+
+test('userAgentData が失敗する・例外を投げる・300ms を超えると何も足さず、記録は今どおり送る', async () => {
+  const slow = new Promise((r) => { const t = setTimeout(() => r({ model: 'SLOW', platformVersion: '1' }), 350); if (t.unref) t.unref(); });
+  const cases = [
+    uadWith(Promise.reject(new Error('denied'))),
+    { getHighEntropyValues: () => { throw new Error('boom'); } },
+    {},
+    uadWith(slow),
+  ];
+  for (const uad of cases) {
+    const dom = await started(makeDom({ config: { stopped: false, active: [B] }, uad }));
+    await dom.settle();
+    await dom.leave();
+    const ev = dom.events();
+    assert.deepEqual(ev.map((e) => e.event), ['banner_view']);
+    assert.deepEqual(Object.keys(ev[0]), BASE_KEYS);
+  }
+  // 300ms を超えて届いた答えは捨てる。届いた後のタップにも md・pv は付かない
+  const dom = await started(makeDom({ config: { stopped: false, active: [B] }, uad: uadWith(slow) }));
+  await dom.settle();
+  await dom.leave();
+  await slow;
+  await new Promise((r) => setImmediate(r));
+  dom.tap();
+  const tap = dom.events().find((e) => e.event === 'banner_tap');
+  assert.ok(tap, 'banner_tap が無い');
+  assert.deepEqual(Object.keys(tap), BASE_KEYS);
 });

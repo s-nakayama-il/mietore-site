@@ -17,3 +17,13 @@ database_id = "3de965dc-510b-4fa6-b859-dadc322a775c"
 
 [triggers]
 crons = ["0 * * * *", "5 15 * * *"]
+
+# Workers Logs（2026-10-28 にダッシュボードでオンにした設定と同じ。ここに書かないと次の push で戻る）。Traces は使わない
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
