@@ -194,10 +194,24 @@ body.q main{height:calc(100vh - 96px);height:calc(100dvh - 96px)}
 @keyframes whI{from{opacity:0}to{opacity:1}}
 @keyframes whO{from{opacity:1}to{opacity:0}}
 @media (prefers-reduced-motion:reduce){.wh5 span{animation:none!important;opacity:1}.wh5 span:not(:nth-child(5)){display:none}.prog li.pop::before{animation:none}}
-/* 2026-10-29 004: 結果の下のボタンは「見えているうちに、はじめる目のケア」の帯が半分見えてから出す。出し方は不透明度だけ */
-.foot.wait{opacity:0;visibility:hidden;pointer-events:none}
-.foot.show{transition:opacity .25s ease}
-@media (prefers-reduced-motion:reduce){.foot.show{transition:none}}
+
+/* 2026-10-29 005: 縦の短い画面（SE3 など）だけ、進み具合を細く・札を小さく・選択肢を 1 段にして、絵を D・E と同じくらいに */
+@media (max-height:640px){
+ .prog{height:36px;padding:3px 8px}
+ .prog li{font-size:10px;line-height:1.1;flex-direction:row;justify-content:center;gap:3px}
+ .prog li:has(br){font-size:9px}
+ .prog li::before{width:14px;height:14px;border-width:2px}
+ .prog li.done::before{font-size:10px;line-height:10px}
+ body.q main{height:calc(100vh - 82px);height:calc(100dvh - 82px);gap:8px;padding-top:8px}
+ .later{font-size:12px;line-height:1.4;padding:0 10px}
+ body.q h1{font-size:21px}
+ .opts{grid-template-columns:repeat(4,1fr);gap:6px}
+ .opt{font-size:18px;min-height:52px;padding:0}
+ .prog li br{display:none}
+}
+/* G の見学: 進み具合と「ミエるトレーニング、略して」の行の分（約 80px）を、絵の大きさの計算に入れる */
+.wt + .wh5 ~ .wfig{width:min(100%,330px,calc((100vh - 410px) * 492 / 442));width:min(100%,330px,calc((100dvh - 410px) * 492 / 442))}
+@media (max-height:640px){.wt + .wh5 ~ .wfig{width:min(100%,330px,calc((100vh - 380px) * 492 / 442));width:min(100%,330px,calc((100dvh - 380px) * 492 / 442))}}
 </style>
 </head>
 <body>
@@ -210,7 +224,7 @@ const FONT='"M PLUS Rounded 1c","HG丸ｺﾞｼｯｸM-PRO","Noto Sans JP",sans-
 let timerId=null;
 // 008: main の最後の部品がボタンより下に隠れているときだけ、ボタンのすぐ上に影を出す（答えの画面と結果だけ）
 const fade=document.createElement('div');fade.className='fade';fade.setAttribute('aria-hidden','true');document.body.appendChild(fade);
-function more(){const f=document.querySelector('.foot:not(.wait)'),m=document.querySelector('main'),l=m&&m.lastElementChild;
+function more(){const f=document.querySelector('.foot'),m=document.querySelector('main'),l=m&&m.lastElementChild;
   const on=document.body.classList.contains('a')&&f&&l&&l.getBoundingClientRect().bottom>f.getBoundingClientRect().top+1;
   fade.style.display=on?'block':'none';if(on)fade.style.bottom=(innerHeight-f.getBoundingClientRect().top)+'px'}
 addEventListener('scroll',more,{passive:true});addEventListener('resize',more);document.addEventListener('load',more,true);
@@ -258,6 +272,10 @@ function canvas3(){const c=document.createElement('canvas');c.width=520;c.height
   x.fillStyle='#eef3f2';x.fillRect(0,0,520,136);gabor(x,76,68,116,45,1);x.fillStyle='#17201e';x.font='800 30px '+FONT;x.textAlign='left';x.fillText('← お手本',150,60);x.font='700 24px '+FONT;x.fillText('これと同じ向きを数えてね',150,100);
   const g=[45,35,60,90,55,45,30,45,35,0,60,45,30,55,135,45];x.strokeStyle='#17201e';x.lineWidth=3;x.strokeRect(2,150,516,488);
   g.forEach((d,i)=>{const r=Math.floor(i/4),col=i%4;gabor(x,67+col*128,212+r*120,108,d,1)});c.setAttribute('role','img');c.setAttribute('aria-label','お手本のしま模様と、16個のしま模様');return c}
+function canvas3s(){const c=document.createElement('canvas');c.width=520;c.height=700;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,700);
+  x.fillStyle='#eef3f2';x.fillRect(0,0,520,196);gabor(x,98,98,172,45,1);x.fillStyle='#17201e';x.font='800 34px '+FONT;x.textAlign='left';x.fillText('← お手本',200,86);x.font='700 26px '+FONT;x.fillText('これと同じ向きを',200,132);x.fillText('数えてね',200,166);
+  const g=[45,35,60,90,55,45,30,45,35,0,60,45,30,55,135,45];x.strokeStyle='#17201e';x.lineWidth=3;x.strokeRect(2,210,516,488);
+  g.forEach((d,i)=>{const r=Math.floor(i/4),col=i%4;gabor(x,67+col*128,272+r*120,108,d,1)});c.setAttribute('role','img');c.setAttribute('aria-label','お手本のしま模様と、16個のしま模様');return c}
 
 const G3=[45,35,60,90,55,45,30,45,35,0,60,45,30,55,135,45];
 function canvas3ans(){const c=document.createElement('canvas');c.width=520;c.height=600;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,600);
@@ -295,7 +313,7 @@ function q3(){
   screen('q3','挑戦中',2,`<h1>お手本と同じ模様は、何個ありますか？</h1>
    <div class="timer"><div class="tb"><i id="tbar"></i></div><b id="tsec">のこり 30秒</b></div>
    <div class="figbox" id="fb"></div><div class="opts" id="op"></div>`,null,null,'q');
-  $('#fb').appendChild(canvas3());q3Start=performance.now();
+  $('#fb').appendChild(matchMedia('(max-height:640px)').matches?canvas3s():canvas3());q3Start=performance.now();
   $('#op').innerHTML=['4個','5個','6個','7個'].map(o=>`<button class="opt" type="button">${o}</button>`).join('');
   root.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const n=parseInt(b.textContent),sec=Math.round((performance.now()-q3Start)/100)/10,t=sec>30?1:0,p=n===5?0:Math.abs(n-5)===1?1:2;rec.q3={n,ok:n===5};track('check_answer','q=3;ok='+(n===5?1:0)+';p='+p+';s='+sec+';t='+t+';a='+b.textContent);clearInterval(timerId);tick(2,M==='g'?watch:result)});
   let t=30;timerId=setInterval(()=>{t=Math.max(0,t-1);$('#tsec').textContent='のこり '+t+'秒';$('#tbar').style.width=(t/30*100)+'%';if(t===0)clearInterval(timerId)},1000)}
@@ -357,15 +375,7 @@ function result(){
   track('check_result','o='+(r2?1:0)+(r3?1:0)+';cb=20261029');
   const f=document.createElement('div');f.className='foot';f.innerHTML=stores();root.appendChild(f);
   f.querySelectorAll('a.go').forEach(a=>a.addEventListener('click',()=>track('cta_store','os='+a.dataset.os+';o='+(r2?1:0)+(r3?1:0))));
-  const c=f.querySelector('a.go');
-  // 004: ボタンは .care が半分見えたら出して、出し続ける。cta_seen は出した後に見えたら 1 回
-  function seen(){if(c&&'IntersectionObserver' in window){ctaObserver=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){ctaObserver.disconnect();track('cta_seen','h='+innerHeight+';y='+Math.round(scrollY))}},{threshold:.9});ctaObserver.observe(c)}}
-  const care=root.querySelector('.care');
-  if(care&&'IntersectionObserver' in window){f.classList.add('wait');
-    const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();f.classList.add('show');f.classList.remove('wait');more();seen()}},{threshold:.5});
-    // 帯より上の絵が読み込まれる前は帯が上にずれて見えるため、読み込み後に見始める
-    Promise.all([...root.querySelectorAll('.q1box img')].filter(i=>!i.complete).map(i=>new Promise(r=>{i.addEventListener('load',r,{once:true});i.addEventListener('error',r,{once:true})}))).then(()=>io.observe(care))}
-  else seen();
+  const c=f.querySelector('a.go');if(c&&'IntersectionObserver' in window){ctaObserver=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){ctaObserver.disconnect();track('cta_seen','h='+innerHeight+';y='+Math.round(scrollY))}},{threshold:.9});ctaObserver.observe(c)}
   root.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',more))}
 track('check_start','cv=20261029');q2();
 </script>

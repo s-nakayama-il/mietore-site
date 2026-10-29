@@ -51,21 +51,24 @@ test('F・G の◎ボタンは止まらず繰り返し沈み、動きを減ら�
   assert.match(fg, /prefers-reduced-motion:reduce\)\{[^}]*\}' \+\s*'\.pop\.lyr\.fg \.up,\.pop\.lyr\.fg \.dn\{animation:none\}/);
 });
 
-test('F・G の問題の画面は見えている高さ（100dvh）で決め、結果のボタンは「ゲームで目をトレーニングッ！」で .care を見てから出す', () => {
+test('F・G の問題の画面は見えている高さ（100dvh）で決め、縦の短い画面だけ詰め、結果のボタンは「ゲームで目をトレーニングッ！」で最初から出す', () => {
   for (const mode of ['f', 'g']) {
     const html = readFileSync(new URL(`../public/banner/check/${mode}.html`, import.meta.url), 'utf8');
     assert.match(html, /body\.q main\{height:calc\(100vh - 96px\);height:calc\(100dvh - 96px\)\}/);
     assert.match(html, /body\.q main\{height:calc\(100vh - 46px\);height:calc\(100dvh - 46px\);/);
     assert.match(html, /'">ゲームで目をトレーニングッ！<small>'/);
     assert.doesNotMatch(html, /無料でお試しする/);
-    assert.match(html, /\.foot\.wait\{opacity:0;visibility:hidden;pointer-events:none\}/);
-    assert.match(html, /\.foot\.show\{transition:opacity \.25s ease\}/);
-    assert.match(html, /querySelector\('\.care'\)/);
-    assert.match(html, /f\.classList\.add\('wait'\)/);
-    assert.match(html, /\{threshold:\.5\}\);/);
-    assert.match(html, /querySelectorAll\('\.q1box img'\)[^\n]*\.then\(\(\)=>io\.observe\(care\)\)/);
-    assert.match(html, /f\.classList\.remove\('wait'\);more\(\);seen\(\)/);
+    // 縦の短い画面（640px 以下）だけ、進み具合・札・選択肢を詰め、3問目はお手本を大きくした絵
+    assert.match(html, /@media \(max-height:640px\)\{\n \.prog\{height:36px/);
+    assert.match(html, /body\.q main\{height:calc\(100vh - 82px\);height:calc\(100dvh - 82px\)/);
+    assert.match(html, /function canvas3s\(\)\{/);
+    assert.match(html, /matchMedia\('\(max-height:640px\)'\)\.matches\?canvas3s\(\):canvas3\(\)/);
+    // G の見学の絵は、進み具合と「略して」の行の分を引いて決める
+    assert.match(html, /\.wt \+ \.wh5 ~ \.wfig\{width:min\(100%,330px,calc\(\(100vh - 410px\)/);
+    // 結果のボタンは最初から出す（.care を見てから出す作りは無い）
+    assert.doesNotMatch(html, /\.foot\.wait|classList\.add\('wait'\)|io\.observe\(care\)/);
+    assert.match(html, /querySelector\('\.foot'\),m=/);
+    assert.match(html, /const c=f\.querySelector\('a\.go'\);if\(c&&'IntersectionObserver' in window\)\{ctaObserver=/);
     assert.equal((html.match(/track\('cta_seen'/g) || []).length, 1);
-    assert.match(html, /querySelector\('\.foot:not\(\.wait\)'\)/);
   }
 });
