@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>見えるかな？</title>
+<!-- Microsoft Clarity（操作の記録。開示 = /banner/check/privacy） -->
+<script type="text/javascript">
+  (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","yywtqumgrt");
+  window.clarity("consentv2",{ad_Storage:"denied",analytics_Storage:"denied"});
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap">
+<style>
+:root{--ink:#17201e;--sub:#4a4f4e;--band:#f5a000;--band-t:#c26a00;--green:#15913f;--green-d:#0e6e2f;--ok:#15913f;--ng:#d9302f;--line:#d9dedd;--teal:#0f7a74;color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0;background:#fff;color:var(--ink);font-family:"M PLUS Rounded 1c","HG丸ｺﾞｼｯｸM-PRO","HGMaruGothicMPRO","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;font-size:17px;line-height:1.6;-webkit-text-size-adjust:100%}
+[lang="ja"] :is(h1,p,span,button,td){word-break:auto-phrase}
+/* 黄色の帯（バナーの一番上の帯と同じ形） */
+.band{position:sticky;top:0;z-index:5;background:var(--band);display:flex;align-items:center;gap:9px;padding:9px 14px;height:46px}
+.band .lb{background:#fff;color:var(--band-t);font-weight:800;font-size:15px;border-radius:6px;padding:1px 8px;white-space:nowrap;line-height:1.5}
+.band b{color:#fff;font-size:18px;font-weight:800;white-space:nowrap;flex:1}
+.band .pos{color:#fff;font-size:16px;font-weight:800;white-space:nowrap}
+main{padding:14px 16px 112px;display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font-size:23px;font-weight:800;line-height:1.4;text-align:center}
+.big{margin:0;text-align:center;font-weight:900;font-size:30px;line-height:1.3}
+.big.num{font-size:58px;letter-spacing:.06em;line-height:1.1}
+.big.ok{color:var(--ok)}
+.one{margin:0;text-align:center;font-weight:800;font-size:19px;line-height:1.5}
+.why{margin:0;font-size:17px;line-height:1.6;color:var(--sub);font-weight:700}
+.scene{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.scene div{border:1.5px solid var(--line);border-radius:14px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.scene svg{width:46px;height:46px;flex:none}
+.scene span{font-size:16px;font-weight:800;line-height:1.35}
+/* 下に固定した緑のボタン（バナーの「答えを見る」と同じ緑と形） */
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:6;background:#fff;padding:10px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(0,0,0,.08)}
+.go{font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:58px;border:0;border-radius:12px;background:var(--green);color:#fff;font-size:22px;font-weight:800;box-shadow:0 4px 0 var(--green-d);cursor:pointer;line-height:1.3;padding:6px 10px}
+.go{text-decoration:none}
+.go small{font-size:14px;font-weight:700}
+.go:active{transform:translateY(2px);box-shadow:0 2px 0 var(--green-d)}
+.go:focus-visible,.opt:focus-visible{outline:3px solid #f0a500;outline-offset:2px}
+/* 問題の画面：絵と 4 択が画面の高さに入るように、絵の方を縮める */
+body.q main{height:calc(100vh - 46px);padding-bottom:14px}
+.figbox{flex:1 1 auto;min-height:120px;display:flex;justify-content:center}
+.figbox canvas{width:100%;height:100%;object-fit:contain;display:block}
+.timer{display:flex;align-items:center;gap:10px}
+.timer .tb{flex:1;height:12px;background:#f1dcdc;border-radius:999px;overflow:hidden}
+.timer .tb i{display:block;height:100%;width:100%;background:var(--ng);border-radius:999px;transition:width 1s linear}
+.timer b{font-size:18px;color:var(--ng);white-space:nowrap;font-variant-numeric:tabular-nums}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:none}
+.opt{font:inherit;font-weight:800;font-size:22px;min-height:56px;border-radius:12px;border:2px solid #c3c9c8;background:#fff;color:var(--ink);box-shadow:0 3px 0 #c3c9c8;cursor:pointer;white-space:nowrap}
+.opt:active{transform:translateY(2px);box-shadow:none}
+/* 1問目の答えの絵：バナーの絵と同じ大きさ（バナーの幅＝min(86vw, 80vh×9/16)） */
+.ansfig{position:relative;width:min(86vw,calc(80vh * 9 / 16));margin:0 auto;border-radius:10px;overflow:hidden}
+.ansfig img{display:block;width:100%;height:auto}
+.ansfig svg{position:absolute;inset:0;width:100%;height:100%}
+.ans2fig{display:flex;justify-content:center}
+.ans2fig canvas{width:100%;max-height:230px;object-fit:contain;display:block}
+/* 結果 */
+.tbl{width:100%;border-collapse:collapse;font-size:18px}
+.tbl td{border-bottom:1px solid var(--line);padding:10px 6px;font-weight:800}
+.tbl td.m{width:3.2em;text-align:center;font-size:28px;line-height:1}
+.tbl td.m.o{color:var(--ok)}.tbl td.m.x{color:var(--ng)}
+.rec{background:#fff4dc;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.rec .hd{display:flex;align-items:center;gap:10px}
+.rec .hd img{width:62px;flex:none}
+.rec .hd p{margin:0;font-weight:800;font-size:20px;line-height:1.4;color:var(--ink)}
+.rec .app{margin:0;font-weight:800;font-size:18px}
+.rec .txt{margin:0;font-size:16px;line-height:1.6;font-weight:700;color:var(--sub)}
+.rec .shot{width:62%;margin:0 auto;border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:750 / 700}
+.rec .shot img{display:block;width:100%;height:auto}
+/* 4問目（見るだけ）：模様が 2 つずつ消えていく動き（rule.gif の文字の帯を切った物） */
+.wfig{width:min(100%,330px);margin:0 auto;border-radius:12px;overflow:hidden;background:#f7f8fb}
+.wfig img{display:block;width:100%;height:auto}
+/* 006: 1問目の 2 つのボタン・3問目の答えの絵・結果の一言・帯・注記・見るだけのラベル */
+.foot.two{display:flex;gap:10px}
+.foot.two .go{flex:1;font-size:20px}
+.ans3fig{display:flex;justify-content:center}
+.ans3fig canvas{width:100%;max-height:250px;object-fit:contain;display:block}
+.tbl td.c{font-size:15px;font-weight:700;color:var(--sub);padding-left:4px}
+.care{display:flex;align-items:center;justify-content:center;gap:8px;margin:4px 0 0;padding:0 0 8px;border-bottom:4px solid var(--band)}
+.care svg{width:40px;height:40px;flex:none}
+.care p{margin:0;font-size:22px;font-weight:900;line-height:1.35;text-align:center}
+.fine{margin:4px 0 0;font-size:12px;color:var(--sub);text-align:center;line-height:1.5}
+.privacy{margin:14px 0 calc(96px + env(safe-area-inset-bottom));text-align:center;font-size:12px;line-height:1.5}.privacy a{color:var(--sub)}
+.okl{align-self:center;margin:-4px 0 0;background:#fff4dc;color:var(--band-t);border:1.5px solid var(--band);border-radius:999px;font-size:14px;font-weight:800;padding:1px 12px;line-height:1.5}
+.wfig{width:min(100%,330px,calc((100vh - 330px) * 492 / 442))}
+/* 008: 答えの画面（1〜3問目）と結果を詰めて、「今の私のこと」をボタンの上に見せる。入りきらない画面は、ボタンのすぐ上に下へ続く影 */
+body.a main{padding-top:10px;gap:8px}
+body.a .ansfig{width:calc(min(86vw,calc(80vh * 9 / 16)) * .8)}
+body.a .ans2fig canvas{max-height:205px}
+body.a .ans3fig canvas{max-height:200px}
+.ask{margin:0;font-size:17px;font-weight:800;line-height:1.4;text-align:center}
+.scene div{flex-direction:row;justify-content:center;gap:4px;padding:5px 4px;text-align:left}
+.scene svg{width:38px;height:38px}
+body.a .tbl td{padding:4px 6px}
+body.a .tbl td:not(.m){line-height:1.35}
+body.a .care{margin:0}
+/* 013: 結果の前の一文は表の説明として表に寄せ、コンセプトの帯は上下に線を引いて前後から切り離す */
+.tbl + .one{margin-top:-4px;font-size:17px;font-weight:700;color:var(--sub)}
+.tbl + .one + .care{margin-top:12px;padding:10px 0;border-top:4px solid var(--band)}
+.care p{letter-spacing:.04em}
+/* 020: 結果画面のミエトレ見学（.rec と .fine の間）。見出しは 5 つの文を同じ所で順に出し、止まらず繰り返す（1 文 約3.5秒、1 回 17.5秒。021）。4問目用の .wh span:nth-child の動きより強く当てるため .dw を前に付ける */
+.dw{border:1.5px solid var(--line);border-radius:16px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.dw .dwl{align-self:flex-start;font-size:13px;font-weight:800;color:var(--sub);line-height:1.4}
+.dw .wh{margin:0;font-size:18px;font-weight:800;line-height:1.45;text-align:center}
+.dw .wh.loop span{animation:whLoop 17.5s linear infinite both}
+.dw .wh.loop span:nth-child(2){animation-delay:3.5s}
+.dw .wh.loop span:nth-child(3){animation-delay:7s}
+.dw .wh.loop span:nth-child(4){animation-delay:10.5s}
+.dw .wh.loop span:nth-child(5){animation-delay:14s}
+@keyframes whLoop{0%{opacity:0}2.4%{opacity:1}18%{opacity:1}20%{opacity:0}100%{opacity:0}}
+.dw .okl{margin:0}
+.dw .wfig{width:min(100%,280px)}
+.wl{margin:-4px 0 0;text-align:center;font-size:17px;font-weight:700;line-height:1.5;color:var(--sub)}
+@media (prefers-reduced-motion:reduce){.dw .wh.loop span:nth-child(1){display:block}}
+.fade{position:fixed;left:0;right:0;height:24px;z-index:6;pointer-events:none;background:linear-gradient(rgba(255,255,255,0),#fff);display:none}
+/* 010: 4問目（見るだけ）の見出し。3 つの文を同じ所に重ね、順に出す（1・2 は約 3.5 秒で消え、3 は残る）。高さは一番高い文に合わせて固定。動きを減らす設定では 2 と 3 を縦に並べる（011）（3 つ並べると模様がボタンに隠れるため）。見出しが高くなる分、模様の絵を小さくする */
+.wh{display:grid}
+.wh span{grid-area:1/1;opacity:0}
+.wh span:nth-child(1){animation:whOut .4s ease 3.5s both}
+.wh span:nth-child(2){animation:whIn .4s ease 3.9s both,whOut .4s ease 7.8s forwards}
+.wh span:nth-child(3){animation:whIn .4s ease 8.2s both}
+@keyframes whIn{from{opacity:0}to{opacity:1}}
+@keyframes whOut{from{opacity:1}to{opacity:0}}
+@media (prefers-reduced-motion:reduce){.wh{display:flex;flex-direction:column;gap:4px}
+ .wh span{animation:none!important;opacity:1}
+ .wh span:nth-child(1){display:none}
+ .wfig{width:min(100%,330px,calc((100vh - 400px) * 492 / 442))}}
+/* ===== 2026-10-29 F・G 見本で足した所 ===== */
+/* 上の進み具合（帯のすぐ下に固定） */
+.prog{margin:0;position:sticky;top:46px;z-index:5;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:center;gap:4px;padding:6px 8px;height:50px}
+.prog li{list-style:none;flex:1 1 0;max-width:92px;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:12px;font-weight:800;color:#9aa3a1;line-height:1.2;white-space:nowrap;position:relative;text-align:center}
+.prog li:has(br){font-size:10px;line-height:1.05}
+.prog li::before{content:"";flex:none;width:20px;height:20px;border-radius:50%;border:2px solid #c3c9c8;background:#fff;box-sizing:border-box}
+.prog li.now{color:var(--band-t)}
+.prog li.now::before{border-color:var(--band);background:var(--band);box-shadow:0 0 0 3px #ffe7b3}
+.prog li.done{color:var(--ok)}
+.prog li.done::before{content:"✓";border-color:var(--ok);background:var(--ok);color:#fff;font-size:13px;line-height:16px;text-align:center}
+.prog li.pop::before{animation:pop .45s ease}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+body.q main{height:calc(100vh - 96px)}
+.later{align-self:center;margin:0;background:#fff4dc;color:var(--band-t);border:1.5px solid var(--band);border-radius:999px;font-size:14px;font-weight:800;padding:1px 12px;line-height:1.6;flex:none}
+/* 帯の名前のアイコン（見えるかなゲーム） */
+.band b{display:flex;align-items:center;gap:6px}
+.band .gi{width:26px;height:26px;flex:none;object-fit:contain}
+/* 結果：最初の数字の答え */
+.q1box{border:2px solid var(--band);border-radius:16px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px}
+.q1box .ttl{margin:0;font-size:15px;font-weight:800;color:var(--band-t)}
+.q1pair{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px}
+.q1pair figure{margin:0;text-align:center}
+.q1pair img{display:block;width:100%;border-radius:8px}
+.q1pair figcaption{font-size:12px;font-weight:700;color:var(--sub);margin-top:2px}
+.q1pair .ar{font-size:22px;font-weight:900;color:var(--band)}
+.digits{display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
+.digits b{display:block;font-size:44px;font-weight:900;line-height:1.05;letter-spacing:0}
+.digits small{display:block;font-size:12px;font-weight:800;color:var(--sub);line-height:1.3}
+.digits .l1 b{color:#17201e}.digits .l2 b{color:#3d4544}.digits .l3 b{color:#6f7876}.digits .l4 b{color:#a4abaa}
+.q1box .one{font-size:16px}
+/* 結果：2・3問目の折りたたみ */
+.acc{border-top:1px solid var(--line)}
+.acc details{border-bottom:1px solid var(--line)}
+.acc summary{list-style:none;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;padding:8px 4px;cursor:pointer}
+.acc summary::-webkit-details-marker{display:none}
+.acc .nm{font-weight:800;font-size:17px;line-height:1.3}
+.acc .nm small{display:block;font-size:13px;font-weight:700;color:var(--sub)}
+.acc .nm em{display:block;font-style:normal;font-size:14px;font-weight:800;line-height:1.35;color:var(--band-t)}
+.acc .nm em.o{color:var(--ok)}
+.acc .mk{font-size:28px;font-weight:900;line-height:1}
+.acc .mk.o{color:var(--ok)}.acc .mk.x{color:var(--ng)}
+.acc .op{font-size:12px;font-weight:800;color:var(--teal);border:1.5px solid var(--teal);border-radius:999px;padding:0 8px;white-space:nowrap}
+.acc details[open] .op{background:var(--teal);color:#fff}
+.acc .body{padding:0 0 10px}
+.acc .body canvas{width:100%;max-height:220px;object-fit:contain;display:block}
+.acc .body p{margin:4px 0 0;text-align:center;font-weight:800;font-size:15px}
+.res1{margin:0;font-size:16px;font-weight:700;color:var(--sub);text-align:center}
+/* G：結果の振り返り（E と同じ） */
+.ew{border:1.5px solid var(--line);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.ew .ewh{display:flex;align-items:center;gap:10px}
+.ew .ewh img{width:38%;max-width:140px;flex:none;border-radius:10px;background:#f7f8fb;display:block;height:auto}
+.ew .ewh p{margin:0;font-size:17px;font-weight:800;line-height:1.45}
+.ew .ewr{margin:0;text-align:center;font-size:17px;font-weight:800;line-height:1.5;color:var(--band-t)}
+/* G：見学の画面（5 文を順に出す。E と同じ） */
+.wt{margin:0;align-self:center;font-size:15px;font-weight:800;color:var(--band-t)}
+.wh5{display:grid;margin:0;font-size:21px;font-weight:800;line-height:1.4;text-align:center}
+.wh5 span{grid-area:1/1;opacity:0}
+.wh5 span:nth-child(1){animation:whO .4s ease 3.5s both}
+.wh5 span:nth-child(2){animation:whI .4s ease 3.9s both,whO .4s ease 7.8s forwards}
+.wh5 span:nth-child(3){animation:whI .4s ease 8.2s both,whO .4s ease 12.1s forwards}
+.wh5 span:nth-child(4){animation:whI .4s ease 12.5s both,whO .4s ease 16.4s forwards}
+.wh5 span:nth-child(5){animation:whI .4s ease 16.8s both}
+@keyframes whI{from{opacity:0}to{opacity:1}}
+@keyframes whO{from{opacity:1}to{opacity:0}}
+@media (prefers-reduced-motion:reduce){.wh5 span{animation:none!important;opacity:1}.wh5 span:not(:nth-child(5)){display:none}.prog li.pop::before{animation:none}}
+</style>
+</head>
+<body>
+<div id="root"></div><p class="privacy"><a href="/banner/check/privacy" target="_blank" rel="noopener">このページでの情報の取り扱い</a></p>
+<script>
+const QS=new URLSearchParams(location.search);
+const $=s=>document.querySelector(s);const root=$('#root');
+const rec={};
+const FONT='"M PLUS Rounded 1c","HG丸ｺﾞｼｯｸM-PRO","Noto Sans JP",sans-serif';
+let timerId=null;
+// 008: main の最後の部品がボタンより下に隠れているときだけ、ボタンのすぐ上に影を出す（答えの画面と結果だけ）
+const fade=document.createElement('div');fade.className='fade';fade.setAttribute('aria-hidden','true');document.body.appendChild(fade);
+function more(){const f=document.querySelector('.foot'),m=document.querySelector('main'),l=m&&m.lastElementChild;
+  const on=document.body.classList.contains('a')&&f&&l&&l.getBoundingClientRect().bottom>f.getBoundingClientRect().top+1;
+  fade.style.display=on?'block':'none';if(on)fade.style.bottom=(innerHeight-f.getBoundingClientRect().top)+'px'}
+addEventListener('scroll',more,{passive:true});addEventListener('resize',more);document.addEventListener('load',more,true);
+// アイコン（003 の青緑の線の絵）
+const ICON={
+'pc':'<rect x="3" y="9" width="29" height="20" rx="2.5"/><path d="M13 35h9M17.5 29v6"/><rect x="31" y="17" width="14" height="24" rx="3" fill="#fff"/><path d="M36 37h4"/>',
+'twitch':'<path d="M5 28c5-8 12-12 19-12s14 4 19 12c-5 8-12 12-19 12S10 36 5 28z"/><circle cx="24" cy="28" r="5"/><path d="M13 9l3 4M24 6v5M35 9l-3 4"/>',
+'moon':'<path d="M30 7a16 16 0 1 0 12 25A13 13 0 0 1 30 7z"/><path d="M11 9v4M9 11h4M18 4v3M16.5 5.5h3"/>',
+'blur':'<rect x="5" y="7" width="38" height="34" rx="4"/><path d="M12 17h18M12 25h24M12 33h14"/><path d="M13 19.5h18M13 27.5h24M13 35.5h14" opacity=".35"/>',
+'book':'<path d="M24 12c-5-4-12-4-18-2v28c6-2 13-2 18 2 5-4 12-4 18-2V10c-6-2-13-2-18 2z"/><path d="M24 12v28"/>',
+'far':'<path d="M8 20c4-6 10-9 16-9s12 3 16 9c-4 6-10 9-16 9s-12-3-16-9z"/><circle cx="24" cy="20" r="4"/><path d="M6 38h36M6 38l5-4M6 38l5 4M42 38l-5-4M42 38l-5 4"/>'};
+const EYE='<svg viewBox="0 0 48 48" fill="none" stroke="#0f7a74" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 24c5-8 12-12 19-12s14 4 19 12c-5 8-12 12-19 12S10 32 5 24z"/><circle cx="24" cy="24" r="5"/></svg>';
+const SVG=k=>'<svg viewBox="0 0 48 48" fill="none" stroke="#0f7a74" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[k]+'</svg>';
+const SCENE=[
+ {t:[['pc','スマホやパソコンを<br>見続けた日'],['twitch','目が<br>ぴくぴくする日']],w:'こういう日は、うすい数字が見えにくくなることがあります。'},
+ {t:[['pc','夕方、<br>パソコンの<br>文字がかすむ日'],['moon','暗い部屋で、<br>スマホの字が<br>読みにくい日']],w:'目がつかれてくると、うすい しま模様から見分けにくくなることがあります。'},
+ {t:[['far','スマホから<br>顔を上げると、<br>遠くが<br>ぼやける日'],['book','資料と画面を、<br>何度も<br>見比べた日']],w:'ピントの切り替えにつかれがたまると、似た向きの見分けに時間がかかることがあります。'}];
+const SC=i=>'<p class="ask">こんな日、ありませんか？</p><div class="scene">'+SCENE[i].t.map(([k,s])=>'<div>'+SVG(k)+'<span>'+s+'</span></div>').join('')+'</div><p class="why">'+SCENE[i].w+'</p>';
+
+function gabor(ctx,cx,cy,size,deg,contrast){
+  const img=ctx.getImageData(cx-size/2,cy-size/2,size,size),d=img.data,t=deg*Math.PI/180,wl=size/4.6,sg=size/5.4;
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+    const X=x-size/2+.5,Y=y-size/2+.5,xr=X*Math.cos(t)+Y*Math.sin(t);
+    const env=Math.exp(-(X*X+Y*Y)/(2*sg*sg));const v=255-env*255*contrast*(0.5-0.5*Math.cos(2*Math.PI*xr/wl));
+    const i=(y*size+x)*4;d[i]=d[i+1]=d[i+2]=v;d[i+3]=255}
+  ctx.putImageData(img,cx-size/2,cy-size/2)}
+// 2問目の絵（今のページと同じ描き方）。mark＝選んだ番号（1〜5）に印
+// reveal＝答えの画面だけ true。選んだ番号より先（見えていなかった番号）の模様を濃く描き、点線の丸を付ける（007）
+const POS2=[[90,90],[260,90],[430,90],[175,285],[345,285]];
+// 017: 選んだ番号は緑の実線の丸（番号の札の下にくぐらせる）と、丸の下に「あなた」の札。
+// 札を置く余白のため、答えの画面だけ 2段目を 27 下げ、高さを 446 にする（問題の画面は今のまま）
+function canvas2(mark,reveal){const H=reveal?446:400,P=POS2.map(([px,py])=>[px,reveal&&py>200?py+27:py]);
+  const c=document.createElement('canvas');c.width=520;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,H);
+  const ring=(cx,cy,col,w,dash)=>{x.save();x.strokeStyle=col;x.lineWidth=w;x.setLineDash(dash);x.beginPath();x.arc(cx,cy,82,0,7);x.stroke();x.restore()};
+  // 順番：模様 → 丸 → 番号の札 → 「あなた」（模様は四角ごと塗るので先に描く）
+  [1,.35,.12,.045,.02].forEach((k,i)=>{const [cx,cy]=P[i];gabor(x,cx,cy,150,45,reveal&&i+1>mark?.6:k)});
+  P.forEach(([cx,cy],i)=>{if(reveal&&i+1>mark)ring(cx,cy,'#f5a000',6,[14,10])});
+  if(mark){const [cx,cy]=P[mark-1];ring(cx,cy,'#0f7a74',8,[])}
+  P.forEach(([cx,cy],i)=>{x.fillStyle='#0f7a74';x.beginPath();x.arc(cx-58,cy-58,20,0,7);x.fill();x.fillStyle='#fff';x.font='800 24px '+FONT;x.textAlign='center';x.textBaseline='middle';x.fillText(String(i+1),cx-58,cy-57)});
+  if(mark){const [cx,cy]=P[mark-1],r=18,ty=cy+90;x.font='800 26px '+FONT;const w=Math.ceil(x.measureText('あなた').width)+30,l=cx-w/2;
+    x.fillStyle='#0f7a74';x.beginPath();x.arc(l+r,ty+r,r,Math.PI/2,Math.PI*1.5);x.arc(l+w-r,ty+r,r,-Math.PI/2,Math.PI/2);x.closePath();x.fill();
+    x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';x.fillText('あなた',cx,ty+r+1)}
+  c.setAttribute('role','img');c.setAttribute('aria-label',!reveal?'だんだんうすくなる、5つのしま模様':mark<5?'5つのしま模様。あなたが選んだ番号に緑の丸。見えていなかった番号の模様を濃くして、点線の丸':'5つのしま模様。あなたが選んだ番号に緑の丸');return c}
+function canvas3(){const c=document.createElement('canvas');c.width=520;c.height=640;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,640);
+  x.fillStyle='#eef3f2';x.fillRect(0,0,520,136);gabor(x,76,68,116,45,1);x.fillStyle='#17201e';x.font='800 30px '+FONT;x.textAlign='left';x.fillText('← お手本',150,60);x.font='700 24px '+FONT;x.fillText('これと同じ向きを数えてね',150,100);
+  const g=[45,35,60,90,55,45,30,45,35,0,60,45,30,55,135,45];x.strokeStyle='#17201e';x.lineWidth=3;x.strokeRect(2,150,516,488);
+  g.forEach((d,i)=>{const r=Math.floor(i/4),col=i%4;gabor(x,67+col*128,212+r*120,108,d,1)});c.setAttribute('role','img');c.setAttribute('aria-label','お手本のしま模様と、16個のしま模様');return c}
+
+const G3=[45,35,60,90,55,45,30,45,35,0,60,45,30,55,135,45];
+function canvas3ans(){const c=document.createElement('canvas');c.width=520;c.height=600;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,520,600);
+  gabor(x,50,48,80,45,1);x.fillStyle='#17201e';x.font='800 28px '+FONT;x.textAlign='left';x.textBaseline='middle';x.fillText('← これと同じ向き',104,50);
+  x.strokeStyle='#17201e';x.lineWidth=3;x.strokeRect(2,110,516,488);
+  G3.forEach((d,i)=>{const r=Math.floor(i/4),col=i%4,cx=67+col*128,cy=172+r*120;gabor(x,cx,cy,108,d,1);
+    if(d===45){x.strokeStyle='#f5a000';x.lineWidth=8;x.beginPath();x.arc(cx,cy,56,0,7);x.stroke()}});
+  c.setAttribute('role','img');c.setAttribute('aria-label','16個のしま模様。お手本と同じ向きの5個に丸');return c}
+// ===== 2026-10-29 F・G 見本 =====
+// F＝見学を結果の中（D の形）、G＝見学を結果の前の画面（E の形）。
+const GI='<img class="gi" src="/banner/img/banner_20261029_eye.webp" alt="">';
+const M='g';
+const STEPS=M==='g'?['数字','しま模様','模様さがし','ミエる<br>トレーニング','結果']:['数字','しま模様','模様さがし','結果'];
+// 画面を描く：帯＋進み具合＋中身＋下のボタン。at＝今いる段（0 始まり）、pop＝今✓になった段
+function screen(k,label,at,body,btn,next,cls,pop){clearInterval(timerId);window.scrollTo(0,0);
+  document.body.className=cls||'';
+  const prog=at==null?'':'<ol class="prog">'+STEPS.map((s,i)=>'<li class="'+(i<at?'done':i===at?'now':'')+(i===pop?' pop':'')+'">'+s+'</li>').join('')+'</ol>';
+  root.innerHTML=`<div class="band"><span class="lb">${label}</span><b>${GI}見えるかな？</b></div>${prog}
+   <main>${body}</main>${btn?`<div class="foot"><button class="go" type="button" id="go">${btn}</button></div>`:''}`;
+  if(btn)$('#go').onclick=next;requestAnimationFrame(more)}
+// 答えたら、その段に✓が付くのを一瞬見せてから次へ
+function tick(at,then){const li=document.querySelectorAll('.prog li');if(li[at]){li[at].className='done pop';if(li[at+1])li[at+1].className='now'}
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);setTimeout(then,550)}
+
+// 2 しま模様（バナーが 1 つ目＝数字。押したらいきなりここ）
+const OPT2=['1〜2番','3番','4番','5番'];
+function q2(){
+  screen('q2','挑戦中',1,`<p class="later">さっきの数字の答えは、最後にまとめて</p><h1>しま模様は、何番まで見えますか？</h1><div class="figbox" id="fb"></div><div class="opts" id="op"></div>`,null,null,'q',0);
+  $('#fb').appendChild(canvas2(0));qStart=performance.now();
+  $('#op').innerHTML=OPT2.map(o=>`<button class="opt" type="button">${o}</button>`).join('');
+  root.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const a=b.textContent,n={'1〜2番':2,'3番':3,'4番':4,'5番':5}[a],p={'1〜2番':2,'3番':1,'4番':1,'5番':0}[a],sec=Math.round((performance.now()-qStart)/100)/10;rec.q2={a,n,ok:p===0};track('check_answer','q=2;ok='+(p===0?1:0)+';p='+p+';s='+sec+';t=0;a='+a);tick(1,q3)})}
+
+// 3 模様さがし（30 秒）
+function q3(){
+  screen('q3','挑戦中',2,`<h1>お手本と同じ模様は、何個ありますか？</h1>
+   <div class="timer"><div class="tb"><i id="tbar"></i></div><b id="tsec">のこり 30秒</b></div>
+   <div class="figbox" id="fb"></div><div class="opts" id="op"></div>`,null,null,'q');
+  $('#fb').appendChild(canvas3());q3Start=performance.now();
+  $('#op').innerHTML=['4個','5個','6個','7個'].map(o=>`<button class="opt" type="button">${o}</button>`).join('');
+  root.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const n=parseInt(b.textContent),sec=Math.round((performance.now()-q3Start)/100)/10,t=sec>30?1:0,p=n===5?0:Math.abs(n-5)===1?1:2;rec.q3={n,ok:n===5};track('check_answer','q=3;ok='+(n===5?1:0)+';p='+p+';s='+sec+';t='+t+';a='+b.textContent);clearInterval(timerId);tick(2,M==='g'?watch:result)});
+  let t=30;timerId=setInterval(()=>{t=Math.max(0,t-1);$('#tsec').textContent='のこり '+t+'秒';$('#tbar').style.width=(t/30*100)+'%';if(t===0)clearInterval(timerId)},1000)}
+
+// 4（G だけ）ミエトレ見学
+function watch(){track('training_view','h='+innerHeight);
+  screen('watch','見学',3,`<p class="wt">ミエるトレーニング、略して ミエトレ</p><h1 class="wh5"><span>1万人が使うアプリで、毎日やっている目のトレーニングです</span><span>ノーベル物理学賞の学者の名前がついた「ガボール模様」を使っています</span><span>ルールに沿いながら、じっくり見てペアを消す</span><span>1年以上、毎日つづけている人も大勢います</span><span>しばらく ながめて、目が慣れたら判定へ</span></h1>
+   <span class="okl">毎日ちょっとずつが最強</span>
+   <div class="wfig"><img src="/banner/img/training_watch.gif" alt="同じ模様が2つずつ消えていく動き"></div>
+   <p class="wl">アプリでは、これを1日3分</p>`,'答えと判定を見る',result,'',2)}
+
+const TRACK_URL=location.origin+'/mm/track';
+const DEBUG=QS.get('mtr_debug')==='1';
+const SID=(function(){let x=QS.get('sid')||'';if(!x){try{x=sessionStorage.getItem('mtrb_sid')||''}catch(e){}}if(!x)x=String(Math.floor(Math.random()*1e8)).padStart(8,'0');try{sessionStorage.setItem('mtrb_sid',x)}catch(e){}return x.slice(0,64)})();
+const VER=(QS.get('v')||'banner-20261029-G').slice(0,64);
+const IOS='https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&ct=exit_banner_check_g&mt=8';
+const AND='https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja&referrer=utm_source%3Dexit_banner%26utm_campaign%3Dcheck_g';
+const ua=navigator.userAgent||'',os=/iPhone|iPad|iPod/.test(ua)?'ios':/Android/.test(ua)?'android':'other';
+let qStart=0,q3Start=0,ctaObserver=null;
+function osName(){if(/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return 'iOS';if(/Android/.test(ua))return 'Android';return 'PC'}
+function uaFamily(){if(/musical_ly|trill|Bytedance|TTWebView/.test(ua))return 'tiktok';if(/ Line\//.test(ua))return 'line';if(/Instagram/.test(ua))return 'instagram';if(/FBAN|FBAV/.test(ua))return 'facebook';if(/; wv\)/.test(ua))return 'wv';return 'browser'}
+function track(ev,p){const payload={ts:new Date().toISOString(),sid:SID,event:ev,param:String(p==null?'':p).slice(0,64),url:location.href,os:osName(),v:VER,ua_family:uaFamily()};if(DEBUG){try{console.log('[check]',ev,JSON.stringify(payload))}catch(e){}return}const body=JSON.stringify(payload);try{if(navigator.sendBeacon&&navigator.sendBeacon(TRACK_URL,new Blob([body],{type:'text/plain'}))===true)return}catch(e){}try{const q=fetch(TRACK_URL,{method:'POST',body,keepalive:true,mode:'no-cors'});if(q&&q.catch)q.catch(function(){})}catch(e){}}
+function store(href,o,name){return '<a class="go" href="'+href+'" data-os="'+o+'">ゲームで目をトレーニングッ！<small>'+name+' が開きます</small></a>'}
+function stores(){return os==='ios'?store(IOS,'ios','App Store'):os==='android'?store(AND,'android','Google Play'):store(IOS,'ios','App Store')+store(AND,'android','Google Play')}
+
+// 結果（最初の数字の答え＋2・3 つ目の〇✕を折りたたみ）
+function result(){
+  const r2=rec.q2.ok,r3=rec.q3.ok,anyX=!r2||!r3;
+  const at=STEPS.length-1;
+  const firstX=!r2?'うすい しま模様':!r3?'似た向きの見分け':'';
+  const watchBox=M==='g'
+   ?`<div class="ew"><div class="ewh"><img src="/banner/img/training_watch.gif" alt="同じ模様が2つずつ消えていく動き"><p>さっき ながめた模様が、<br>ミエトレのトレーニングです</p></div>
+     <p class="ewr">${firstX?'✕だった「'+firstX+'」も、<br>1日3分の練習で':'見えている今を、1日3分で保つ'}</p></div>`
+   :`<div class="dw"><span class="dwl">ミエるトレーニング、略して ミエトレ</span>
+     <p class="wh loop"><span>1万人が使うアプリで、毎日やっている目のトレーニングです</span><span>ノーベル物理学賞の学者の名前がついた「ガボール模様」を使っています</span><span>ルールに沿いながら、じっくり見てペアを消す</span><span>1年以上、毎日つづけている人も大勢います</span><span>このページで見慣れてきたら、アプリでお試しを</span></p>
+     <span class="okl">毎日ちょっとずつが最強</span>
+     <div class="wfig"><img src="/banner/img/training_watch.gif" alt="同じ模様が2つずつ消えていく動き"></div>
+     <p class="wl">アプリでは、これを1日3分</p></div>`;
+  screen('result','結果',at,`
+   <div class="q1box"><p class="ttl">最初の数字の答え</p>
+    <div class="q1pair"><figure><img src="/banner/img/banner_20261029_q1faint.webp" alt="バナーで見た、うすい数字"><figcaption>さっき見た絵</figcaption></figure><span class="ar">→</span>
+     <figure><img src="/banner/img/answer_4682.webp" alt="くっきりした 4682"><figcaption>くっきりさせると</figcaption></figure></div>
+    <div class="digits"><span class="l3"><b>4</b><small>うすい</small></span><span class="l1"><b>6</b><small>濃い</small></span><span class="l2"><b>8</b><small>やや濃い</small></span><span class="l4"><b>2</b><small>一番うすい</small></span></div>
+    <p class="one">端の 2 まで見えたら、よく見えています</p></div>
+   <h1>あなたの見え方</h1>
+   <div class="acc">
+    <details><summary><span class="nm">うすい しま模様<small>あなた ${rec.q2.a} → 答え 5番まで</small><em class="${r2?'o':'x'}">${r2?'見えている今を保つ':'1日3分で、ケアできます'}</em></span><span class="mk ${r2?'o':'x'}">${r2?'〇':'✕'}</span><span class="op">答え</span></summary><div class="body" id="b2"></div></details>
+    <details><summary><span class="nm">似た向きの見分け<small>あなた ${rec.q3.n}個 → 答え 5個</small><em class="${r3?'o':'x'}">${r3?'見えている今を保つ':'1日3分で、ケアできます'}</em></span><span class="mk ${r3?'o':'x'}">${r3?'〇':'✕'}</span><span class="op">答え</span></summary><div class="body" id="b3"></div></details>
+   </div>
+   <p class="res1">${anyX?'✕の見分けは、目がつかれた日に出やすい所です。':'今は、どれもよく見えています。'}</p>
+   <div class="care">${EYE}<p>見えているうちに、<br>はじめる目のケア</p></div>
+   <div class="rec"><div class="hd"><img src="/banner/img/fukuta_good.png" alt=""><p>ミエトレ（無料アプリ）</p></div>
+    <p class="txt">今の模様の見分けを、1日3分。ゲームしながら続けられます。</p>
+    <div class="shot"><img src="/banner/img/shot_play.webp" alt="ミエトレのアプリの画面"></div></div>
+   ${watchBox}
+   <p class="fine">このチェックは見え方の目安です。<br>医師による診断ではありません。</p>`,null,null,'a',at-1);
+  $('#b2').appendChild(canvas2(rec.q2.n,true));
+  $('#b3').appendChild(canvas3ans());
+  track('check_result','o='+(r2?1:0)+(r3?1:0)+';cb=20261029');
+  const f=document.createElement('div');f.className='foot';f.innerHTML=stores();root.appendChild(f);
+  f.querySelectorAll('a.go').forEach(a=>a.addEventListener('click',()=>track('cta_store','os='+a.dataset.os+';o='+(r2?1:0)+(r3?1:0))));
+  const c=f.querySelector('a.go');if(c&&'IntersectionObserver' in window){ctaObserver=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){ctaObserver.disconnect();track('cta_seen','h='+innerHeight+';y='+Math.round(scrollY))}},{threshold:.9});ctaObserver.observe(c)}
+  root.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',more))}
+track('check_start','cv=20261029');q2();
+</script>
+</body>
+</html>
+

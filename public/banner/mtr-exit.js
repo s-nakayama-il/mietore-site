@@ -54,7 +54,9 @@
     CHECK_B: ORIGIN + '/banner/check/b',       /* no .html: avoids the 308 redirect Pages adds */
     CHECK_C: ORIGIN + '/banner/check/c',
     CHECK_D: ORIGIN + '/banner/check/d',
-    CHECK_E: ORIGIN + '/banner/check/e'        /* no .html: avoids the 308 redirect Pages adds */
+    CHECK_E: ORIGIN + '/banner/check/e',       /* no .html: avoids the 308 redirect Pages adds */
+    CHECK_F: ORIGIN + '/banner/check/f',
+    CHECK_G: ORIGIN + '/banner/check/g'
   };
 
   /* v is the version identifier recorded with every event.
@@ -89,6 +91,10 @@
       alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u307e\u3059\u304b\uff1f' },
     { id: 'E', v: 'banner-20261026-E', pre: 'banner_20261026_', dest: 'check_e', layers: ['base', 'num'],
       alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u307e\u3059\u304b\uff1f' },
+    { id: 'F', v: 'banner-20261029-F', pre: 'banner_20261029_', dest: 'check_f', cls: 'fg', layers: ['base', 'num', 'up', 'dn'],
+      alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u308b\uff1f 1\u5206\u3067\u7b54\u3048\u304c\u308f\u304b\u308a\u307e\u3059\u3002\u62bc\u3057\u3066\u59cb\u3081\u308b' },
+    { id: 'G', v: 'banner-20261029-G', pre: 'banner_20261029_', dest: 'check_g', cls: 'fg', layers: ['base', 'num', 'up', 'dn'],
+      alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u308b\uff1f 1\u5206\u3067\u7b54\u3048\u304c\u308f\u304b\u308a\u307e\u3059\u3002\u62bc\u3057\u3066\u59cb\u3081\u308b' },
     { id: 'A7', v: 'banner-20261008-A7', pre: 'banner_A7_20261008_', dest: 'app',
       layers: ['base', 'head', 'ring', 'stamps', 'coin', 'picture'],
       alt: '\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u7121\u6599\u30027\u65e5\u9023\u7d9a\u30671\u65e51\u56de\u30b2\u30fc\u30e0\u3092\u30af\u30ea\u30a2\u3059\u308b\u3068\uff081\u65e53\u5206\uff09\u3001\u3075\u304f\u3075\u304f\u30dd\u30a4\u30f3\u30c81000\u30dd\u30a4\u30f3\u30c8\u30021000\u30dd\u30a4\u30f3\u30c8\u3067\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u30015,280\u5186(\u7a0e\u8fbc)\u304c\u7121\u6599\u3002\u7121\u6599\u30a2\u30d7\u30ea\u3067\u3001\u306f\u3058\u3081\u308b' }
@@ -281,10 +287,10 @@
   function markSeen() { try { sessionStorage.setItem('mtrb_shown', '1'); } catch (e) {} }
 
   function destUrl() {
-    if (CRE.dest === 'check_b' || CRE.dest === 'check_c' || CRE.dest === 'check_d' || CRE.dest === 'check_e') {
+    if (CRE.dest === 'check_b' || CRE.dest === 'check_c' || CRE.dest === 'check_d' || CRE.dest === 'check_e' || CRE.dest === 'check_f' || CRE.dest === 'check_g') {
       /* The LP and the check page are on different origins and cannot share sessionStorage,
          so sid and v are passed in the query string. */
-      var base = CRE.dest === 'check_b' ? CFG.CHECK_B : CRE.dest === 'check_c' ? CFG.CHECK_C : CRE.dest === 'check_d' ? CFG.CHECK_D : CFG.CHECK_E;
+      var base = CRE.dest === 'check_b' ? CFG.CHECK_B : CRE.dest === 'check_c' ? CFG.CHECK_C : CRE.dest === 'check_d' ? CFG.CHECK_D : CRE.dest === 'check_e' ? CFG.CHECK_E : CRE.dest === 'check_f' ? CFG.CHECK_F : CFG.CHECK_G;
       return base + '?sid=' + encodeURIComponent(sid()) + '&v=' + encodeURIComponent(CRE.v);
     }
     return CFG.APP_URL;
@@ -375,7 +381,19 @@
     'border-radius:12px;border:2px solid #b9cbc7;background:#fff;color:#17201e;box-shadow:0 3px 0 #b9cbc7;cursor:pointer;padding:0;margin:0}' +
     '.pop.c2 .opt:active{transform:translateY(2px);box-shadow:none}' +
     '.pop.c2 .opt:focus-visible{outline:3px solid #f0a500;outline-offset:2px}' +
-    '@media (prefers-reduced-motion:reduce){.pop.c2 .edge,.pop.c2 .mid{animation:none;opacity:1}}';
+    '@media (prefers-reduced-motion:reduce){.pop.c2 .edge,.pop.c2 .mid{animation:none;opacity:1}}' +
+    /* F/G only (.pop.lyr.fg). The base contains every still element. The measured boxes are
+       from the approved 1080 x 1920 prototype; no container-query units are needed. */
+    '.pop.lyr.fg .num{left:1.2037%;top:29.77%;width:95.2778%;opacity:0;' +
+    'animation:fgNumRise 1s cubic-bezier(.2,.5,.35,1) both}' +
+    '.pop.lyr.fg .up,.pop.lyr.fg .dn{left:52.002%;top:71.8387%;width:44%;}' +
+    '.pop.lyr.fg .up{animation:fgUp 3.2s steps(1,end) 1.2s infinite}' +
+    '.pop.lyr.fg .dn{opacity:0;animation:fgDn 3.2s steps(1,end) 1.2s infinite}' +
+    '@keyframes fgNumRise{from{opacity:0}to{opacity:1}}' +
+    '@keyframes fgUp{0%{opacity:1}4%{opacity:0}10%{opacity:1}15%{opacity:0}21%,100%{opacity:1}}' +
+    '@keyframes fgDn{0%{opacity:0}4%{opacity:1}10%{opacity:0}15%{opacity:1}21%,100%{opacity:0}}' +
+    '@media (prefers-reduced-motion:reduce){.pop.lyr.fg .num{animation:none;opacity:1}' +
+    '.pop.lyr.fg .up,.pop.lyr.fg .dn{animation:none}.pop.lyr.fg .dn{opacity:0}}';
 
   var host = null;
   function close(how) {
@@ -481,7 +499,12 @@
     } else {
       root.querySelector('.tap').addEventListener('click', function () {
         track('banner_tap', CRE.dest);
-        location.href = destUrl();
+        if (CRE.cls === 'fg') {
+          try { if (navigator.vibrate) navigator.vibrate(40); } catch (e) {}
+          setTimeout.call(window, function () { location.href = destUrl(); }, 120);
+        } else {
+          location.href = destUrl();
+        }
       });
     }
     track('banner_view', source);
