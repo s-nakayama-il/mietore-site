@@ -42,7 +42,7 @@ h1{margin:0;font-size:23px;font-weight:800;line-height:1.4;text-align:center}
 .go:active{transform:translateY(2px);box-shadow:0 2px 0 var(--green-d)}
 .go:focus-visible,.opt:focus-visible{outline:3px solid #f0a500;outline-offset:2px}
 /* 問題の画面：絵と 4 択が画面の高さに入るように、絵の方を縮める */
-body.q main{height:calc(100vh - 46px);padding-bottom:14px}
+body.q main{height:calc(100vh - 46px);height:calc(100dvh - 46px);padding-bottom:14px}
 .figbox{flex:1 1 auto;min-height:120px;display:flex;justify-content:center}
 .figbox canvas{width:100%;height:100%;object-fit:contain;display:block}
 .timer{display:flex;align-items:center;gap:10px}
@@ -86,7 +86,7 @@ body.q main{height:calc(100vh - 46px);padding-bottom:14px}
 .fine{margin:4px 0 0;font-size:12px;color:var(--sub);text-align:center;line-height:1.5}
 .privacy{margin:14px 0 calc(96px + env(safe-area-inset-bottom));text-align:center;font-size:12px;line-height:1.5}.privacy a{color:var(--sub)}
 .okl{align-self:center;margin:-4px 0 0;background:#fff4dc;color:var(--band-t);border:1.5px solid var(--band);border-radius:999px;font-size:14px;font-weight:800;padding:1px 12px;line-height:1.5}
-.wfig{width:min(100%,330px,calc((100vh - 330px) * 492 / 442))}
+.wfig{width:min(100%,330px,calc((100vh - 330px) * 492 / 442));width:min(100%,330px,calc((100dvh - 330px) * 492 / 442))}
 /* 008: 答えの画面（1〜3問目）と結果を詰めて、「今の私のこと」をボタンの上に見せる。入りきらない画面は、ボタンのすぐ上に下へ続く影 */
 body.a main{padding-top:10px;gap:8px}
 body.a .ansfig{width:calc(min(86vw,calc(80vh * 9 / 16)) * .8)}
@@ -128,7 +128,7 @@ body.a .care{margin:0}
 @media (prefers-reduced-motion:reduce){.wh{display:flex;flex-direction:column;gap:4px}
  .wh span{animation:none!important;opacity:1}
  .wh span:nth-child(1){display:none}
- .wfig{width:min(100%,330px,calc((100vh - 400px) * 492 / 442))}}
+ .wfig{width:min(100%,330px,calc((100vh - 400px) * 492 / 442));width:min(100%,330px,calc((100dvh - 400px) * 492 / 442))}}
 /* ===== 2026-10-29 F・G 見本で足した所 ===== */
 /* 上の進み具合（帯のすぐ下に固定） */
 .prog{margin:0;position:sticky;top:46px;z-index:5;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:center;gap:4px;padding:6px 8px;height:50px}
@@ -141,7 +141,7 @@ body.a .care{margin:0}
 .prog li.done::before{content:"✓";border-color:var(--ok);background:var(--ok);color:#fff;font-size:13px;line-height:16px;text-align:center}
 .prog li.pop::before{animation:pop .45s ease}
 @keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
-body.q main{height:calc(100vh - 96px)}
+body.q main{height:calc(100vh - 96px);height:calc(100dvh - 96px)}
 .later{align-self:center;margin:0;background:#fff4dc;color:var(--band-t);border:1.5px solid var(--band);border-radius:999px;font-size:14px;font-weight:800;padding:1px 12px;line-height:1.6;flex:none}
 /* 帯の名前のアイコン（見えるかなゲーム） */
 .band b{display:flex;align-items:center;gap:6px}
@@ -194,6 +194,10 @@ body.q main{height:calc(100vh - 96px)}
 @keyframes whI{from{opacity:0}to{opacity:1}}
 @keyframes whO{from{opacity:1}to{opacity:0}}
 @media (prefers-reduced-motion:reduce){.wh5 span{animation:none!important;opacity:1}.wh5 span:not(:nth-child(5)){display:none}.prog li.pop::before{animation:none}}
+/* 2026-10-29 004: 結果の下のボタンは「見えているうちに、はじめる目のケア」の帯が半分見えてから出す。出し方は不透明度だけ */
+.foot.wait{opacity:0;visibility:hidden;pointer-events:none}
+.foot.show{transition:opacity .25s ease}
+@media (prefers-reduced-motion:reduce){.foot.show{transition:none}}
 </style>
 </head>
 <body>
@@ -206,7 +210,7 @@ const FONT='"M PLUS Rounded 1c","HG丸ｺﾞｼｯｸM-PRO","Noto Sans JP",sans-
 let timerId=null;
 // 008: main の最後の部品がボタンより下に隠れているときだけ、ボタンのすぐ上に影を出す（答えの画面と結果だけ）
 const fade=document.createElement('div');fade.className='fade';fade.setAttribute('aria-hidden','true');document.body.appendChild(fade);
-function more(){const f=document.querySelector('.foot'),m=document.querySelector('main'),l=m&&m.lastElementChild;
+function more(){const f=document.querySelector('.foot:not(.wait)'),m=document.querySelector('main'),l=m&&m.lastElementChild;
   const on=document.body.classList.contains('a')&&f&&l&&l.getBoundingClientRect().bottom>f.getBoundingClientRect().top+1;
   fade.style.display=on?'block':'none';if(on)fade.style.bottom=(innerHeight-f.getBoundingClientRect().top)+'px'}
 addEventListener('scroll',more,{passive:true});addEventListener('resize',more);document.addEventListener('load',more,true);
@@ -314,7 +318,7 @@ let qStart=0,q3Start=0,ctaObserver=null;
 function osName(){if(/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return 'iOS';if(/Android/.test(ua))return 'Android';return 'PC'}
 function uaFamily(){if(/musical_ly|trill|Bytedance|TTWebView/.test(ua))return 'tiktok';if(/ Line\//.test(ua))return 'line';if(/Instagram/.test(ua))return 'instagram';if(/FBAN|FBAV/.test(ua))return 'facebook';if(/; wv\)/.test(ua))return 'wv';return 'browser'}
 function track(ev,p){const payload={ts:new Date().toISOString(),sid:SID,event:ev,param:String(p==null?'':p).slice(0,64),url:location.href,os:osName(),v:VER,ua_family:uaFamily()};if(DEBUG){try{console.log('[check]',ev,JSON.stringify(payload))}catch(e){}return}const body=JSON.stringify(payload);try{if(navigator.sendBeacon&&navigator.sendBeacon(TRACK_URL,new Blob([body],{type:'text/plain'}))===true)return}catch(e){}try{const q=fetch(TRACK_URL,{method:'POST',body,keepalive:true,mode:'no-cors'});if(q&&q.catch)q.catch(function(){})}catch(e){}}
-function store(href,o,name){return '<a class="go" href="'+href+'" data-os="'+o+'">無料でお試しする<small>'+name+' が開きます</small></a>'}
+function store(href,o,name){return '<a class="go" href="'+href+'" data-os="'+o+'">ゲームで目をトレーニングッ！<small>'+name+' が開きます</small></a>'}
 function stores(){return os==='ios'?store(IOS,'ios','App Store'):os==='android'?store(AND,'android','Google Play'):store(IOS,'ios','App Store')+store(AND,'android','Google Play')}
 
 // 結果（最初の数字の答え＋2・3 つ目の〇✕を折りたたみ）
@@ -353,7 +357,15 @@ function result(){
   track('check_result','o='+(r2?1:0)+(r3?1:0)+';cb=20261029');
   const f=document.createElement('div');f.className='foot';f.innerHTML=stores();root.appendChild(f);
   f.querySelectorAll('a.go').forEach(a=>a.addEventListener('click',()=>track('cta_store','os='+a.dataset.os+';o='+(r2?1:0)+(r3?1:0))));
-  const c=f.querySelector('a.go');if(c&&'IntersectionObserver' in window){ctaObserver=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){ctaObserver.disconnect();track('cta_seen','h='+innerHeight+';y='+Math.round(scrollY))}},{threshold:.9});ctaObserver.observe(c)}
+  const c=f.querySelector('a.go');
+  // 004: ボタンは .care が半分見えたら出して、出し続ける。cta_seen は出した後に見えたら 1 回
+  function seen(){if(c&&'IntersectionObserver' in window){ctaObserver=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){ctaObserver.disconnect();track('cta_seen','h='+innerHeight+';y='+Math.round(scrollY))}},{threshold:.9});ctaObserver.observe(c)}}
+  const care=root.querySelector('.care');
+  if(care&&'IntersectionObserver' in window){f.classList.add('wait');
+    const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();f.classList.add('show');f.classList.remove('wait');more();seen()}},{threshold:.5});
+    // 帯より上の絵が読み込まれる前は帯が上にずれて見えるため、読み込み後に見始める
+    Promise.all([...root.querySelectorAll('.q1box img')].filter(i=>!i.complete).map(i=>new Promise(r=>{i.addEventListener('load',r,{once:true});i.addEventListener('error',r,{once:true})}))).then(()=>io.observe(care))}
+  else seen();
   root.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',more))}
 track('check_start','cv=20261029');q2();
 </script>

@@ -50,3 +50,22 @@ test('F・G の◎ボタンは止まらず繰り返し沈み、動きを減ら�
   assert.doesNotMatch(fg, /1\.2s 2 both/);
   assert.match(fg, /prefers-reduced-motion:reduce\)\{[^}]*\}' \+\s*'\.pop\.lyr\.fg \.up,\.pop\.lyr\.fg \.dn\{animation:none\}/);
 });
+
+test('F・G の問題の画面は見えている高さ（100dvh）で決め、結果のボタンは「ゲームで目をトレーニングッ！」で .care を見てから出す', () => {
+  for (const mode of ['f', 'g']) {
+    const html = readFileSync(new URL(`../public/banner/check/${mode}.html`, import.meta.url), 'utf8');
+    assert.match(html, /body\.q main\{height:calc\(100vh - 96px\);height:calc\(100dvh - 96px\)\}/);
+    assert.match(html, /body\.q main\{height:calc\(100vh - 46px\);height:calc\(100dvh - 46px\);/);
+    assert.match(html, /'">ゲームで目をトレーニングッ！<small>'/);
+    assert.doesNotMatch(html, /無料でお試しする/);
+    assert.match(html, /\.foot\.wait\{opacity:0;visibility:hidden;pointer-events:none\}/);
+    assert.match(html, /\.foot\.show\{transition:opacity \.25s ease\}/);
+    assert.match(html, /querySelector\('\.care'\)/);
+    assert.match(html, /f\.classList\.add\('wait'\)/);
+    assert.match(html, /\{threshold:\.5\}\);/);
+    assert.match(html, /querySelectorAll\('\.q1box img'\)[^\n]*\.then\(\(\)=>io\.observe\(care\)\)/);
+    assert.match(html, /f\.classList\.remove\('wait'\);more\(\);seen\(\)/);
+    assert.equal((html.match(/track\('cta_seen'/g) || []).length, 1);
+    assert.match(html, /querySelector\('\.foot:not\(\.wait\)'\)/);
+  }
+});
