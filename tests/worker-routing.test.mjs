@@ -95,8 +95,9 @@ test('/mm/track の正しい POST は 204 で INSERT が1回', async () => {
   assert.equal(db.length, 1);
   assert.equal(db[0].kind, 'run');
   assert.match(db[0].sql, /^INSERT INTO events /);
-  // 2026-10-28 から 17 列（9 列の後ろに ua・cf・機種の 8 列。TASK-I16-20261028-001）。列が無い D1 での 9 列の入れ直しは mm-cf-columns.test.mjs
-  assert.equal(db[0].binds.length, 17);
+  // 2026-10-28 から 17 列（9 列の後ろに ua・cf・機種の 8 列。TASK-I16-20261028-001）、2026-10-30 から 18 列（後ろに country。TASK-I16-20261030-001）。
+  // 列が無い D1 での 17 列・9 列の入れ直しは mm-cf-columns.test.mjs
+  assert.equal(db[0].binds.length, 18);
   assert.equal(db[0].binds[3], 'page_view');
   assert.equal(db[0].binds[2], '9909local');
 });

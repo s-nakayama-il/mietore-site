@@ -8,6 +8,8 @@ interface Env { DB: D1Database; STATS_KEY: string }
 // ?export=csv の列。今までの 9 列の後ろに 8 列を足す（取込側 load_mm_events.py は両方を受ける）
 const COLS_9 = ['received_at', 'ts', 'sid', 'event', 'param', 'url', 'os', 'v', 'ua_family'] as const;
 const COLS_17 = [...COLS_9, 'ua', 'asn', 'as_org', 'region', 'city', 'postal', 'model', 'os_version'] as const;
+// 2026-10-30 に足した国（TASK-I16-20261030-001）。17 列の後ろに置く
+const COLS_18 = [...COLS_17, 'country'] as const;
 
 // GET /mm/stats: key認証済みの計測集計表示。month絞り込み・CSVエクスポート対応
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
@@ -37,13 +39,17 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     binds.push(`${month.slice(0, 4)}-${month.slice(4)}%`);
   }
   const select = (cols: readonly string[]) => `SELECT ${cols.join(', ')} FROM events${where} ORDER BY received_at`;
-  let cols: readonly string[] = COLS_17;
-  let results: unknown[];
-  try {
-    ({ results } = await env.DB.prepare(select(COLS_17)).bind(...binds).all());
-  } catch {
-    cols = COLS_9;
-    ({ results } = await env.DB.prepare(select(COLS_9)).bind(...binds).all());
+  // country が無い D1 は 17 列、8 列も無い D1 は 9 列で読む
+  let cols: readonly string[] = COLS_18;
+  let results: unknown[] = [];
+  for (const c of [COLS_18, COLS_17, COLS_9]) {
+    cols = c;
+    try {
+      ({ results } = await env.DB.prepare(select(c)).bind(...binds).all());
+      break;
+    } catch (e) {
+      if (c === COLS_9) throw e;
+    }
   }
   const rows = results as unknown as EventRow[];
 

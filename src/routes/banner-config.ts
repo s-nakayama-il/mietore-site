@@ -18,10 +18,22 @@ function respond(request: Request, status: number, body: string, extra?: Record<
   });
 }
 
+// 日本以外から来た人にはバナーを出さない（2026-10-30。国内販売のため）。Cloudflare が付ける国が JP 以外なら
+// D1 を読まずに「止めている」と同じ本文を返す。XX（不明）・T1（Tor）も日本以外とみなす。
+// cf が無い・国が空（ローカル・テスト）はこれまでどおり D1 を読む
+const STOPPED_BODY = JSON.stringify({ stopped: true, active: [] });
+
+function isOutsideJapan(request: Request): boolean {
+  const country = (request as { cf?: { country?: unknown } }).cf?.country;
+  if (typeof country !== 'string' || country === '') return false;
+  return country !== 'JP';
+}
+
 export async function handleBannerConfig(request: Request, env: BannerConfigEnv): Promise<Response> {
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     return respond(request, 405, CONFIG_METHOD_BODY, { Allow: 'GET, HEAD' });
   }
+  if (isOutsideJapan(request)) return respond(request, 200, STOPPED_BODY);
   let row: BannerConfigRow | null = null;
   try {
     const { results } = await env.DB.prepare(CONFIG_SQL).all();
