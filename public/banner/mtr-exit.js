@@ -56,7 +56,8 @@
     CHECK_D: ORIGIN + '/banner/check/d',
     CHECK_E: ORIGIN + '/banner/check/e',       /* no .html: avoids the 308 redirect Pages adds */
     CHECK_F: ORIGIN + '/banner/check/f',
-    CHECK_G: ORIGIN + '/banner/check/g'
+    CHECK_G: ORIGIN + '/banner/check/g',
+    CHECK_H: ORIGIN + '/banner/check/h'
   };
 
   /* v is the version identifier recorded with every event.
@@ -95,6 +96,8 @@
       alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u308b\uff1f 1\u5206\u3067\u7b54\u3048\u304c\u308f\u304b\u308a\u307e\u3059\u3002\u62bc\u3057\u3066\u59cb\u3081\u308b' },
     { id: 'G', v: 'banner-20261029-G', pre: 'banner_20261029_', dest: 'check_g', cls: 'fg', layers: ['base', 'num', 'up', 'dn'],
       alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u308b\uff1f 1\u5206\u3067\u7b54\u3048\u304c\u308f\u304b\u308a\u307e\u3059\u3002\u62bc\u3057\u3066\u59cb\u3081\u308b' },
+    { id: 'H', v: 'banner-20261110-H', pre: 'banner_20261110_', dest: 'check_h', cls: 'h', layers: ['base', 'num'], choices: ['4682', '4687', '9682', '4632'],
+      alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u308b\uff1f \u898b\u3048\u305f\u6570\u5b57\u3092\u30bf\u30c3\u30d7' },
     { id: 'A7', v: 'banner-20261008-A7', pre: 'banner_A7_20261008_', dest: 'app',
       layers: ['base', 'head', 'ring', 'stamps', 'coin', 'picture'],
       alt: '\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u7121\u6599\u30027\u65e5\u9023\u7d9a\u30671\u65e51\u56de\u30b2\u30fc\u30e0\u3092\u30af\u30ea\u30a2\u3059\u308b\u3068\uff081\u65e53\u5206\uff09\u3001\u3075\u304f\u3075\u304f\u30dd\u30a4\u30f3\u30c81000\u30dd\u30a4\u30f3\u30c8\u30021000\u30dd\u30a4\u30f3\u30c8\u3067\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u30015,280\u5186(\u7a0e\u8fbc)\u304c\u7121\u6599\u3002\u7121\u6599\u30a2\u30d7\u30ea\u3067\u3001\u306f\u3058\u3081\u308b' }
@@ -287,10 +290,10 @@
   function markSeen() { try { sessionStorage.setItem('mtrb_shown', '1'); } catch (e) {} }
 
   function destUrl() {
-    if (CRE.dest === 'check_b' || CRE.dest === 'check_c' || CRE.dest === 'check_d' || CRE.dest === 'check_e' || CRE.dest === 'check_f' || CRE.dest === 'check_g') {
+    if (CRE.dest === 'check_b' || CRE.dest === 'check_c' || CRE.dest === 'check_d' || CRE.dest === 'check_e' || CRE.dest === 'check_f' || CRE.dest === 'check_g' || CRE.dest === 'check_h') {
       /* The LP and the check page are on different origins and cannot share sessionStorage,
          so sid and v are passed in the query string. */
-      var base = CRE.dest === 'check_b' ? CFG.CHECK_B : CRE.dest === 'check_c' ? CFG.CHECK_C : CRE.dest === 'check_d' ? CFG.CHECK_D : CRE.dest === 'check_e' ? CFG.CHECK_E : CRE.dest === 'check_f' ? CFG.CHECK_F : CFG.CHECK_G;
+      var base = CRE.dest === 'check_b' ? CFG.CHECK_B : CRE.dest === 'check_c' ? CFG.CHECK_C : CRE.dest === 'check_d' ? CFG.CHECK_D : CRE.dest === 'check_e' ? CFG.CHECK_E : CRE.dest === 'check_f' ? CFG.CHECK_F : CRE.dest === 'check_g' ? CFG.CHECK_G : CFG.CHECK_H;
       return base + '?sid=' + encodeURIComponent(sid()) + '&v=' + encodeURIComponent(CRE.v);
     }
     return CFG.APP_URL;
@@ -393,7 +396,20 @@
     '@keyframes fgUp{0%{opacity:1}4%{opacity:0}10%{opacity:1}15%{opacity:0}21%,100%{opacity:1}}' +
     '@keyframes fgDn{0%{opacity:0}4%{opacity:1}10%{opacity:0}15%{opacity:1}21%,100%{opacity:0}}' +
     '@media (prefers-reduced-motion:reduce){.pop.lyr.fg .num{animation:none;opacity:1}' +
-    '.pop.lyr.fg .up,.pop.lyr.fg .dn{animation:none}.pop.lyr.fg .dn{opacity:0}}';
+    '.pop.lyr.fg .up,.pop.lyr.fg .dn{animation:none}.pop.lyr.fg .dn{opacity:0}}' +
+    /* H only (.pop.lyr.h). Its base contains the still upper and lower halves; the number
+       reuses F/G's layer and the four HTML answers use the measured prototype box. */
+    '.pop.lyr.h .num{left:1.2037%;top:29.77%;width:95.2778%;opacity:0;' +
+    'animation:hNumRise 1s cubic-bezier(.2,.5,.35,1) both}' +
+    '.pop.lyr.h .opts{position:absolute;left:6.9994%;top:72.5382%;width:86.0012%;height:23.5246%;display:grid;' +
+    'grid-template-columns:1fr 1fr;gap:9.565% 4.651%;z-index:2}' +
+    '.pop.lyr.h .opt{font:900 clamp(19px,min(6.88vw,3.6vh),34px) "M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;' +
+    'letter-spacing:.06em;border-radius:12px;border:2px solid #b9cbc7;background:#fff;color:#17201e;' +
+    'box-shadow:0 3px 0 #b9cbc7;cursor:pointer;padding:0;margin:0}' +
+    '.pop.lyr.h .opt:active{transform:translateY(2px);box-shadow:none}' +
+    '.pop.lyr.h .opt:focus-visible{outline:3px solid #f0a500;outline-offset:2px}' +
+    '@keyframes hNumRise{from{opacity:0}to{opacity:1}}' +
+    '@media (prefers-reduced-motion:reduce){.pop.lyr.h .num{animation:none;opacity:1}}';
 
   var host = null;
   function close(how) {
@@ -416,7 +432,10 @@
                         digits in it at all) */
   var layerState = 'none';          /* none | pending | ok | fail */
   var layerWaiters = [];
-  function layerSrc(name) { return CFG.IMG_BASE + '/' + CRE.pre + name + '.webp'; }
+  function layerSrc(name) {
+    if (CRE.id === 'H' && name === 'num') return CFG.IMG_BASE + '/banner_20261029_num.webp';
+    return CFG.IMG_BASE + '/' + CRE.pre + name + '.webp';
+  }
   function settleLayers(next) {
     if (layerState !== 'pending') return;
     layerState = next;
