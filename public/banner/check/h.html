@@ -369,7 +369,7 @@ function result(){
     <details><summary><span class="nm">うすい しま模様<small>あなた ${rec.q2.a} → 答え 5番まで</small><em class="${r2?'o':'x'}">${r2?'見えている今を保つ':'1日3分で、ケアできます'}</em></span><span class="mk ${r2?'o':'x'}">${r2?'〇':'✕'}</span><span class="op">答え</span></summary><div class="body" id="b2"></div></details>
     <details><summary><span class="nm">似た向きの見分け<small>あなた ${rec.q3.n}個 → 答え 5個</small><em class="${r3?'o':'x'}">${r3?'見えている今を保つ':'1日3分で、ケアできます'}</em></span><span class="mk ${r3?'o':'x'}">${r3?'〇':'✕'}</span><span class="op">答え</span></summary><div class="body" id="b3"></div></details>
    </div>
-   <p class="res1">${anyX?'✕の見分けは、目がつかれた日に出やすい所です。':'今は、どれもよく見えています。'}</p>
+   <p class="res1">${anyX?'✕の見分けは、目がつかれた日に出やすい所です。':A1&&!rec.q1.ok?'いちばんうすい「2」は、<br>見えにくかったようです。<br>しま模様と模様さがしは、<br>よく見えています。':'今は、どれもよく見えています。'}</p>
    <div class="care">${EYE}<p>見えているうちに、<br>はじめる目のケア</p></div>
    <div class="rec"><div class="hd"><img src="/banner/img/fukuta_good.png" alt=""><p>ミエトレ（無料アプリ）</p></div>
     <p class="txt">今の模様の見分けを、1日3分。ゲームしながら続けられます。</p>
