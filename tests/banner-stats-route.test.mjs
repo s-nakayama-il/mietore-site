@@ -256,3 +256,100 @@ test('ページを組み立てる JS の処理時間（D1 を模した遅れ0の
   console.log(`[banner-stats] JS 処理時間（${stats.length}行・50回）: 中央値 ${median.toFixed(3)} ms / 最大 ${max.toFixed(3)} ms`);
   assert.ok(max < 50, `最大 ${max.toFixed(3)} ms（Free の 10 ms に対して明らかに外れていないこと）`);
 });
+
+const EXPORT_COLS = [
+  'received_at', 'ts', 'sid', 'event', 'param', 'url', 'os', 'v', 'ua_family',
+  'ua', 'asn', 'as_org', 'region', 'city', 'postal', 'model', 'os_version', 'country',
+];
+
+function makeExportDb(rows) {
+  const calls = [];
+  const db = {
+    prepare(sql) {
+      const stmt = {
+        binds: [],
+        bind(...binds) { stmt.binds = binds; return stmt; },
+        async all() {
+          calls.push({ sql, binds: stmt.binds });
+          let selected = rows.map((r, i) => ({ __rowid: i + 1, ...r }));
+          if (sql.includes('received_at LIKE')) selected = selected.filter((r) => r.received_at.startsWith(String(stmt.binds[0]).replace('%', '')));
+          if (sql.includes('received_at >= ?1')) selected = selected.filter((r) => r.received_at >= stmt.binds[0] && r.received_at < stmt.binds[1]);
+          if (sql.startsWith('SELECT count(*) AS n')) return { results: [{ n: selected.length }] };
+          if (sql.includes('received_at > ?3')) selected = selected.filter((r) => r.received_at > stmt.binds[2] || (r.received_at === stmt.binds[2] && r.__rowid > stmt.binds[3]));
+          if (sql.includes('LIMIT 1000')) selected = selected.slice(0, 1000);
+          return { results: selected };
+        },
+      };
+      return stmt;
+    },
+  };
+  return { db, calls };
+}
+
+const exportRow = (receivedAt, sid) => ({
+  received_at: receivedAt, ts: receivedAt, sid, event: 'banner_view', param: 'back',
+  url: 'https://example.test/lp', os: 'Android', v: 'banner-test', ua_family: 'tiktok',
+  ua: 'TEST-UA', asn: 64512, as_org: 'Test Carrier', region: 'Test Region', city: 'Test City',
+  postal: '000-0000', model: 'TEST-MODEL', os_version: '14', country: 'ZZ',
+});
+
+const statsCall = (db, query) => call({ DB: db, STATS_KEY: 'stats-test' }, `/mm/stats?key=stats-test&${query}`);
+
+test('/mm/stats export=csv の from・to は JST の両端日を含み、翌日を含めない', async () => {
+  const rows = [
+    exportRow('2026-10-31T23:59:59+09:00', 'before'),
+    exportRow('2026-11-01T00:00:00+09:00', 'first'),
+    exportRow('2026-11-02T23:59:59+09:00', 'last'),
+    exportRow('2026-11-03T00:00:00+09:00', 'after'),
+  ];
+  const { db, calls } = makeExportDb(rows);
+  const res = await statsCall(db, 'export=csv&from=2026-11-01&to=2026-11-02');
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get('x-export-count'), '2');
+  const body = await res.text();
+  assert.match(body, /"first"/);
+  assert.match(body, /"last"/);
+  assert.doesNotMatch(body, /"before"|"after"/);
+  assert.deepEqual(calls[0].binds, ['2026-11-01T00:00:00+09:00', '2026-11-03T00:00:00+09:00']);
+  assert.match(calls[0].sql, /ORDER BY received_at, rowid LIMIT 1000$/);
+});
+
+test('/mm/stats export=csv の from・to は片方欠け・実在しない日・逆順・month併用を 400 にする', async () => {
+  const { db, calls } = makeExportDb([]);
+  for (const query of [
+    'export=csv&from=2026-11-01',
+    'export=csv&to=2026-11-01',
+    'export=csv&from=2026-02-30&to=2026-03-01',
+    'export=csv&from=2026-11-02&to=2026-11-01',
+    'export=csv&month=202611&from=2026-11-01&to=2026-11-02',
+    'from=2026-11-01&to=2026-11-02',
+  ]) {
+    const res = await statsCall(db, query);
+    assert.equal(res.status, 400, query);
+  }
+  assert.equal(calls.length, 0, '不正な範囲では D1 を読まない');
+});
+
+test('/mm/stats export=csv の従来 month と全件はそのまま使える', async () => {
+  const rows = [exportRow('2026-10-31T12:00:00+09:00', 'oct'), exportRow('2026-11-01T12:00:00+09:00', 'nov')];
+  const monthDb = makeExportDb(rows);
+  const month = await (await statsCall(monthDb.db, 'export=csv&month=202610')).text();
+  assert.match(month, /"oct"/);
+  assert.doesNotMatch(month, /"nov"/);
+  const allDb = makeExportDb(rows);
+  const all = await (await statsCall(allDb.db, 'export=csv')).text();
+  assert.match(all, /"oct"/);
+  assert.match(all, /"nov"/);
+});
+
+test('/mm/stats export=csv の日付範囲は1000行ずつ続きから読み、同時刻の行も落とさない', async () => {
+  const rows = Array.from({ length: 1001 }, (_, i) => exportRow('2026-11-01T12:00:00+09:00', `sid-${i}`));
+  const { db, calls } = makeExportDb(rows);
+  const res = await statsCall(db, 'export=csv&from=2026-11-01&to=2026-11-01');
+  assert.equal(res.headers.get('x-export-count'), '1001');
+  const body = await res.text();
+  assert.equal(body.match(/"banner_view"/g)?.length, 1001);
+  const pages = calls.filter((call) => call.sql.startsWith('SELECT rowid AS __rowid'));
+  assert.equal(pages.length, 2);
+  assert.deepEqual(pages[1].binds.slice(2), ['2026-11-01T12:00:00+09:00', 1000]);
+});
