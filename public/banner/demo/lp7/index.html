@@ -244,16 +244,34 @@ body{padding-bottom:0}
 #s4 .d1 .h{display:flex;align-items:center;gap:8px}
 #s4 .d1 .h span{font-size:14px;font-weight:900;color:#fff;background:#ee5a3c;border-radius:999px;padding:3px 12px}
 #s4 .d1 .h b{font-size:18px;font-weight:900}
-#s4 .d1 ol{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:8px}
-#s4 .d1 li{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start;font-size:16px;font-weight:800;line-height:1.45}
-#s4 .d1 li>i{font-style:normal;width:24px;height:24px;line-height:24px;border-radius:50%;background:#ee5a3c;color:#fff;font-size:14px;font-weight:900;text-align:center;transition:background .2s,transform .2s}
-#s4 .d1 li.done>i{background:#15913f;transform:scale(1.1)}
-#s4 .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:7px;border-radius:12px;transition:background .2s,box-shadow .2s}
+#s4 .d1 .h{margin-bottom:10px}
+/* -006: ① → ② → ③ を縦の線でつなぐ。「いまここ」の番号だけ色 */
+#s4 .step{display:grid;grid-template-columns:28px 1fr;gap:8px;position:relative;padding-bottom:14px}
+#s4 #st3{padding-bottom:0}
+#s4 .step::before{content:"";position:absolute;left:13px;top:28px;bottom:0;width:2px;background:#f0dcc0}
+#s4 #st3::before{display:none}
+#s4 .step>i{font-style:normal;width:28px;height:28px;line-height:28px;border-radius:50%;background:#f0dcc0;color:#fff;font-size:15px;font-weight:900;text-align:center;position:relative;z-index:1;transition:background .3s,box-shadow .3s}
+#s4 .step.now>i{background:#ee5a3c;box-shadow:0 0 0 4px #fbd6cc}
+#s4 .step.done>i{background:#15913f}
+#s4 .step .t{font-size:16px;font-weight:900;line-height:28px;color:#1b2340;border-radius:8px;transition:background .3s}
+#s4 .step .t em{font-style:normal;font-size:11px;font-weight:900;color:#fff;background:#d12c1f;border-radius:5px;padding:2px 6px;margin-left:6px;vertical-align:2px}
+#s4 .step .t small{font-size:13px;font-weight:700;color:#6b6250;margin-left:6px}
+#s4 .step.wait .t{color:#a49a86}
+#s4 .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:6px;border-radius:12px;transition:background .2s,box-shadow .2s}
 #s4 .chips button{font:inherit;font-size:15px;font-weight:800;letter-spacing:-.02em;min-height:46px;padding:0;border-radius:10px;border:2px solid #cfd6de;background:#fff;color:#1b2340;box-shadow:0 3px 0 #cfd6de;cursor:pointer;white-space:nowrap}
 #s4 .chips button.sel{border-color:#15913f;background:#e8f6ec;box-shadow:0 3px 0 #15913f;color:#0e6e2f}
-#s4 .need{margin-top:6px;font-size:13px;font-weight:800;color:#d12c1f;text-align:center}
-#s4 .need[hidden]{display:none}
-#s4 li.nudge .chips{animation:nudge .5s;background:#ffe2d6;box-shadow:0 0 0 4px #ffe2d6}
+/* ② のボタン：えらぶ前は押せない見た目（点線・薄い色）、えらんだ後は緑 */
+#s4 .s2b{font:inherit;display:grid;grid-template-columns:1fr 24px;align-items:center;width:100%;text-align:left;border-radius:12px;padding:10px 14px;cursor:pointer;transition:background .3s,color .3s,border-color .3s,box-shadow .3s}
+#s4 .s2b b{display:block;font-size:19px;font-weight:900;line-height:1.3}
+#s4 .s2b small{display:none;font-size:12px;font-weight:700;line-height:1.4;margin-top:2px}
+#s4 .s2b u{text-decoration:none;font-size:20px;font-weight:900;text-align:right}
+#s4 .s2.off .s2b{background:#f4f1ea;border:2px dashed #d9cfbb;color:#a49a86;box-shadow:none}
+#s4 .s2.on .s2b{background:#15913f;border:2px solid #15913f;color:#fff;box-shadow:0 4px 0 #0e6e2f,0 0 0 4px #c8ecd3}
+#s4 .s2.off small.off,#s4 .s2.on small.on{display:block}
+#s4 .s2.off .go{background:#f4f1ea;border:2px dashed #d9cfbb;color:#a49a86;box-shadow:none}
+/* えらぶ前に ② を押した：① の行と選択肢を目立たせる */
+#s4 #st1.nudge .t{background:#ffe2d6}
+#s4 #st1.nudge .chips{animation:nudge .5s;background:#ffe2d6;box-shadow:0 0 0 4px #ffe2d6}
 @keyframes nudge{0%,100%{transform:none}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
 #s4 .d1n{margin-top:10px;font-size:13px;font-weight:700;color:#6b6250;line-height:1.5}
 #s4 .day{display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:start}
@@ -264,8 +282,6 @@ body{padding-bottom:0}
 #s4 .day img{width:22px;height:22px;vertical-align:-5px;margin-right:4px}
 #s4 .day u{text-decoration:none;color:#e8820c}
 #s4 .day em{font-style:normal;color:#d12c1f;font-weight:900}
-#s4 .fgo{margin-top:14px}
-#s4 .fgo .foot{padding:0}
 #s4 .go{font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:58px;border:0;border-radius:12px;background:#15913f;color:#fff;font-size:18px;font-weight:800;box-shadow:0 4px 0 #0e6e2f;cursor:pointer;line-height:1.3;padding:6px 8px;text-decoration:none;text-align:center}
 #s4 .go small{font-size:13px;font-weight:700}
 #s4 .pcl{margin:0 0 6px;text-align:center;font-size:15px;font-weight:800;color:#4a4f4e}
@@ -281,7 +297,7 @@ body{padding-bottom:0}
 .cp .sbar.on{transform:none;visibility:visible}
 .cp .sbar .sm{margin-top:4px}
 .cp .toast{z-index:40}
-@media (prefers-reduced-motion:reduce){.cp .sbar,#s4 .d1 li>i,#s4 .chips{transition:none}#s4 li.nudge .chips{animation:none}}
+@media (prefers-reduced-motion:reduce){.cp .sbar,#s4 .step>i,#s4 .step .t,#s4 .chips,#s4 .s2b{transition:none}#s4 #st1.nudge .chips{animation:none}}
 
 </style>
 </head>
@@ -304,10 +320,10 @@ body{padding-bottom:0}
   <li><span class="n">2</span><div>7日つづくと、<span class="nw">ふくふくポイント</span><b class="org nw">1000ポイント</b></div></li>
   <li><span class="n">3</span><div><b class="org nw">1000ポイント</b>で、<span class="nw">アサイベリープラチナアイが</span><b class="red nw">1つ無料</b>。<span class="nw">送料も無料</span></div></li>
 </ol>
-<!-- 順 3 -->
+<!-- 順 3（ボタンの下の小さい字は、年代がまだの間は流れへ・答えた後はストアへ） -->
 <div class="foot">
   <a class="cta" href="#store" id="cta">▶ 無料アプリで、はじめる</a>
-  <p class="sm">アプリのストアへ進みます</p>
+  <p class="sm lpsm">下の「7日チャレンジの流れ」へ進みます</p>
 </div>
 </div>
 <!-- 順 4：7日チャレンジの流れ（新しい区画。年代は「1日目」の中で聞く） -->
@@ -316,15 +332,13 @@ body{padding-bottom:0}
  <p class="sub">やることは、これだけ</p>
  <div class="tl">
   <div class="d1"><div class="h"><span>1日目</span><b>今日やること</b></div>
-   <ol><li id="d1a"><i>1</i><div>年代を答える<div class="chips" role="group" aria-label="年代を答える"><button type="button" data-v="20代以下" aria-pressed="false">〜20代</button><button type="button" data-v="30代" aria-pressed="false">30代</button><button type="button" data-v="40代" aria-pressed="false">40代</button><button type="button" data-v="50代" aria-pressed="false">50代</button><button type="button" data-v="60代以上" aria-pressed="false">60代〜</button></div><p class="need" id="need" hidden>年代をえらんでください</p></div></li><li><i>2</i><div>アプリを入れる</div></li><li><i>3</i><div>ゲームを1回クリア</div></li></ol>
+   <div class="step now" id="st1"><i>1</i><div><p class="t">年代を選択してください<em>必須</em></p><div class="chips" role="group" aria-label="年代を選択してください"><button type="button" data-v="20代以下" aria-pressed="false">〜20代</button><button type="button" data-v="30代" aria-pressed="false">30代</button><button type="button" data-v="40代" aria-pressed="false">40代</button><button type="button" data-v="50代" aria-pressed="false">50代</button><button type="button" data-v="60代以上" aria-pressed="false">60代〜</button></div></div></div>
+   <div class="step wait" id="st2"><i>2</i><div class="s2 off" id="fgo"><button type="button" class="s2b" id="s2b" aria-disabled="true"><span><b>アプリを入れる</b><small class="off">① の年代をえらぶと、押せます</small><small class="on">ストアが開きます。入れたら ③ へ</small></span><u>▶</u></button></div></div>
+   <div class="step wait" id="st3"><i>3</i><div><p class="t">ゲームを1回クリア<small>アプリの中で</small></p></div></div>
    <p class="d1n">アプリで最初のゲームをクリアした日が、1日目です</p>
   </div>
-  <div class="day"><span>2日目から</span><div><b>ゲームだけ</b><small>1日1回クリア。1日でも休むと、1日目から数え直し</small></div></div><div class="day"><span>7日目</span><div><b><img src="img/coin.webp" alt=""><u>1000ポイント</u> GET</b></div></div><div class="day"><span>そのあと</span><div><b>ふくふく本舗と連携</b><small>メールアドレスを登録します</small></div></div><div class="day"><span>後日</span><div><b>事務局からメール</b><small>早ければ翌営業日</small><b>→ プラチナアイ <em>1つ無料</em></b></div></div>
+  <div class="day"><span>2日目から</span><div><b>ゲームだけ</b><small>1日1回クリア。1日でも休むと、1日目から数え直し</small></div></div><div class="day"><span>7日目</span><div><b><img src="img/coin.webp" alt=""><u>1000ポイント</u> GET</b></div></div><div class="day"><span>そのあと</span><div><b>ふくふく本舗と連携</b><small>届け先情報（会員登録）</small><small>ポイントは7日間だけ。お早めに</small></div></div><div class="day"><span>後日</span><div><b>事務局からメール</b><small>早ければ翌営業日</small><b>→ プラチナアイ <em>1つ無料</em></b></div></div>
  </div>
- <div class="cp fgo" id="fgo"><div class="foot">
-  <a class="cta" href="#store" id="cta3">▶ 無料アプリで、はじめる</a>
-  <p class="sm">アプリのストアへ進みます</p>
-</div></div>
 </section>
 <!-- 順 5：アプリの紹介（H の見学の画面と同じ。5 つめの文だけ H の別の文） -->
 <section id="s5" aria-label="アプリの紹介"><main><p class="wt">ミエるトレーニング、略して ミエトレ</p><h1 class="wh5"><span>1万人が使うアプリで、毎日やっている目のトレーニングです</span><span>ノーベル物理学賞の学者の名前がついた「ガボール模様」を使っています</span><span>ルールに沿いながら、じっくり見てペアを消す</span><span>1年以上、毎日つづけている人も大勢います</span><span>このページで見慣れてきたら、アプリでお試しを</span></h1>
@@ -349,12 +363,12 @@ body{padding-bottom:0}
 <div class="lp-pad"></div>
 <div class="cp"><div class="sbar" id="sbar">
   <a class="cta" href="#store" id="cta2">▶ 無料アプリで、はじめる</a>
-  <p class="sm">アプリのストアへ進みます</p>
+  <p class="sm lpsm">下の「7日チャレンジの流れ」へ進みます</p>
 </div>
 <div class="toast" id="toast" hidden></div></div>
 <script>
 
-// ===== LP（試作 2026-11-17・-005）。ボタンと年代の動き =====
+// ===== LP（試作 2026-11-17・-005／-006）。ボタンと年代の動き =====
 const IOS='https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&ct=lp7_demo&mt=8';
 const AND='https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja&referrer=utm_source%3Dexit_banner%26utm_campaign%3Dlp7_demo';
 const ua=navigator.userAgent||'',os=/iPhone|iPad|iPod/.test(ua)?'ios':/Android/.test(ua)?'android':'other';
@@ -364,26 +378,32 @@ function stores(){return os==='ios'?store(IOS,'ios','App Store'):os==='android'?
 const DEMO=true;   // true＝実機用（本当にストアへ進む）
 function track(ev,p){const x={ts:new Date().toISOString(),event:ev,param:String(p==null?'':p).slice(0,64)};(window.LPLOG=window.LPLOG||[]).push(x);try{console.log('[lp]',ev,x.param)}catch(e){}}   // 記録は送らない
 const $=s=>document.querySelector(s);
-const FLOW=$('#s4'),D1A=$('#d1a'),NEED=$('#need'),FGO=$('#fgo'),SBAR=$('#sbar'),HERO=$('#cta'),TOAST=$('#toast'),S5=$('#s5');
+const FLOW=$('#s4'),ST1=$('#st1'),ST2=$('#st2'),FGO=$('#fgo'),SBAR=$('#sbar'),HERO=$('#cta'),TOAST=$('#toast'),S5=$('#s5');
 const CHIPS=[...FLOW.querySelectorAll('.chips button')];
 const RM=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 let ageDone=false,ageVal='';
-// 実機用の PC（iPhone・Android のどちらでもない）：区画の中のボタンを、H と同じ 2 つに分ける
-if(DEMO&&os==='other')FGO.innerHTML=stores();
+// 実機用の PC（iPhone・Android のどちらでもない）：② を、H と同じ 2 つのストアのボタンに分ける
+const PC=DEMO&&os==='other';
+if(PC)FGO.innerHTML=stores();
+// 上・下のボタンの下の小さい字：年代がまだ＝流れへ／答えた後＝ストアへ（PC は答えた後も流れへ動くので、そのまま）
+const SM_STORE='アプリのストアへ進みます';
 function vis(el){if(!el)return false;const r=el.getBoundingClientRect();return r.height>0&&r.bottom>0&&r.top<innerHeight}
-// 下にいつも出るボタン：緑のボタン（順 3・区画の中）のどちらかが見えている間は出さない
+// 下にいつも出るボタン：緑のボタン（順 3）か ② のボタンが見えている間は出さない
 function sbarUpdate(){SBAR.classList.toggle('on',!vis(HERO)&&!vis(FGO))}
 addEventListener('scroll',sbarUpdate,{passive:true});addEventListener('resize',sbarUpdate);
 function showToast(){TOAST.style.display='block';clearTimeout(showToast.t);showToast.t=setTimeout(()=>TOAST.style.display='none',1800)}
-// 年代：えらぶと色とチェック。ストアへは移らない。えらび直せる
+// 年代：えらぶと ① がチェック、「いまここ」が ② へ、② が緑に。ストアへは移らない。えらび直せる
 CHIPS.forEach(b=>b.onclick=()=>{CHIPS.forEach(x=>{x.classList.toggle('sel',x===b);x.setAttribute('aria-pressed',x===b?'true':'false')});
-  const again=ageDone;ageDone=true;ageVal=b.dataset.v;D1A.classList.add('done');D1A.querySelector('i').textContent='✓';NEED.hidden=true;D1A.classList.remove('nudge');
+  const again=ageDone;ageDone=true;ageVal=b.dataset.v;
+  ST1.className='step done';ST1.querySelector('i').textContent='✓';ST2.className='step now';FGO.classList.replace('off','on');
+  const s2=$('#s2b');if(s2)s2.setAttribute('aria-disabled','false');
+  if(!PC)document.querySelectorAll('.lpsm').forEach(e=>e.textContent=SM_STORE);
   track('age_answer','a='+ageVal+(again?';re=1':''))});
 // 流れの区画まで画面を動かす（見出しが画面の上の方に来る位置）。動きを減らす設定では飛ぶ
 function toFlow(){const y=FLOW.getBoundingClientRect().top+scrollY-8;window.scrollTo({top:Math.max(0,y),behavior:RM()?'auto':'smooth'})}
-// 年代の所を目立たせて「年代をえらんでください」
-function nudge(){NEED.hidden=false;D1A.classList.remove('nudge');void D1A.offsetWidth;D1A.classList.add('nudge');
-  const c=D1A.querySelector('.chips').getBoundingClientRect();if(c.top<0||c.bottom>innerHeight-90)window.scrollTo({top:Math.max(0,scrollY+c.top-140),behavior:RM()?'auto':'smooth'})}
+// えらぶ前に ② を押した：① の行（年代を選択してください）と選択肢を目立たせる
+function nudge(){ST1.classList.remove('nudge');void ST1.offsetWidth;ST1.classList.add('nudge');
+  const c=ST1.getBoundingClientRect();if(c.top<0||c.bottom>innerHeight-90)window.scrollTo({top:Math.max(0,scrollY+c.top-60),behavior:RM()?'auto':'smooth'})}
 // ストアへ進む。試作は知らせ。実機用はストアへ（PC は 2 つのストアから選ぶので、区画の中へ）
 function storeUrl(){return os==='ios'?IOS:os==='android'?AND:''}
 function leave(at){track('store_go','at='+at+';a='+ageVal);if(!DEMO)return showToast();const u=storeUrl();if(u)location.href=u;else toFlow()}
@@ -391,8 +411,8 @@ function leave(at){track('store_go','at='+at+';a='+ageVal);if(!DEMO)return showT
 function topBtn(at){return e=>{e.preventDefault();track('cta_store','at='+at+';age='+(ageDone?1:0));if(!ageDone)return toFlow();leave(at)}}
 HERO.addEventListener('click',topBtn('hero'));
 $('#cta2').addEventListener('click',topBtn('sticky'));
-// 区画の中のボタン：答えていればストアへ。まだなら進まず、年代の所を目立たせる
-FGO.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;
+// ② のボタン：答えていればストアへ。まだなら進まず、① を目立たせる
+FGO.addEventListener('click',e=>{const a=e.target.closest('a,button');if(!a)return;
   track('cta_store','at=flow;age='+(ageDone?1:0)+(a.dataset.os?';os='+a.dataset.os:''));
   if(!ageDone){e.preventDefault();track('age_nudge','');return nudge()}
   if(a.dataset.os){track('store_go','at=flow_pc;os='+a.dataset.os+';a='+ageVal);if(!DEMO){e.preventDefault();showToast()};return}   // PC：リンクのまま進む
