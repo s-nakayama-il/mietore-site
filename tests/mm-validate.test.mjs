@@ -99,3 +99,19 @@ test('LP「7日チャレンジ」専用の5イベントは通過し、param は6
     assert.equal(validateAndClean({ ...base, event }), null);
   }
 });
+
+test('LP「7日チャレンジ」LINE の版の lp_line は通過し、param は64文字上限・v はそのまま（TASK-I16-20261119-006）', () => {
+  for (const param of ['at=flow;a=40', 'at=hero;a=20', 'at=sticky;a=60']) {
+    const r = validateAndClean({ ...base, event: 'lp_line', param, sid: '99091234', v: 'lp7line-20261119', ua_family: 'tiktok' });
+    assert.notEqual(r, null);
+    assert.equal(r.event, 'lp_line');
+    assert.equal(r.param, param);
+    assert.equal(r.v, 'lp7line-20261119');
+    assert.equal(r.sid, '99091234');
+  }
+  assert.equal(validateAndClean({ ...base, event: 'lp_line', param: 'a'.repeat(100) }).param.length, 64);
+  // 似た名前の知らない出来事は今までどおり null
+  for (const event of ['lp_lines', 'line', 'lp_line_go', 'LP_LINE']) {
+    assert.equal(validateAndClean({ ...base, event }), null);
+  }
+});

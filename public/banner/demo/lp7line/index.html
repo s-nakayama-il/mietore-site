@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>7日チャレンジ（LP 試作）</title>
+<!--
+  TikTok 動画の飛び先 LP「7日チャレンジ」の試作（2026-11-17・TASK-I16-20261117-001〜005）。make_lp.py が作る。手で直さない。
+  順 1・2・3・6 は 10/13 の説明ページ、順 5 は本番の診断ページ H の見学の画面から写した。順 4 は新しく書いた。
+  実機用（社内確認・/banner/demo/lp7line/）：LINE の版。② で LINE（@543twrrj）へ本当に進む（年代の入った文が入力ずみ）・ストアの URL は入れない・記録は /mm/track へ送る（v=lp7line-20261119・LINE へ進んだら lp_line・sid は mtrlp_sid・ここでは 9909 で始まる社内テストの印）・Clarity は入れていない。お客様への入口にはつながない。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap">
+<style>
+/* ---- 説明ページ（campaign.html）の見た目 ---- */
+:root{--ink:#17201e;--sub:#3b4745;--cream:#fff6e3;--line:#e2ddd2;--org:#e07800;--red:#d12c1f;--green:#15913f;--bg:#ffffff}
+.cp,.cp *{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;
+  min-height:100svh;display:flex;flex-direction:column;max-width:480px;margin:0 auto}
+.cp .top{background:var(--cream);display:flex;align-items:center;gap:8px;padding:14px 16px 12px}
+.cp .top img{width:150px;height:150px;flex:none;margin:-6px -4px -6px -8px}
+.cp .pill.only{background:#14213d;color:#ffd24a}
+.cp .pill{margin:0 4px 4px 0;display:inline-block;background:var(--org);color:#fff;font-weight:900;font-size:16px;border-radius:999px;padding:3px 12px}
+.cp h1{font-size:23px;font-weight:900;line-height:1.25;margin-top:6px}
+.cp h1 em{font-style:normal;color:var(--red);font-size:30px}
+.cp .price{font-size:15px;font-weight:800;color:var(--sub);margin-top:2px}
+.cp .price b{color:var(--ink);font-size:19px}
+.cp ol{list-style:none;padding:14px 16px 6px;display:flex;flex-direction:column;gap:10px}
+.cp li{display:flex;gap:10px;align-items:flex-start;font-size:17px;font-weight:700;line-height:1.4;color:var(--sub)}
+.cp li .n{flex:none;width:28px;height:28px;border-radius:50%;background:#14213d;color:#fff;font-weight:900;font-size:17px;
+  display:flex;align-items:center;justify-content:center;margin-top:1px}
+.cp li b{color:var(--ink);font-weight:900}
+.cp li .org{color:var(--org)}
+.cp li .red{color:var(--red)}
+.cp .nw{white-space:nowrap}
+.cp .st{display:flex;gap:4px;margin-top:4px}
+.cp .st i{width:22px;height:22px;border-radius:50%;background:#e9573f;color:#fff;font-style:normal;font-size:12px;font-weight:900;
+  display:flex;align-items:center;justify-content:center}
+.cp .note{margin:8px 16px 16px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px;font-weight:700;line-height:1.5;color:var(--sub)}
+.cp .note p{padding-left:1em;text-indent:-1em}
+.cp .note p::before{content:"・"}
+.cp .note h2{font-size:16px;font-weight:900;color:var(--ink);margin-bottom:4px}
+.cp .note .who{color:var(--red);font-weight:900}
+.cp .foot{padding:6px 16px 4px}
+.cp .cta{display:flex;align-items:center;justify-content:center;width:100%;height:56px;border:0;border-radius:14px;background:var(--green);color:#fff;
+  font:inherit;font-size:20px;font-weight:900;box-shadow:0 4px 0 #0e6e2f;cursor:pointer;text-decoration:none}
+.cp .sm{font-size:14px;color:var(--sub);text-align:center;margin-top:6px;font-weight:700}
+.cp .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;font-size:14px;
+  padding:8px 14px;border-radius:8px;display:none}
+/* ---- 診断ページ H（h.html）の見た目（順 5 で使う所） ---- */
+#s5{--ink:#17201e;--sub:#4a4f4e;--band:#f5a000;--band-t:#c26a00;--green:#15913f;--green-d:#0e6e2f;--ok:#15913f;--ng:#d9302f;--line:#d9dedd;--teal:#0f7a74;color-scheme:light}
+#s5 *{box-sizing:border-box}
+#s5{margin:0;background:#fff;color:var(--ink);font-family:"M PLUS Rounded 1c","HG丸ｺﾞｼｯｸM-PRO","HGMaruGothicMPRO","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;font-size:17px;line-height:1.6;-webkit-text-size-adjust:100%}
+#s5 :is(h1,p,span,button,td){word-break:auto-phrase}
+#s5 .band{position:sticky;top:0;z-index:5;background:var(--band);display:flex;align-items:center;gap:9px;padding:9px 14px;height:46px}
+#s5 .band .lb{background:#fff;color:var(--band-t);font-weight:800;font-size:15px;border-radius:6px;padding:1px 8px;white-space:nowrap;line-height:1.5}
+#s5 .band b{color:#fff;font-size:18px;font-weight:800;white-space:nowrap;flex:1}
+#s5 .band .pos{color:#fff;font-size:16px;font-weight:800;white-space:nowrap}
+#s5 main{padding:14px 16px 112px;display:flex;flex-direction:column;gap:12px}
+#s5 h1{margin:0;font-size:23px;font-weight:800;line-height:1.4;text-align:center}
+#s5 .big{margin:0;text-align:center;font-weight:900;font-size:30px;line-height:1.3}
+#s5 .big.num{font-size:58px;letter-spacing:.06em;line-height:1.1}
+#s5 .big.ok{color:var(--ok)}
+#s5 .one{margin:0;text-align:center;font-weight:800;font-size:19px;line-height:1.5}
+#s5 .why{margin:0;font-size:17px;line-height:1.6;color:var(--sub);font-weight:700}
+#s5 .scene{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#s5 .scene div{border:1.5px solid var(--line);border-radius:14px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+#s5 .scene svg{width:46px;height:46px;flex:none}
+#s5 .scene span{font-size:16px;font-weight:800;line-height:1.35}
+#s5 .foot{position:fixed;left:0;right:0;bottom:0;z-index:6;background:#fff;padding:10px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(0,0,0,.08)}
+#s5 .go{font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:58px;border:0;border-radius:12px;background:var(--green);color:#fff;font-size:22px;font-weight:800;box-shadow:0 4px 0 var(--green-d);cursor:pointer;line-height:1.3;padding:6px 10px}
+#s5 .go{text-decoration:none}
+#s5 .go small{font-size:14px;font-weight:700}
+#s5 .pcl{margin:0 0 6px;text-align:center;font-size:15px;font-weight:800;color:var(--sub)}
+#s5 .pcb{display:flex;gap:10px}
+#s5 .pcb .go{flex:1;font-size:19px}
+#s5 .pcs{margin:6px 0 0;text-align:center;font-size:14px;font-weight:700;color:var(--sub)}
+#s5 .go:active{transform:translateY(2px);box-shadow:0 2px 0 var(--green-d)}
+#s5 .go:focus-visible,#s5 .opt:focus-visible{outline:3px solid #f0a500;outline-offset:2px}
+#s5 .figbox{flex:1 1 auto;min-height:120px;display:flex;justify-content:center}
+#s5 .figbox canvas{width:100%;height:100%;object-fit:contain;display:block}
+#s5 .timer{display:flex;align-items:center;gap:10px}
+#s5 .timer .tb{flex:1;height:12px;background:#f1dcdc;border-radius:999px;overflow:hidden}
+#s5 .timer .tb i{display:block;height:100%;width:100%;background:var(--ng);border-radius:999px;transition:width 1s linear}
+#s5 .timer b{font-size:18px;color:var(--ng);white-space:nowrap;font-variant-numeric:tabular-nums}
+#s5 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:none}
+#s5 .opt{font:inherit;font-weight:800;font-size:22px;min-height:56px;border-radius:12px;border:2px solid #c3c9c8;background:#fff;color:var(--ink);box-shadow:0 3px 0 #c3c9c8;cursor:pointer;white-space:nowrap}
+#s5 .opt:active{transform:translateY(2px);box-shadow:none}
+#s5 .ansfig{position:relative;width:min(86vw,calc(80vh * 9 / 16));margin:0 auto;border-radius:10px;overflow:hidden}
+#s5 .ansfig img{display:block;width:100%;height:auto}
+#s5 .ansfig svg{position:absolute;inset:0;width:100%;height:100%}
+#s5 .ans2fig{display:flex;justify-content:center}
+#s5 .ans2fig canvas{width:100%;max-height:230px;object-fit:contain;display:block}
+#s5 .tbl{width:100%;border-collapse:collapse;font-size:18px}
+#s5 .tbl td{border-bottom:1px solid var(--line);padding:10px 6px;font-weight:800}
+#s5 .tbl td.m{width:3.2em;text-align:center;font-size:28px;line-height:1}
+#s5 .tbl td.m.o{color:var(--ok)}
+#s5 .tbl td.m.x{color:var(--ng)}
+#s5 .rec{background:#fff4dc;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;margin-top:6px}
+#s5 .rec .hd{display:flex;align-items:center;gap:10px}
+#s5 .rec .hd img{width:62px;flex:none}
+#s5 .rec .hd p{margin:0;font-weight:800;font-size:20px;line-height:1.4;color:var(--ink)}
+#s5 .rec .app{margin:0;font-weight:800;font-size:18px}
+#s5 .rec .txt{margin:0;font-size:16px;line-height:1.6;font-weight:700;color:var(--sub)}
+#s5 .rec .shot{width:62%;margin:0 auto;border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:750 / 700}
+#s5 .rec .shot img{display:block;width:100%;height:auto}
+#s5 .wfig{width:min(100%,330px);margin:0 auto;border-radius:12px;overflow:hidden;background:#f7f8fb}
+#s5 .wfig img{display:block;width:100%;height:auto}
+#s5 .foot.two{display:flex;gap:10px}
+#s5 .foot.two .go{flex:1;font-size:20px}
+#s5 .ans3fig{display:flex;justify-content:center}
+#s5 .ans3fig canvas{width:100%;max-height:250px;object-fit:contain;display:block}
+#s5 .tbl td.c{font-size:15px;font-weight:700;color:var(--sub);padding-left:4px}
+#s5 .care{display:flex;align-items:center;justify-content:center;gap:8px;margin:4px 0 0;padding:0 0 8px;border-bottom:4px solid var(--band)}
+#s5 .care svg{width:40px;height:40px;flex:none}
+#s5 .care p{margin:0;font-size:22px;font-weight:900;line-height:1.35;text-align:center}
+#s5 .fine{margin:4px 0 0;font-size:12px;color:var(--sub);text-align:center;line-height:1.5}
+#s5 .privacy{margin:14px 0 calc(96px + env(safe-area-inset-bottom));text-align:center;font-size:12px;line-height:1.5}
+#s5 .privacy a{color:var(--sub)}
+#s5 .okl{align-self:center;margin:-4px 0 0;background:#fff4dc;color:var(--band-t);border:1.5px solid var(--band);border-radius:999px;font-size:14px;font-weight:800;padding:1px 12px;line-height:1.5}
+#s5 .wfig{width:min(100%,330px,calc((100vh - 330px) * 492 / 442));width:min(100%,330px,calc((100dvh - 330px) * 492 / 442))}
+#s5 .ask{margin:0;font-size:17px;font-weight:800;line-height:1.4;text-align:center}
+#s5 .scene div{flex-direction:row;justify-content:center;gap:4px;padding:5px 4px;text-align:left}
+#s5 .scene svg{width:38px;height:38px}
+#s5 .tbl + .one{margin-top:-4px;font-size:17px;font-weight:700;color:var(--sub)}
+#s5 .tbl + .one + .care{margin-top:12px;padding:10px 0;border-top:4px solid var(--band)}
+#s5 .care p{letter-spacing:.04em}
+#s5 .dw{border:1.5px solid var(--line);border-radius:16px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;margin-top:6px}
+#s5 .dw .dwl{align-self:flex-start;font-size:13px;font-weight:800;color:var(--sub);line-height:1.4}
+#s5 .dw .wh{margin:0;font-size:18px;font-weight:800;line-height:1.45;text-align:center}
+#s5 .dw .wh.loop span{animation:whLoop 17.5s linear infinite both}
+#s5 .dw .wh.loop span:nth-child(2){animation-delay:3.5s}
+#s5 .dw .wh.loop span:nth-child(3){animation-delay:7s}
+#s5 .dw .wh.loop span:nth-child(4){animation-delay:10.5s}
+#s5 .dw .wh.loop span:nth-child(5){animation-delay:14s}
+@keyframes whLoop{0%{opacity:0}2.4%{opacity:1}18%{opacity:1}20%{opacity:0}100%{opacity:0}}
+#s5 .dw .okl{margin:0}
+#s5 .dw .wfig{width:min(100%,280px)}
+#s5 .wl{margin:-4px 0 0;text-align:center;font-size:17px;font-weight:700;line-height:1.5;color:var(--sub)}
+@media (prefers-reduced-motion:reduce){#s5 .dw .wh.loop span:nth-child(1){display:block}}
+#s5 .fade{position:fixed;left:0;right:0;height:24px;z-index:6;pointer-events:none;background:linear-gradient(rgba(255,255,255,0),#fff);display:none}
+#s5 .wh{display:grid}
+#s5 .wh span{grid-area:1/1;opacity:0}
+#s5 .wh span:nth-child(1){animation:whOut .4s ease 3.5s both}
+#s5 .wh span:nth-child(2){animation:whIn .4s ease 3.9s both,whOut .4s ease 7.8s forwards}
+#s5 .wh span:nth-child(3){animation:whIn .4s ease 8.2s both}
+@keyframes whIn{from{opacity:0}to{opacity:1}}
+@keyframes whOut{from{opacity:1}to{opacity:0}}
+@media (prefers-reduced-motion:reduce){#s5 .wh{display:flex;flex-direction:column;gap:4px}
+#s5 .wh span{animation:none!important;opacity:1}
+#s5 .wh span:nth-child(1){display:none}
+#s5 .wfig{width:min(100%,330px,calc((100vh - 400px) * 492 / 442));width:min(100%,330px,calc((100dvh - 400px) * 492 / 442))}}
+#s5 .prog{margin:0;position:sticky;top:46px;z-index:5;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:center;gap:4px;padding:6px 8px;height:50px}
+#s5 .prog li{list-style:none;flex:1 1 0;max-width:92px;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:12px;font-weight:800;color:#9aa3a1;line-height:1.2;white-space:nowrap;position:relative;text-align:center}
+#s5 .prog li:has(br){font-size:10px;line-height:1.05}
+#s5 .prog li::before{content:"";flex:none;width:20px;height:20px;border-radius:50%;border:2px solid #c3c9c8;background:#fff;box-sizing:border-box}
+#s5 .prog li.now{color:var(--band-t)}
+#s5 .prog li.now::before{border-color:var(--band);background:var(--band);box-shadow:0 0 0 3px #ffe7b3}
+#s5 .prog li.done{color:var(--ok)}
+#s5 .prog li.done::before{content:"✓";border-color:var(--ok);background:var(--ok);color:#fff;font-size:13px;line-height:16px;text-align:center}
+#s5 .prog li.pop::before{animation:pop .45s ease}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+#s5 .later{align-self:center;margin:0;background:#fff4dc;color:var(--band-t);border:1.5px solid var(--band);border-radius:999px;font-size:14px;font-weight:800;padding:1px 12px;line-height:1.6;flex:none}
+#s5 .band b{display:flex;align-items:center;gap:6px}
+#s5 .band .gi{width:26px;height:26px;flex:none;object-fit:contain}
+#s5 .q1box{border:2px solid var(--band);border-radius:16px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px}
+#s5 .q1box .ttl{margin:0;font-size:15px;font-weight:800;color:var(--band-t)}
+#s5 .q1pair{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px}
+#s5 .q1pair figure{margin:0;text-align:center}
+#s5 .q1pair img{display:block;width:100%;border-radius:8px}
+#s5 .q1pair figcaption{font-size:12px;font-weight:700;color:var(--sub);margin-top:2px}
+#s5 .q1pair .ar{font-size:22px;font-weight:900;color:var(--band)}
+#s5 .digits{display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
+#s5 .digits b{display:block;font-size:44px;font-weight:900;line-height:1.05;letter-spacing:0}
+#s5 .digits small{display:block;font-size:12px;font-weight:800;color:var(--sub);line-height:1.3}
+#s5 .digits .l1 b{color:#17201e}
+#s5 .digits .l2 b{color:#3d4544}
+#s5 .digits .l3 b{color:#6f7876}
+#s5 .digits .l4 b{color:#a4abaa}
+#s5 .q1box .one{font-size:16px}
+#s5 .acc{border-top:1px solid var(--line)}
+#s5 .acc details{border-bottom:1px solid var(--line)}
+#s5 .acc summary{list-style:none;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;padding:8px 4px;cursor:pointer}
+#s5 .acc summary::-webkit-details-marker{display:none}
+#s5 .acc .nm{font-weight:800;font-size:17px;line-height:1.3}
+#s5 .acc .nm small{display:block;font-size:13px;font-weight:700;color:var(--sub)}
+#s5 .acc .nm em{display:block;font-style:normal;font-size:14px;font-weight:800;line-height:1.35;color:var(--band-t)}
+#s5 .acc .nm em.o{color:var(--ok)}
+#s5 .acc .mk{font-size:28px;font-weight:900;line-height:1}
+#s5 .acc .mk.o{color:var(--ok)}
+#s5 .acc .mk.x{color:var(--ng)}
+#s5 .acc .op{font-size:12px;font-weight:800;color:var(--teal);border:1.5px solid var(--teal);border-radius:999px;padding:0 8px;white-space:nowrap}
+#s5 .acc details[open] .op{background:var(--teal);color:#fff}
+#s5 .acc .body{padding:0 0 10px}
+#s5 .acc .body canvas{width:100%;max-height:220px;object-fit:contain;display:block}
+#s5 .acc .body p{margin:4px 0 0;text-align:center;font-weight:800;font-size:15px}
+#s5 .res1{margin:0;font-size:16px;font-weight:700;color:var(--sub);text-align:center}
+#s5 .res1 b{color:var(--ink);font-weight:800}
+#s5 .q1box .mine{margin:0;text-align:center;font-size:16px;font-weight:800}
+#s5 .q1box .mine b{font-size:22px;letter-spacing:.04em}
+#s5 .q1box .mine b.ok{color:var(--ok)}
+#s5 .ew{border:1.5px solid var(--line);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;margin-top:6px}
+#s5 .ew .ewh{display:flex;align-items:center;gap:10px}
+#s5 .ew .ewh img{width:38%;max-width:140px;flex:none;border-radius:10px;background:#f7f8fb;display:block;height:auto}
+#s5 .ew .ewh p{margin:0;font-size:17px;font-weight:800;line-height:1.45}
+#s5 .ew .ewr{margin:0;text-align:center;font-size:17px;font-weight:800;line-height:1.5;color:var(--band-t)}
+#s5 .wt{margin:0;align-self:center;font-size:15px;font-weight:800;color:var(--band-t)}
+#s5 .wh5{display:grid;margin:0;font-size:21px;font-weight:800;line-height:1.4;text-align:center}
+#s5 .wh5 span{grid-area:1/1;opacity:0}
+#s5 .wh5 span:nth-child(1){animation:whO .4s ease 3.5s both}
+#s5 .wh5 span:nth-child(2){animation:whI .4s ease 3.9s both,whO .4s ease 7.8s forwards}
+#s5 .wh5 span:nth-child(3){animation:whI .4s ease 8.2s both,whO .4s ease 12.1s forwards}
+#s5 .wh5 span:nth-child(4){animation:whI .4s ease 12.5s both,whO .4s ease 16.4s forwards}
+#s5 .wh5 span:nth-child(5){animation:whI .4s ease 16.8s both}
+@keyframes whI{from{opacity:0}to{opacity:1}}
+@keyframes whO{from{opacity:1}to{opacity:0}}
+@media (prefers-reduced-motion:reduce){#s5 .wh5 span{animation:none!important;opacity:1}
+#s5 .wh5 span:not(:nth-child(5)){display:none}
+#s5 .prog li.pop::before{animation:none}}
+@media (max-height:640px){#s5 .prog{height:36px;padding:3px 8px}
+#s5 .prog li{font-size:10px;line-height:1.1;flex-direction:row;justify-content:center;gap:3px}
+#s5 .prog li:has(br){font-size:9px}
+#s5 .prog li::before{width:14px;height:14px;border-width:2px}
+#s5 .prog li.done::before{font-size:10px;line-height:10px}
+#s5 .later{font-size:12px;line-height:1.4;padding:0 10px}
+#s5 .opts{grid-template-columns:repeat(4,1fr);gap:6px}
+#s5 .opt{font-size:18px;min-height:52px;padding:0}
+#s5 .prog li br{display:none}}
+#s5 .wt + .wh5 ~ .wfig{width:min(100%,330px,calc((100vh - 410px) * 492 / 442));width:min(100%,330px,calc((100dvh - 410px) * 492 / 442))}
+@media (max-height:640px){#s5 .wt + .wh5 ~ .wfig{width:min(100%,330px,calc((100vh - 380px) * 492 / 442));width:min(100%,330px,calc((100dvh - 380px) * 492 / 442))}}
+
+/* ===== LP の置き場所（新しく足した見た目。言葉は NEW_WORDS） ===== */
+body{padding-bottom:0}
+/* 順 4：7日チャレンジの流れ */
+#s4{box-sizing:border-box;margin:10px 0 0;padding:18px 16px 16px;background:#fff6e3;border-top:1px solid #f0dcc0;border-bottom:1px solid #f0dcc0;color:#1b2340;word-break:auto-phrase}
+#s4 *{box-sizing:border-box;margin:0;padding:0}
+#s4 h2{font-size:22px;font-weight:900;text-align:center;line-height:1.3}
+#s4 .sub{margin-top:3px;font-size:14px;font-weight:700;color:#8a6a3a;text-align:center}
+#s4 .tl{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+#s4 .d1{background:#fff;border:2px solid #ee5a3c;border-radius:14px;padding:12px}
+#s4 .d1 .h{display:flex;align-items:center;gap:8px}
+#s4 .d1 .h span{font-size:14px;font-weight:900;color:#fff;background:#ee5a3c;border-radius:999px;padding:3px 12px}
+#s4 .d1 .h b{font-size:18px;font-weight:900}
+#s4 .d1 .h{margin-bottom:10px}
+/* -006: ① → ② → ③ を縦の線でつなぐ。「いまここ」の番号だけ色 */
+#s4 .step{display:grid;grid-template-columns:28px 1fr;gap:8px;position:relative;padding-bottom:14px}
+#s4 #st3{padding-bottom:0}
+#s4 .step::before{content:"";position:absolute;left:13px;top:28px;bottom:0;width:2px;background:#f0dcc0}
+#s4 #st3::before{display:none}
+#s4 .step>i{font-style:normal;width:28px;height:28px;line-height:28px;border-radius:50%;background:#f0dcc0;color:#fff;font-size:15px;font-weight:900;text-align:center;position:relative;z-index:1;transition:background .3s,box-shadow .3s}
+#s4 .step.now>i{background:#ee5a3c;box-shadow:0 0 0 4px #fbd6cc}
+#s4 .step.done>i{background:#15913f}
+#s4 .step .t{font-size:16px;font-weight:900;line-height:28px;color:#1b2340;border-radius:8px;transition:background .3s}
+#s4 .step .t em{font-style:normal;font-size:11px;font-weight:900;color:#fff;background:#d12c1f;border-radius:5px;padding:2px 6px;margin-left:6px;vertical-align:2px}
+#s4 .step .t small{font-size:13px;font-weight:700;color:#6b6250;margin-left:6px}
+#s4 .step.wait .t{color:#a49a86}
+#s4 .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:6px;border-radius:12px;transition:background .2s,box-shadow .2s}
+#s4 .chips button{font:inherit;font-size:15px;font-weight:800;letter-spacing:-.02em;min-height:46px;padding:0;border-radius:10px;border:2px solid #cfd6de;background:#fff;color:#1b2340;box-shadow:0 3px 0 #cfd6de;cursor:pointer;white-space:nowrap}
+#s4 .chips button.sel{border-color:#15913f;background:#e8f6ec;box-shadow:0 3px 0 #15913f;color:#0e6e2f}
+/* ② のボタン：えらぶ前は押せない見た目（点線・薄い色）、えらんだ後は緑 */
+#s4 .s2b{font:inherit;display:grid;grid-template-columns:1fr 24px;align-items:center;width:100%;text-align:left;border-radius:12px;padding:10px 14px;cursor:pointer;transition:background .3s,color .3s,border-color .3s,box-shadow .3s}
+#s4 .s2b b{display:block;font-size:19px;font-weight:900;line-height:1.3}
+#s4 .s2b small{display:none;font-size:12px;font-weight:700;line-height:1.4;margin-top:2px}
+#s4 .s2b u{text-decoration:none;font-size:20px;font-weight:900;text-align:right}
+#s4 .s2.off .s2b{background:#f4f1ea;border:2px dashed #d9cfbb;color:#a49a86;box-shadow:none}
+#s4 .s2.on .s2b{background:#15913f;border:2px solid #15913f;color:#fff;box-shadow:0 4px 0 #0e6e2f,0 0 0 4px #c8ecd3}
+#s4 .s2.off small.off,#s4 .s2.on small.on{display:block}
+#s4 .s2.off .go{background:#f4f1ea;border:2px dashed #d9cfbb;color:#a49a86;box-shadow:none}
+/* えらぶ前に ② を押した：① の行と選択肢を目立たせる */
+#s4 #st1.nudge .t{background:#ffe2d6}
+#s4 #st1.nudge .chips{animation:nudge .5s;background:#ffe2d6;box-shadow:0 0 0 4px #ffe2d6}
+@keyframes nudge{0%,100%{transform:none}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+#s4 .d1n{margin-top:10px;font-size:13px;font-weight:700;color:#6b6250;line-height:1.5}
+#s4 .day{display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:start}
+#s4 .day>span{font-size:13px;font-weight:900;color:#fff;background:#e8820c;border-radius:999px;padding:3px 0;text-align:center;margin-top:1px}
+#s4 .day>div{font-size:16px;line-height:1.5}
+#s4 .day b{font-weight:800;display:block}
+#s4 .day small{display:block;font-size:13px;font-weight:700;color:#6b6250;line-height:1.45}
+#s4 .day img{width:22px;height:22px;vertical-align:-5px;margin-right:4px}
+#s4 .day u{text-decoration:none;color:#e8820c}
+#s4 .day em{font-style:normal;color:#d12c1f;font-weight:900}
+#s4 .go{font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-height:58px;border:0;border-radius:12px;background:#15913f;color:#fff;font-size:18px;font-weight:800;box-shadow:0 4px 0 #0e6e2f;cursor:pointer;line-height:1.3;padding:6px 8px;text-decoration:none;text-align:center}
+#s4 .go small{font-size:13px;font-weight:700}
+#s4 .pcl{margin:0 0 6px;text-align:center;font-size:15px;font-weight:800;color:#4a4f4e}
+#s4 .pcb{display:flex;gap:8px}#s4 .pcb .go{flex:1}
+#s4 .pcs{margin:6px 0 0;text-align:center;font-size:14px;font-weight:700;color:#4a4f4e}
+/* 順 5：アプリの紹介 */
+#s5{margin:0;background:#fff;color:#17201e}
+#s5 main{padding:14px 16px;gap:8px;border-bottom:1px solid #e2ddd2}
+#s5:not(.run) .wh5 span{animation-play-state:paused}
+.lp-priv{margin:6px 16px 0;text-align:center;font-size:12px;line-height:1.5}.lp-priv a{color:#3b4745}
+.lp-pad{height:calc(110px + env(safe-area-inset-bottom))}
+.cp .sbar{position:fixed;left:0;right:0;bottom:0;z-index:20;max-width:480px;margin:0 auto;background:#fff;padding:8px 16px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(0,0,0,.1);transform:translateY(120%);transition:transform .2s;visibility:hidden}
+.cp .sbar.on{transform:none;visibility:visible}
+.cp .sbar .sm{margin-top:4px}
+.cp .toast{z-index:40}
+@media (prefers-reduced-motion:reduce){.cp .sbar,#s4 .step>i,#s4 .step .t,#s4 .chips,#s4 .s2b{transition:none}#s4 #st1.nudge .chips{animation:none}}
+/* LINE の版（TASK-I16-20261119-006） */
+#s4 #st3{padding-bottom:14px}
+#s4 #st3::before{display:block}
+#s4 #st4{padding-bottom:0}
+#s4 #st4::before{display:none}
+#s4 .s2n{margin-top:6px;font-size:12px;font-weight:700;color:#6b6250;line-height:1.5}
+
+</style>
+</head>
+<body>
+<!-- 順 1 -->
+<div class="cp" id="s1">
+<div class="top">
+  <img src="img/symbol_page.webp" alt="カプセルを持つふく多">
+  <div>
+    <span class="pill">7日チャレンジ</span>
+    <span class="pill only">初回購入の方限定</span>
+    <h1>アサイベリー<br>プラチナアイが<br><em>1つ無料</em></h1>
+    <p class="price">通常価格 <b class="nw">5,280円</b><span class="nw">（税込）</span></p>
+  </div>
+</div>
+<!-- 順 2 -->
+<ol>
+  <li><span class="n">1</span><div>まずは今日、アプリのゲームを<b class="nw">1回クリア</b>。<span class="nw">1日1回、<b class="org">7日つづける</b></span>
+    <div class="st"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i></div></div></li>
+  <li><span class="n">2</span><div>7日つづくと、<span class="nw">ふくふくポイント</span><b class="org nw">1000ポイント</b></div></li>
+  <li><span class="n">3</span><div><b class="org nw">1000ポイント</b>で、<span class="nw">アサイベリープラチナアイが</span><b class="red nw">1つ無料</b>。<span class="nw">送料も無料</span></div></li>
+</ol>
+<!-- 順 3（ボタンの下の小さい字は、年代がまだの間は流れへ・答えた後はストアへ） -->
+<div class="foot">
+  <a class="cta" href="#store" id="cta">▶ 無料アプリで、はじめる</a>
+  <p class="sm lpsm">下の「7日チャレンジの流れ」へ進みます</p>
+</div>
+</div>
+<!-- 順 4：7日チャレンジの流れ（新しい区画。年代は「1日目」の中で聞く） -->
+<section id="s4" aria-labelledby="flh">
+ <h2 id="flh">7日チャレンジの流れ</h2>
+ <p class="sub">やることは、これだけ</p>
+ <div class="tl">
+  <div class="d1"><div class="h"><span>1日目</span><b>今日やること</b></div>
+   <div class="step now" id="st1"><i>1</i><div><p class="t">年代を選択してください<em>必須</em></p><div class="chips" role="group" aria-label="年代を選択してください"><button type="button" data-v="20代以下" aria-pressed="false">〜20代</button><button type="button" data-v="30代" aria-pressed="false">30代</button><button type="button" data-v="40代" aria-pressed="false">40代</button><button type="button" data-v="50代" aria-pressed="false">50代</button><button type="button" data-v="60代以上" aria-pressed="false">60代〜</button></div></div></div>
+   <div class="step wait" id="st2"><i>2</i><div><div class="s2 off" id="fgo"><button type="button" class="s2b" id="s2b" aria-disabled="true"><span><b>LINE で送る</b><small class="off">① の年代をえらぶと、押せます</small><small class="on">LINE が開きます。送信を押すだけ</small></span><u>▶</u></button></div><p class="s2n">アプリの案内と、7日つづいた後のお返事を、LINE でお送りします</p></div></div>
+   <div class="step wait" id="st3"><i>3</i><div><p class="t">アプリを入れる<small>LINE に届く案内から</small></p></div></div>
+   <div class="step wait" id="st4"><i>4</i><div><p class="t">ゲームを1回クリア<small>アプリの中で</small></p></div></div>
+   <p class="d1n">アプリで最初のゲームをクリアした日が、1日目です</p>
+  </div>
+  <div class="day"><span>2日目から</span><div><b>ゲームだけ</b><small>1日1回クリア。1日でも休むと、1日目から数え直し</small></div></div><div class="day"><span>7日目</span><div><b>アプリの「記録」の画面を LINE で送る</b></div></div><div class="day"><span>そのあと</span><div><b>事務局が確認して、LINE でお返事</b><small>ふくふく本舗の会員登録をご案内します</small></div></div><div class="day"><span>確認後</span><div><b><img src="img/coin.webp" alt=""><u>1000ポイント</u></b><b>→ プラチナアイ <em>1つ無料</em></b></div></div>
+ </div>
+</section>
+<!-- 順 5：アプリの紹介（H の見学の画面と同じ。5 つめの文だけ H の別の文） -->
+<section id="s5" aria-label="アプリの紹介"><main><p class="wt">ミエるトレーニング、略して ミエトレ</p><h1 class="wh5"><span>1万人が使うアプリで、毎日やっている目のトレーニングです</span><span>ノーベル物理学賞の学者の名前がついた「ガボール模様」を使っています</span><span>ルールに沿いながら、じっくり見てペアを消す</span><span>1年以上、毎日つづけている人も大勢います</span><span>このページで見慣れてきたら、アプリでお試しを</span></h1>
+   <span class="okl">毎日ちょっとずつが最強</span>
+   <div class="wfig"><img src="img/training_watch.gif" alt="同じ模様が2つずつ消えていく動き"></div>
+   <p class="wl">アプリでは、これを1日3分</p></main></section>
+<!-- 順 6 -->
+<div class="cp" id="s6">
+<div class="note">
+  <h2>ご注意</h2>
+  <p class="who">ふくふく本舗で一度もお買い物をしたことがない方だけが対象です</p>
+  <p>交換のときに、ふくふく本舗の会員登録が必要です</p>
+  <p>1日でも休むと、1日目から数え直し</p>
+  <p>ゲームの時間は何分でもかまいません</p>
+  <p>ポイントがもらえるのは1回だけ</p>
+  <p>このキャンペーンでもらえる1000ポイントは、もらってから7日間だけ使えます</p>
+  <p>すでにお買い物をしたことがある方は、ポイントはもらえますが、交換はできません</p>
+  <p>本キャンペーンは、予告なく内容を変更、または終了することがあります。終了するときは、終了日をミエトレのサイトでお知らせします。終了日までに1日目のゲームをクリアした方は、7日目まで対象です</p>
+</div>
+</div>
+<p class="lp-priv"><a href="/banner/check/privacy" target="_blank" rel="noopener">このページでの情報の取り扱い</a></p>
+<div class="lp-pad"></div>
+<div class="cp"><div class="sbar" id="sbar">
+  <a class="cta" href="#store" id="cta2">▶ 無料アプリで、はじめる</a>
+  <p class="sm lpsm">下の「7日チャレンジの流れ」へ進みます</p>
+</div>
+<div class="toast" id="toast" hidden></div></div>
+<script>
+
+// ===== LP（試作 2026-11-17・-005／-006）。ボタンと年代の動き =====
+
+const DEMO=true;   // true＝実機用（本当に LINE へ進む）
+const AGE={'20代以下':'20','30代':'30','40代':'40','50代':'50','60代以上':'60'};
+const QS=new URLSearchParams(location.search);
+const TRACK_URL=location.origin+'/mm/track';
+const DEBUG=QS.get('mtr_debug')==='1';
+const VER='lp7line-20261119';
+// sid は LP 専用（mtrlp_sid）。バナーの番号は読まない・書かない。/banner/demo/ の下は社内テストの印（9909 で始まる）
+// 同じブラウザなら別の日も同じ番号：localStorage → 前の版の sessionStorage → 新しく作る。両方に書く（使えなければその回だけの番号）
+const SID=(function(){const t=/^\/banner\/demo\//.test(location.pathname),K='mtrlp_sid',ok=function(v){return /^\d{8}$/.test(v)&&(!t||/^9909/.test(v))};let x='';
+  try{x=localStorage.getItem(K)||''}catch(e){}
+  if(!ok(x)){x='';try{x=sessionStorage.getItem(K)||''}catch(e){}}
+  if(!ok(x))x=t?'9909'+String(Math.floor(Math.random()*1e4)).padStart(4,'0'):String(Math.floor(Math.random()*1e8)).padStart(8,'0');
+  try{localStorage.setItem(K,x)}catch(e){}try{sessionStorage.setItem(K,x)}catch(e){}return x})();
+function osName(){const u=navigator.userAgent||'';if(/iPad|iPhone|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))return 'iOS';if(/Android/.test(u))return 'Android';return 'PC'}
+function uaFamily(){const u=navigator.userAgent||'';if(/musical_ly|trill|Bytedance|TTWebView/.test(u))return 'tiktok';if(/ Line\//.test(u))return 'line';if(/Instagram/.test(u))return 'instagram';if(/FBAN|FBAV/.test(u))return 'facebook';if(/; wv\)/.test(u))return 'wv';return 'browser'}
+// 送信の失敗は握りつぶす。画面の動きは待たせない（sendBeacon → だめなら fetch keepalive）
+function track(ev,p){const x={ts:new Date().toISOString(),sid:SID,event:ev,param:String(p==null?'':p).slice(0,64),url:location.href,os:osName(),v:VER,ua_family:uaFamily()};
+  (window.LPLOG=window.LPLOG||[]).push(x);if(DEBUG){try{console.log('[lp]',ev,JSON.stringify(x))}catch(e){}return}
+  const body=JSON.stringify(x);try{if(navigator.sendBeacon&&navigator.sendBeacon(TRACK_URL,new Blob([body],{type:'text/plain'}))===true)return}catch(e){}
+  try{const q=fetch(TRACK_URL,{method:'POST',body,keepalive:true,mode:'no-cors'});if(q&&q.catch)q.catch(function(){})}catch(e){}}
+const $=s=>document.querySelector(s);
+const FLOW=$('#s4'),ST1=$('#st1'),ST2=$('#st2'),FGO=$('#fgo'),SBAR=$('#sbar'),HERO=$('#cta'),TOAST=$('#toast'),S5=$('#s5');
+const CHIPS=[...FLOW.querySelectorAll('.chips button')];
+const RM=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+let ageDone=false,ageVal='';
+// LINE の版は機種で分けない（PC も同じ LINE の URL へ）
+const PC=false;
+// 上・下のボタンの下の小さい字：年代がまだ＝流れへ／えらんだ後＝LINE が開く
+const SM_STORE='LINE が開きます。送信を押すだけ';
+function vis(el){if(!el)return false;const r=el.getBoundingClientRect();return r.height>0&&r.bottom>0&&r.top<innerHeight}
+// 下にいつも出るボタン：緑のボタン（順 3）か ② のボタンが見えている間は出さない
+function sbarUpdate(){SBAR.classList.toggle('on',!vis(HERO)&&!vis(FGO))}
+addEventListener('scroll',sbarUpdate,{passive:true});addEventListener('resize',sbarUpdate);
+function showToast(){TOAST.style.display='block';clearTimeout(showToast.t);showToast.t=setTimeout(()=>TOAST.style.display='none',1800)}
+// 年代：えらぶと ① がチェック、「いまここ」が ② へ、② が緑に。LINE へは移らない。えらび直せる
+CHIPS.forEach(b=>b.onclick=()=>{CHIPS.forEach(x=>{x.classList.toggle('sel',x===b);x.setAttribute('aria-pressed',x===b?'true':'false')});
+  const again=ageDone;ageDone=true;ageVal=b.dataset.v;
+  ST1.className='step done';ST1.querySelector('i').textContent='✓';ST2.className='step now';FGO.classList.replace('off','on');
+  const s2=$('#s2b');if(s2)s2.setAttribute('aria-disabled','false');
+  if(!PC)document.querySelectorAll('.lpsm').forEach(e=>e.textContent=SM_STORE);
+  track('age_answer','a='+AGE[ageVal]+(again?';re=1':''))});
+// 流れの区画まで画面を動かす（見出しが画面の上の方に来る位置）。動きを減らす設定では飛ぶ
+function toFlow(){const y=FLOW.getBoundingClientRect().top+scrollY-8;window.scrollTo({top:Math.max(0,y),behavior:RM()?'auto':'smooth'})}
+// えらぶ前に ② を押した：① の行（年代を選択してください）と選択肢を目立たせる
+function nudge(){ST1.classList.remove('nudge');void ST1.offsetWidth;ST1.classList.add('nudge');
+  const c=ST1.getBoundingClientRect();if(c.top<0||c.bottom>innerHeight-90)window.scrollTo({top:Math.max(0,scrollY+c.top-60),behavior:RM()?'auto':'smooth'})}
+// LINE へ進む（年代の入った文が入力ずみ）。試作は知らせ。送る文は LINE の側が完全一致で見ているので変えない
+const LINE_BASE='https://line.me/R/oaMessage/%40543twrrj/?';
+const LINE_MSG={'20代以下':'7日チャレンジのアプリを教えてください（20代以下）','30代':'7日チャレンジのアプリを教えてください（30代）','40代':'7日チャレンジのアプリを教えてください（40代）','50代':'7日チャレンジのアプリを教えてください（50代）','60代以上':'7日チャレンジのアプリを教えてください（60代以上）'};
+function lineUrl(){return LINE_BASE+encodeURIComponent(LINE_MSG[ageVal])}
+function leave(at){track('lp_line','at='+at+';a='+AGE[ageVal]);if(!DEMO)return showToast();location.href=lineUrl()}
+// 順 3・下のいつも出るボタン：年代がまだなら流れの区画へ。えらんでいれば LINE へ
+function topBtn(at){return e=>{e.preventDefault();track('lp_cta','at='+at+';age='+(ageDone?1:0));if(!ageDone)return toFlow();leave(at)}}
+HERO.addEventListener('click',topBtn('hero'));
+$('#cta2').addEventListener('click',topBtn('sticky'));
+// ② のボタン：えらんでいれば LINE へ。まだなら進まず、① を目立たせる
+FGO.addEventListener('click',e=>{const a=e.target.closest('a,button');if(!a)return;
+  track('lp_cta','at=flow;age='+(ageDone?1:0)+(a.dataset.os?';os='+a.dataset.os:''));
+  if(!ageDone){e.preventDefault();track('age_nudge','');return nudge()}
+  e.preventDefault();leave('flow')});
+// LINE から戻ってきたとき、知らせが残らない
+addEventListener('pageshow',e=>{if(e.persisted)TOAST.style.display='none'});
+// 順 5 の 5 つの文は、画面に入ってから動き出す
+if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){S5.classList.add('run');io.disconnect()}},{threshold:.3});io.observe(S5)}else S5.classList.add('run');
+track('lp_view','');sbarUpdate();
+
+</script>
+</body>
+</html>
