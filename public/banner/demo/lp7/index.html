@@ -8,7 +8,7 @@
 <!--
   TikTok 動画の飛び先 LP「7日チャレンジ」の試作（2026-11-17・TASK-I16-20261117-001〜005）。make_lp.py が作る。手で直さない。
   順 1・2・3・6 は 10/13 の説明ページ、順 5 は本番の診断ページ H の見学の画面から写した。順 4 は新しく書いた。
-  実機用（社内確認・/banner/demo/lp7/）：ストアへは本当に進む（数え分けは lp7_demo）・記録は送らない・Clarity は入れていない。お客様への入口にはつながない。
+  実機用（社内確認・/banner/demo/lp7/）：ストアへは本当に進む（数え分けは lp7_demo）・記録は /mm/track へ送る（v=lp7-20261119・sid は mtrlp_sid・ここでは 9909 で始まる社内テストの印）・Clarity は入れていない。お客様への入口にはつながない。
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -376,7 +376,22 @@ function store(href,o,name){return '<a class="go" href="'+href+'" data-os="'+o+'
 function stores(){return os==='ios'?store(IOS,'ios','App Store'):os==='android'?store(AND,'android','Google Play'):'<p class="pcl">お使いのスマホを、えらんでください</p><div class="pcb">'+store(IOS,'ios','iPhone の方（App Store）')+store(AND,'android','Android の方（Google Play）')+'</div><p class="pcs">スマホのストアで「ミエトレ」と検索しても見つかります</p>'}
 
 const DEMO=true;   // true＝実機用（本当にストアへ進む）
-function track(ev,p){const x={ts:new Date().toISOString(),event:ev,param:String(p==null?'':p).slice(0,64)};(window.LPLOG=window.LPLOG||[]).push(x);try{console.log('[lp]',ev,x.param)}catch(e){}}   // 記録は送らない
+const AGE={'20代以下':'20','30代':'30','40代':'40','50代':'50','60代以上':'60'};
+const QS=new URLSearchParams(location.search);
+const TRACK_URL=location.origin+'/mm/track';
+const DEBUG=QS.get('mtr_debug')==='1';
+const VER='lp7-20261119';
+// sid は LP 専用（mtrlp_sid）。バナーの番号は読まない・書かない。/banner/demo/ の下は社内テストの印（9909 で始まる）
+const SID=(function(){const t=/^\/banner\/demo\//.test(location.pathname);let x='';try{x=sessionStorage.getItem('mtrlp_sid')||''}catch(e){}
+  if(!/^\d{8}$/.test(x)||(t&&!/^9909/.test(x)))x=t?'9909'+String(Math.floor(Math.random()*1e4)).padStart(4,'0'):String(Math.floor(Math.random()*1e8)).padStart(8,'0');
+  try{sessionStorage.setItem('mtrlp_sid',x)}catch(e){}return x})();
+function osName(){const u=navigator.userAgent||'';if(/iPad|iPhone|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))return 'iOS';if(/Android/.test(u))return 'Android';return 'PC'}
+function uaFamily(){const u=navigator.userAgent||'';if(/musical_ly|trill|Bytedance|TTWebView/.test(u))return 'tiktok';if(/ Line\//.test(u))return 'line';if(/Instagram/.test(u))return 'instagram';if(/FBAN|FBAV/.test(u))return 'facebook';if(/; wv\)/.test(u))return 'wv';return 'browser'}
+// 送信の失敗は握りつぶす。画面の動きは待たせない（sendBeacon → だめなら fetch keepalive）
+function track(ev,p){const x={ts:new Date().toISOString(),sid:SID,event:ev,param:String(p==null?'':p).slice(0,64),url:location.href,os:osName(),v:VER,ua_family:uaFamily()};
+  (window.LPLOG=window.LPLOG||[]).push(x);if(DEBUG){try{console.log('[lp]',ev,JSON.stringify(x))}catch(e){}return}
+  const body=JSON.stringify(x);try{if(navigator.sendBeacon&&navigator.sendBeacon(TRACK_URL,new Blob([body],{type:'text/plain'}))===true)return}catch(e){}
+  try{const q=fetch(TRACK_URL,{method:'POST',body,keepalive:true,mode:'no-cors'});if(q&&q.catch)q.catch(function(){})}catch(e){}}
 const $=s=>document.querySelector(s);
 const FLOW=$('#s4'),ST1=$('#st1'),ST2=$('#st2'),FGO=$('#fgo'),SBAR=$('#sbar'),HERO=$('#cta'),TOAST=$('#toast'),S5=$('#s5');
 const CHIPS=[...FLOW.querySelectorAll('.chips button')];
@@ -398,7 +413,7 @@ CHIPS.forEach(b=>b.onclick=()=>{CHIPS.forEach(x=>{x.classList.toggle('sel',x===b
   ST1.className='step done';ST1.querySelector('i').textContent='✓';ST2.className='step now';FGO.classList.replace('off','on');
   const s2=$('#s2b');if(s2)s2.setAttribute('aria-disabled','false');
   if(!PC)document.querySelectorAll('.lpsm').forEach(e=>e.textContent=SM_STORE);
-  track('age_answer','a='+ageVal+(again?';re=1':''))});
+  track('age_answer','a='+AGE[ageVal]+(again?';re=1':''))});
 // 流れの区画まで画面を動かす（見出しが画面の上の方に来る位置）。動きを減らす設定では飛ぶ
 function toFlow(){const y=FLOW.getBoundingClientRect().top+scrollY-8;window.scrollTo({top:Math.max(0,y),behavior:RM()?'auto':'smooth'})}
 // えらぶ前に ② を押した：① の行（年代を選択してください）と選択肢を目立たせる
@@ -406,16 +421,16 @@ function nudge(){ST1.classList.remove('nudge');void ST1.offsetWidth;ST1.classLis
   const c=ST1.getBoundingClientRect();if(c.top<0||c.bottom>innerHeight-90)window.scrollTo({top:Math.max(0,scrollY+c.top-60),behavior:RM()?'auto':'smooth'})}
 // ストアへ進む。試作は知らせ。実機用はストアへ（PC は 2 つのストアから選ぶので、区画の中へ）
 function storeUrl(){return os==='ios'?IOS:os==='android'?AND:''}
-function leave(at){track('store_go','at='+at+';a='+ageVal);if(!DEMO)return showToast();const u=storeUrl();if(u)location.href=u;else toFlow()}
+function leave(at){track('lp_store','at='+at+';a='+AGE[ageVal]);if(!DEMO)return showToast();const u=storeUrl();if(u)location.href=u;else toFlow()}
 // 順 3・下のいつも出るボタン：年代がまだなら流れの区画へ。答えていればストアへ
-function topBtn(at){return e=>{e.preventDefault();track('cta_store','at='+at+';age='+(ageDone?1:0));if(!ageDone)return toFlow();leave(at)}}
+function topBtn(at){return e=>{e.preventDefault();track('lp_cta','at='+at+';age='+(ageDone?1:0));if(!ageDone)return toFlow();leave(at)}}
 HERO.addEventListener('click',topBtn('hero'));
 $('#cta2').addEventListener('click',topBtn('sticky'));
 // ② のボタン：答えていればストアへ。まだなら進まず、① を目立たせる
 FGO.addEventListener('click',e=>{const a=e.target.closest('a,button');if(!a)return;
-  track('cta_store','at=flow;age='+(ageDone?1:0)+(a.dataset.os?';os='+a.dataset.os:''));
+  track('lp_cta','at=flow;age='+(ageDone?1:0)+(a.dataset.os?';os='+a.dataset.os:''));
   if(!ageDone){e.preventDefault();track('age_nudge','');return nudge()}
-  if(a.dataset.os){track('store_go','at=flow_pc;os='+a.dataset.os+';a='+ageVal);if(!DEMO){e.preventDefault();showToast()};return}   // PC：リンクのまま進む
+  if(a.dataset.os){track('lp_store','at=flow_pc;os='+a.dataset.os+';a='+AGE[ageVal]);if(!DEMO){e.preventDefault();showToast()};return}   // PC：リンクのまま進む
   e.preventDefault();leave('flow')});
 // ストアから戻ってきたとき、知らせが残らない
 addEventListener('pageshow',e=>{if(e.persisted)TOAST.style.display='none'});

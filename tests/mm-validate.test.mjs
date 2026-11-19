@@ -76,3 +76,26 @@ test('/banner 追加後も既存14イベントの扱いは変わらない', () =
   // 未知イベントは引き続き null
   assert.equal(validateAndClean({ ...base, event: 'banner_hack' }), null);
 });
+
+test('LP「7日チャレンジ」専用の5イベントは通過し、param は64文字上限・v はそのまま', () => {
+  const cases = [
+    ['lp_view', ''],
+    ['lp_cta', 'at=hero;age=0'],
+    ['age_answer', 'a=40;re=1'],
+    ['age_nudge', ''],
+    ['lp_store', 'at=flow;a=40'],
+  ];
+  for (const [event, param] of cases) {
+    const r = validateAndClean({ ...base, event, param, sid: '99091234', v: 'lp7-20261119', ua_family: 'tiktok' });
+    assert.notEqual(r, null);
+    assert.equal(r.event, event);
+    assert.equal(r.param, param);
+    assert.equal(r.v, 'lp7-20261119');
+    assert.equal(r.sid, '99091234');
+  }
+  assert.equal(validateAndClean({ ...base, event: 'lp_store', param: 'a'.repeat(100) }).param.length, 64);
+  // 知らない出来事は今までどおり null
+  for (const event of ['lp_hack', 'age', 'store_go', 'lp_views']) {
+    assert.equal(validateAndClean({ ...base, event }), null);
+  }
+});
