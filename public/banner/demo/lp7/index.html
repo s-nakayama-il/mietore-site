@@ -382,9 +382,12 @@ const TRACK_URL=location.origin+'/mm/track';
 const DEBUG=QS.get('mtr_debug')==='1';
 const VER='lp7-20261119';
 // sid は LP 専用（mtrlp_sid）。バナーの番号は読まない・書かない。/banner/demo/ の下は社内テストの印（9909 で始まる）
-const SID=(function(){const t=/^\/banner\/demo\//.test(location.pathname);let x='';try{x=sessionStorage.getItem('mtrlp_sid')||''}catch(e){}
-  if(!/^\d{8}$/.test(x)||(t&&!/^9909/.test(x)))x=t?'9909'+String(Math.floor(Math.random()*1e4)).padStart(4,'0'):String(Math.floor(Math.random()*1e8)).padStart(8,'0');
-  try{sessionStorage.setItem('mtrlp_sid',x)}catch(e){}return x})();
+// 同じブラウザなら別の日も同じ番号：localStorage → 前の版の sessionStorage → 新しく作る。両方に書く（使えなければその回だけの番号）
+const SID=(function(){const t=/^\/banner\/demo\//.test(location.pathname),K='mtrlp_sid',ok=function(v){return /^\d{8}$/.test(v)&&(!t||/^9909/.test(v))};let x='';
+  try{x=localStorage.getItem(K)||''}catch(e){}
+  if(!ok(x)){x='';try{x=sessionStorage.getItem(K)||''}catch(e){}}
+  if(!ok(x))x=t?'9909'+String(Math.floor(Math.random()*1e4)).padStart(4,'0'):String(Math.floor(Math.random()*1e8)).padStart(8,'0');
+  try{localStorage.setItem(K,x)}catch(e){}try{sessionStorage.setItem(K,x)}catch(e){}return x})();
 function osName(){const u=navigator.userAgent||'';if(/iPad|iPhone|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))return 'iOS';if(/Android/.test(u))return 'Android';return 'PC'}
 function uaFamily(){const u=navigator.userAgent||'';if(/musical_ly|trill|Bytedance|TTWebView/.test(u))return 'tiktok';if(/ Line\//.test(u))return 'line';if(/Instagram/.test(u))return 'instagram';if(/FBAN|FBAV/.test(u))return 'facebook';if(/; wv\)/.test(u))return 'wv';return 'browser'}
 // 送信の失敗は握りつぶす。画面の動きは待たせない（sendBeacon → だめなら fetch keepalive）
