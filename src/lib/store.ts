@@ -13,11 +13,22 @@ export const STORE_LINKS = {
     ios: 'https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&ct=mietore_site_download&mt=8',
     android: 'https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja&referrer=utm_source%3Dmietore_site%26utm_campaign%3Ddownload',
   },
+  // 7日チャレンジ（社内テスト）。LP /banner/demo/lp7/ のストアのリンクと同じ。LINE の返事からは /app?c=lp7_demo（TASK-I16-20261119-005）
+  lp7_demo: {
+    ios: 'https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&ct=lp7_demo&mt=8',
+    android: 'https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja&referrer=utm_source%3Dexit_banner%26utm_campaign%3Dlp7_demo',
+  },
 } as const;
 
-export function storeUrlFor(ua: string | null): string {
+// /app?c=<入口の名前> で使ってよい名前（TASK-I16-20261119-005）。ここに無い名前・c なしは、今までどおり exit_banner_app。
+// c の値は表から引くだけで、行き先の URL には入れない。
+const APP_ENTRIES: readonly (keyof typeof STORE_LINKS)[] = ['lp7_demo'];
+
+export function storeUrlFor(ua: string | null, entry?: string | null): string {
+  const key = APP_ENTRIES.find((name) => name === entry) ?? 'exit_banner_app';
+  const links = STORE_LINKS[key];
   if (!ua) return '/download';
-  if (/iPhone|iPad|iPod/i.test(ua)) return STORE_LINKS.exit_banner_app.ios;
-  if (/Android/i.test(ua)) return STORE_LINKS.exit_banner_app.android;
+  if (/iPhone|iPad|iPod/i.test(ua)) return links.ios;
+  if (/Android/i.test(ua)) return links.android;
   return '/download';
 }

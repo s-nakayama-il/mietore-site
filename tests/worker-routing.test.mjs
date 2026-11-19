@@ -78,6 +78,51 @@ test('/app はクエリ付きでも app.ts（302）', async () => {
   assert.equal(assets.length, 0);
 });
 
+// /app?c=<入口の名前>（TASK-I16-20261119-005）
+const UA_IPAD = 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
+const UA_PC = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
+const EXIT_IOS = 'https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&ct=exit_banner_app&mt=8';
+const EXIT_PLAY = 'https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja&referrer=utm_source%3Dexit_banner%26utm_campaign%3Dapp';
+const LP7_IOS = 'https://apps.apple.com/app/apple-store/id6738352362?pt=126888813&ct=lp7_demo&mt=8';
+const LP7_PLAY = 'https://play.google.com/store/apps/details?id=com.ilinksnet.gabor&hl=ja&referrer=utm_source%3Dexit_banner%26utm_campaign%3Dlp7_demo';
+const DOWNLOAD = 'https://mietore.site/download';
+
+async function appLocation(path, ua, method = 'GET') {
+  const { env, assets } = makeEnv();
+  const headers = ua ? { 'user-agent': ua } : {};
+  const res = await worker.fetch(req(path, { method, headers }), env, ctx);
+  assert.equal(res.status, 302, path);
+  assert.equal(assets.length, 0, path);
+  return res.headers.get('location');
+}
+
+test('/app?c=lp7_demo は機種でストアへ（全メソッド・302）', async () => {
+  for (const path of ['/app?c=lp7_demo', '/app?c=lp7_demo&openExternalBrowser=1', '/app?openExternalBrowser=1&c=lp7_demo', '/app?src=line&c=lp7_demo']) {
+    for (const method of ['GET', 'HEAD', 'POST']) {
+      assert.equal(await appLocation(path, UA_IPHONE, method), LP7_IOS, `${method} ${path}`);
+    }
+    assert.equal(await appLocation(path, UA_IPAD), LP7_IOS, path);
+    assert.equal(await appLocation(path, UA_ANDROID), LP7_PLAY, path);
+    assert.equal(await appLocation(path, UA_PC), DOWNLOAD, path);
+    assert.equal(await appLocation(path, null), DOWNLOAD, path);
+  }
+});
+
+test('/app の c なし・表に無い c は今までどおり（exit_banner_app・/download）', async () => {
+  const paths = [
+    '/app', '/app?src=header', '/app?c=', '/app?c=nope', '/app?c=LP7_DEMO', '/app?c=lp7_demo%20', '/app?c=lp7%5Fdemo%3Bx',
+    '/app?c=https%3A%2F%2Fevil.example%2F', `/app?c=${'x'.repeat(500)}`, '/app?c=exit_banner_app', '/app?c=mietore_site_download',
+    '/app?c=__proto__', '/app?c=constructor', '/app?openExternalBrowser=1',
+  ];
+  for (const path of paths) {
+    assert.equal(await appLocation(path, UA_IPHONE), EXIT_IOS, path);
+    assert.equal(await appLocation(path, UA_IPAD), EXIT_IOS, path);
+    assert.equal(await appLocation(path, UA_ANDROID), EXIT_PLAY, path);
+    assert.equal(await appLocation(path, UA_PC), DOWNLOAD, path);
+    assert.equal(await appLocation(path, null), DOWNLOAD, path);
+  }
+});
+
 test('/mm/track は OPTIONS・GET・HEAD で 204・INSERT なし', async () => {
   for (const method of ['OPTIONS', 'GET', 'HEAD']) {
     const { env, db, assets } = makeEnv();
