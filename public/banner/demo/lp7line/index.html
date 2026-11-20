@@ -440,7 +440,9 @@ FGO.addEventListener('click',e=>{const a=e.target.closest('a,button');if(!a)retu
 addEventListener('pageshow',e=>{if(e.persisted)TOAST.style.display='none'});
 // 順 5 の 5 つの文は、画面に入ってから動き出す
 if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){S5.classList.add('run');io.disconnect()}},{threshold:.3});io.observe(S5)}else S5.classList.add('run');
-track('lp_view','');sbarUpdate();
+// 診断から来た印：from は英数字 8 文字まで、b は数字 8 桁のときだけ使う。無ければ空のまま
+const FROM=(function(){const q=new URLSearchParams(location.search),f=q.get('from')||'',b=q.get('b')||'',r=[];if(/^[A-Za-z0-9]{1,8}$/.test(f))r.push('from='+f);if(/^\d{8}$/.test(b))r.push('b='+b);return r.join(';')})();
+track('lp_view',FROM);sbarUpdate();
 
 </script>
 </body>

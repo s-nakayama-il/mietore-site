@@ -100,6 +100,7 @@
       alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u308b\uff1f \u898b\u3048\u305f\u6570\u5b57\u3092\u30bf\u30c3\u30d7' },
     { id: 'I', v: 'banner-20261116-I', pre: 'banner_C2_20261023_', dest: 'check_h', cls: 'c2', layers: ['base', 'edge', 'mid'], choices: ['4682', '4687', '9682', '4632'],
       alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u307e\u3059\u304b\uff1f \u898b\u3048\u305f\u6570\u5b57\u3092\u30bf\u30c3\u30d7' },
+    { id: 'J', v: 'banner-20261120-J', pre: 'banner_C2_20261023_', dest: 'check_h', cls: 'c2', layers: ['base', 'edge', 'mid'], choices: ['4682', '4687', '9682', '4632'], alt: '\u3053\u306e\u6570\u5b57\u3001\u898b\u3048\u307e\u3059\u304b\uff1f \u898b\u3048\u305f\u6570\u5b57\u3092\u30bf\u30c3\u30d7' },
     { id: 'A7', v: 'banner-20261008-A7', pre: 'banner_A7_20261008_', dest: 'app',
       layers: ['base', 'head', 'ring', 'stamps', 'coin', 'picture'],
       alt: '\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u7121\u6599\u30027\u65e5\u9023\u7d9a\u30671\u65e51\u56de\u30b2\u30fc\u30e0\u3092\u30af\u30ea\u30a2\u3059\u308b\u3068\uff081\u65e53\u5206\uff09\u3001\u3075\u304f\u3075\u304f\u30dd\u30a4\u30f3\u30c81000\u30dd\u30a4\u30f3\u30c8\u30021000\u30dd\u30a4\u30f3\u30c8\u3067\u30a2\u30b5\u30a4\u30d9\u30ea\u30fc\u30d7\u30e9\u30c1\u30ca\u30a2\u30a41\u3064\u30015,280\u5186(\u7a0e\u8fbc)\u304c\u7121\u6599\u3002\u7121\u6599\u30a2\u30d7\u30ea\u3067\u3001\u306f\u3058\u3081\u308b' }

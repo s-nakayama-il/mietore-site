@@ -9,7 +9,7 @@ export const ALLOWED_EVENTS = [
   'banner_view', 'banner_tap', 'banner_close',
   'check_start', 'check_answer', 'check_result',
   // トレーニング見学の表示（2026-10-26、TASK-I16-20261026-016）
-  'rule_view', 'training_view', 'trial_start', 'trial_clear', 'cta_store', 'cta_seen',
+  'rule_view', 'training_view', 'trial_start', 'trial_clear', 'cta_store', 'cta_seen', 'cta_lp7',
   // LP「7日チャレンジ」専用（2026-11-19、TASK-I16-20261119-001）。バナー・メルマガの集計に混ざらないよう既存の名前は使わない
   'lp_view', 'lp_cta', 'age_answer', 'age_nudge', 'lp_store', 'lp_line',
 ];
